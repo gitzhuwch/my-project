@@ -1,0 +1,17 @@
+#!/usr/bin/expect
+
+spawn scp ./boot.img root@[lindex $argv 0]:/tmp/
+expect "password"
+send "rockchip\r"
+expect *$
+spawn ssh $ip
+expect "password"
+send "rockchip\r"
+expect "*#"
+send "dd if=/tmp/boot.img of=/dev/mmcblk[lindex $argv 1]p4\r"
+expect "*#"
+send "sync\r"
+expect "*#"
+send "reboot\r"
+expect "*$"
+exit

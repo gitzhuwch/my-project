@@ -1,0 +1,5 @@
+#!/usr/bin/expect
+spawn ssh root@10.3.153.96
+expect "password:"
+send "rockchip\r"
+interact

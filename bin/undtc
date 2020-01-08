@@ -1,0 +1,1 @@
+dtc -I dtb -O dts -o ./dis.dts arch/arm64/boot/dts/rockchip/rk3399-sapphire-excavator-linux.dtb
