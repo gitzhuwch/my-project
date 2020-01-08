@@ -1,0 +1,7 @@
+set auto-load safe-path / 
+set pagination off 
+set logging file glog.txt 
+set logging overwrite on 
+set logging on 
+set print pretty on 
+set case-sensitive off 

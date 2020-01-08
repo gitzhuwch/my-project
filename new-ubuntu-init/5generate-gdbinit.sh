@@ -1,7 +1,0 @@
-echo "set auto-load safe-path / "
-echo "set pagination off "
-echo "set logging file glog.txt "
-echo "set logging overwrite on "
-echo "set logging on "
-echo "set print pretty on "
-echo "set case-sensitive off "
