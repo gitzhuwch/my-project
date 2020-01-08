@@ -4,7 +4,7 @@ spawn scp ./boot.img root@[lindex $argv 0]:/tmp/
 expect "password"
 send "rockchip\r"
 expect *$
-spawn ssh $ip
+spawn ssh root@[lindex $argv 0]
 expect "password"
 send "rockchip\r"
 expect "*#"
