@@ -17,6 +17,12 @@
 #	add-ons:search flash->
 #vim-scripts config:
 #	cp -rf /usr/share/vim-scripts/ ~/.vim/
+#gnome-control-center config:
+#	----
+#gnome-tweaks config:
+#	----
+#update-manager config:
+#	----
 
 mkdir ~/work
 mkdir ~/bin
