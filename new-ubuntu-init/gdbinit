@@ -5,3 +5,6 @@ set logging overwrite on
 set logging on 
 set print pretty on 
 set case-sensitive off 
+
+#include /kernel-path/Documentation/kdump/gdbmacros.txt
+#CONFIG_GDB_SCRIPTS=y to generate /kernel-path/vmlinux-gdb.py
