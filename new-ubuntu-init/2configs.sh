@@ -23,8 +23,10 @@
 #	----
 #update-manager config:
 #	----
-
+#nfs-kernel-server config:
+#	----
 mkdir ~/work
 mkdir ~/bin
 mkdir ~/note
 mkdir ~/temp
+mkdir ~/nfs
