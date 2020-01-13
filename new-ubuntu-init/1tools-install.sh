@@ -33,3 +33,4 @@ sudo apt -y install vim-scripts
 
 sudo apt -y install cmake
 sudo apt -y install gnome-tweaks #hide mounted disk icon on desktop
+sudo apt -y install nfs-kernel-server
