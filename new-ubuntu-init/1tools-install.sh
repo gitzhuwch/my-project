@@ -36,4 +36,4 @@ sudo apt -y install gnome-tweaks #hide mounted disk icon on desktop
 
 sudo apt -y install nfs-kernel-server
 
-sudo apt install ffmpeg #preview yuv data
+sudo apt -y install ffmpeg #preview yuv data
