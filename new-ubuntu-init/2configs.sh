@@ -24,7 +24,7 @@
 #update-manager config:
 #	----
 #nfs-kernel-server config:
-#	----
+#	echo "/home/user/nfs *(rw,sync,no_root_squash)" > /etc/exports
 mkdir ~/work
 mkdir ~/bin
 mkdir ~/note
