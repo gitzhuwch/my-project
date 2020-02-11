@@ -25,6 +25,10 @@
 #	----
 #nfs-kernel-server config:
 #	echo "/home/user/nfs *(rw,sync,no_root_squash)" > /etc/exports
+#everytime bootup show "System program problem detected" resolvent
+#	sudo vim /etc/default/apport modfy "enable=0"
+#windows(LTC) and ubuntu(UTC+8) double system time error
+#	modify windows regedit
 mkdir ~/work
 mkdir ~/bin
 mkdir ~/note
