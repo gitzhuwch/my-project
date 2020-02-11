@@ -18,6 +18,9 @@ sudo apt -y install device-tree-compiler #dtc compile dts
 sudo apt -y install libncurses5-dev #make menuconfig
 sudo apt -y install libssl-dev
 sudo apt -y install liblz4-tool
+#for build linux 5.5
+sudo apt -y install flex
+sudo apt -y install bison
 #for uboot tools
 sudo apt -y install u-boot-tools
 
