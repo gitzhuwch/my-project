@@ -1,0 +1,301 @@
+execve("/usr/bin/v4l2-ctl", ["v4l2-ctl", "-d", "/dev/video10", "--stream-mmap=4", "--stream-to=/tmp/cif0.out", "--stream-count=20", "--stream-poll", "--set-fmt-video=width=640,height"...], 0x7fd32dee28 /* 12 vars */) = 0
+brk(NULL)                               = 0x24a63000
+faccessat(AT_FDCWD, "/etc/ld.so.preload", R_OK) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=20528, ...}) = 0
+mmap(NULL, 20528, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7fa9f18000
+close(3)                                = 0
+openat(AT_FDCWD, "/usr/lib/libv4l2.so.0", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0\267\0\1\0\0\0\20 \0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=51624, ...}) = 0
+mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fa9f16000
+mmap(NULL, 115576, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7fa9ed6000
+mprotect(0x7fa9ede000, 61440, PROT_NONE) = 0
+mmap(0x7fa9eed000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x7000) = 0x7fa9eed000
+close(3)                                = 0
+openat(AT_FDCWD, "/lib/libdl.so.2", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0\267\0\1\0\0\0\220\16\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=14328, ...}) = 0
+mmap(NULL, 78072, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7fa9ec2000
+mprotect(0x7fa9ec4000, 65536, PROT_NONE) = 0
+mmap(0x7fa9ed4000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2000) = 0x7fa9ed4000
+close(3)                                = 0
+openat(AT_FDCWD, "/usr/lib/libv4lconvert.so.0", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0\267\0\1\0\0\0\3204\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=121488, ...}) = 0
+mmap(NULL, 521760, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7fa9e42000
+mprotect(0x7fa9e5d000, 65536, PROT_NONE) = 0
+mmap(0x7fa9e6d000, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1b000) = 0x7fa9e6d000
+mmap(0x7fa9e70000, 333344, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7fa9e70000
+close(3)                                = 0
+openat(AT_FDCWD, "/usr/lib/libjpeg.so.62", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0\267\0\1\0\0\0@C\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=219624, ...}) = 0
+mmap(NULL, 283352, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7fa9dfc000
+mprotect(0x7fa9e30000, 65536, PROT_NONE) = 0
+mmap(0x7fa9e40000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x34000) = 0x7fa9e40000
+close(3)                                = 0
+openat(AT_FDCWD, "/lib/librt.so.1", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0\267\0\1\0\0\0\20\36\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=27328, ...}) = 0
+mmap(NULL, 90912, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7fa9de5000
+mprotect(0x7fa9deb000, 61440, PROT_NONE) = 0
+mmap(0x7fa9dfa000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x5000) = 0x7fa9dfa000
+close(3)                                = 0
+openat(AT_FDCWD, "/lib/libpthread.so.0", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0\267\0\1\0\0\0\220d\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=143944, ...}) = 0
+mmap(NULL, 185360, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7fa9db7000
+mprotect(0x7fa9dcf000, 65536, PROT_NONE) = 0
+mmap(0x7fa9ddf000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x18000) = 0x7fa9ddf000
+mmap(0x7fa9de1000, 13328, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7fa9de1000
+close(3)                                = 0
+openat(AT_FDCWD, "/usr/lib/libstdc++.so.6", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0\267\0\1\0\0\0\240\31\t\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=1313312, ...}) = 0
+mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fa9f14000
+mmap(NULL, 1390376, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7fa9c63000
+mprotect(0x7fa9d96000, 65536, PROT_NONE) = 0
+mmap(0x7fa9da6000, 57344, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x133000) = 0x7fa9da6000
+mmap(0x7fa9db4000, 10024, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7fa9db4000
+close(3)                                = 0
+openat(AT_FDCWD, "/lib/libm.so.6", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0\267\0\1\0\0\0\340\267\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=591808, ...}) = 0
+mmap(NULL, 655472, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7fa9bc2000
+mprotect(0x7fa9c51000, 65536, PROT_NONE) = 0
+mmap(0x7fa9c61000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x8f000) = 0x7fa9c61000
+close(3)                                = 0
+openat(AT_FDCWD, "/lib/libgcc_s.so.1", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0\267\0\1\0\0\0\260(\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=63656, ...}) = 0
+mmap(NULL, 128072, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7fa9ba2000
+mprotect(0x7fa9bb1000, 61440, PROT_NONE) = 0
+mmap(0x7fa9bc0000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xe000) = 0x7fa9bc0000
+close(3)                                = 0
+openat(AT_FDCWD, "/lib/libc.so.6", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0\267\0\1\0\0\0\200\r\2\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=1300376, ...}) = 0
+mmap(NULL, 1372288, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7fa9a52000
+mprotect(0x7fa9b89000, 61440, PROT_NONE) = 0
+mmap(0x7fa9b98000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x136000) = 0x7fa9b98000
+mmap(0x7fa9b9e000, 12416, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7fa9b9e000
+close(3)                                = 0
+mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fa9f12000
+mprotect(0x7fa9b98000, 16384, PROT_READ) = 0
+mprotect(0x7fa9bc0000, 4096, PROT_READ) = 0
+mprotect(0x7fa9c61000, 4096, PROT_READ) = 0
+mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fa9f10000
+mprotect(0x7fa9da6000, 40960, PROT_READ) = 0
+mprotect(0x7fa9ddf000, 4096, PROT_READ) = 0
+mprotect(0x7fa9dfa000, 4096, PROT_READ) = 0
+mprotect(0x7fa9e40000, 4096, PROT_READ) = 0
+mprotect(0x7fa9e6d000, 8192, PROT_READ) = 0
+mprotect(0x7fa9ed4000, 4096, PROT_READ) = 0
+mprotect(0x7fa9eed000, 4096, PROT_READ) = 0
+mprotect(0x454000, 4096, PROT_READ)     = 0
+mprotect(0x7fa9f20000, 4096, PROT_READ) = 0
+munmap(0x7fa9f18000, 20528)             = 0
+set_tid_address(0x7fa9f12d70)           = 821
+set_robust_list(0x7fa9f12d80, 24)       = 0
+rt_sigaction(SIGRTMIN, {sa_handler=0x7fa9dbceb0, sa_mask=[], sa_flags=SA_SIGINFO}, NULL, 8) = 0
+rt_sigaction(SIGRT_1, {sa_handler=0x7fa9dbcfa0, sa_mask=[], sa_flags=SA_RESTART|SA_SIGINFO}, NULL, 8) = 0
+rt_sigprocmask(SIG_UNBLOCK, [RTMIN RT_1], NULL, 8) = 0
+prlimit64(0, RLIMIT_STACK, NULL, {rlim_cur=8192*1024, rlim_max=RLIM64_INFINITY}) = 0
+brk(NULL)                               = 0x24a63000
+brk(0x24a95000)                         = 0x24a95000
+newfstatat(AT_FDCWD, "/dev/video10", {st_mode=S_IFCHR|0660, st_rdev=makedev(81, 14), ...}, 0) = 0
+futex(0x7fa9db45f0, FUTEX_WAKE_PRIVATE, 2147483647) = 0
+futex(0x7fa9db45f4, FUTEX_WAKE_PRIVATE, 2147483647) = 0
+openat(AT_FDCWD, "/sys/dev/char/81:14/uevent", O_RDONLY) = 3
+read(3, "MAJOR=81\nMINOR=14\nDEVNAME=video1"..., 8191) = 34
+close(3)                                = 0
+openat(AT_FDCWD, "/dev/video10", O_RDWR) = 3
+ioctl(3, VIDIOC_QUERYCAP, {driver="uvcvideo", card="USB Camera2", bus_info="usb-xhci-hcd.10.auto-1.2", version=4.4.189, capabilities=V4L2_CAP_VIDEO_CAPTURE|V4L2_CAP_STREAMING|V4L2_CAP_DEVICE_CAPS|V4L2_CAP_EXT_PIX_FORMAT|V4L2_CAP_META_CAPTURE, device_caps=V4L2_CAP_VIDEO_CAPTURE|V4L2_CAP_STREAMING|V4L2_CAP_EXT_PIX_FORMAT}) = 0
+ioctl(3, VIDIOC_QUERY_EXT_CTRL, 0x7fd139da98) = 0
+ioctl(3, VIDIOC_TRY_EXT_CTRLS, {ctrl_class=0 /* V4L2_CTRL_CLASS_??? */, count=0}) = 0
+ioctl(3, VIDIOC_QUERYCTRL, {id=V4L2_CTRL_FLAG_NEXT_CTRL|0 => V4L2_CID_BRIGHTNESS, type=V4L2_CTRL_TYPE_INTEGER, name="Brightness", minimum=-64, maximum=64, step=1, default_value=0, flags=0}) = 0
+ioctl(3, VIDIOC_G_SELECTION, 0x7fd139da10) = -1 EINVAL (Invalid argument)
+ioctl(3, VIDIOC_QUERYCAP, {driver="uvcvideo", card="USB Camera2", bus_info="usb-xhci-hcd.10.auto-1.2", version=4.4.189, capabilities=V4L2_CAP_VIDEO_CAPTURE|V4L2_CAP_STREAMING|V4L2_CAP_DEVICE_CAPS|V4L2_CAP_EXT_PIX_FORMAT|V4L2_CAP_META_CAPTURE, device_caps=V4L2_CAP_VIDEO_CAPTURE|V4L2_CAP_STREAMING|V4L2_CAP_EXT_PIX_FORMAT}) = 0
+fstat(3, {st_mode=S_IFCHR|0660, st_rdev=makedev(81, 14), ...}) = 0
+openat(AT_FDCWD, "/sys/dev/char/81:14/device", O_RDONLY|O_NONBLOCK|O_DIRECTORY|O_CLOEXEC) = 4
+fstat(4, {st_mode=S_IFDIR|0755, st_size=0, ...}) = 0
+getdents64(4, /* 24 entries */, 32768)  = 864
+openat(AT_FDCWD, "/dev/media2", O_RDWR) = 5
+close(4)                                = 0
+ioctl(3, VIDIOC_QUERY_EXT_CTRL, 0x7fd139d9b0) = 0
+ioctl(3, VIDIOC_QUERY_EXT_CTRL, 0x7fd139da98) = 0
+ioctl(3, VIDIOC_QUERY_EXT_CTRL, 0x7fd139da98) = 0
+ioctl(3, VIDIOC_QUERY_EXT_CTRL, 0x7fd139da98) = 0
+ioctl(3, VIDIOC_QUERY_EXT_CTRL, 0x7fd139da98) = 0
+ioctl(3, VIDIOC_QUERY_EXT_CTRL, 0x7fd139da98) = 0
+ioctl(3, VIDIOC_QUERY_EXT_CTRL, 0x7fd139da98) = 0
+ioctl(3, VIDIOC_QUERY_EXT_CTRL, 0x7fd139da98) = 0
+ioctl(3, VIDIOC_QUERY_EXT_CTRL, 0x7fd139da98) = 0
+ioctl(3, VIDIOC_QUERY_EXT_CTRL, 0x7fd139da98) = 0
+ioctl(3, VIDIOC_QUERY_EXT_CTRL, 0x7fd139da98) = 0
+ioctl(3, VIDIOC_QUERY_EXT_CTRL, 0x7fd139da98) = 0
+ioctl(3, VIDIOC_QUERY_EXT_CTRL, 0x7fd139da98) = 0
+ioctl(3, VIDIOC_QUERY_EXT_CTRL, 0x7fd139da98) = 0
+ioctl(3, VIDIOC_QUERY_EXT_CTRL, 0x7fd139da98) = 0
+ioctl(3, VIDIOC_QUERY_EXT_CTRL, 0x7fd139da98) = 0
+ioctl(3, VIDIOC_QUERY_EXT_CTRL, 0x7fd139da98) = 0
+ioctl(3, VIDIOC_QUERY_EXT_CTRL, 0x7fd139da98) = -1 EINVAL (Invalid argument)
+ioctl(3, VIDIOC_G_FMT, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, fmt.pix={width=640, height=480, pixelformat=v4l2_fourcc('Y', 'U', 'Y', 'V'), field=V4L2_FIELD_NONE, bytesperline=1280, sizeimage=614400, colorspace=V4L2_COLORSPACE_SRGB}}) = 0
+ioctl(3, VIDIOC_S_FMT, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, fmt.pix={width=640, height=320, pixelformat=v4l2_fourcc('Y', 'U', 'Y', 'V'), field=V4L2_FIELD_NONE, bytesperline=0, sizeimage=614400, colorspace=V4L2_COLORSPACE_SRGB} => fmt.pix={width=640, height=480, pixelformat=v4l2_fourcc('Y', 'U', 'Y', 'V'), field=V4L2_FIELD_NONE, bytesperline=1280, sizeimage=614400, colorspace=V4L2_COLORSPACE_SRGB}}) = 0
+fcntl(3, F_GETFL)                       = 0x20002 (flags O_RDWR|0x20000)
+ioctl(3, VIDIOC_SUBSCRIBE_EVENT, 0x7fd139b5b8) = -1 EINVAL (Invalid argument)
+ioctl(3, VIDIOC_SUBSCRIBE_EVENT, 0x7fd139b5b8) = -1 EINVAL (Invalid argument)
+ioctl(3, VIDIOC_G_INPUT, [0])           = 0
+ioctl(3, VIDIOC_ENUMINPUT, {index=0, name="Camera 1", type=V4L2_INPUT_TYPE_CAMERA}) = 0
+openat(AT_FDCWD, "/tmp/cif0.out", O_RDWR|O_CREAT|O_TRUNC, 0666) = 4
+ioctl(3, VIDIOC_REQBUFS, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, memory=V4L2_MEMORY_MMAP, count=4 => 4}) = 0
+ioctl(3, VIDIOC_QUERYBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=0, memory=V4L2_MEMORY_MMAP, m.offset=0, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+ioctl(3, VIDIOC_QUERYBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=1, memory=V4L2_MEMORY_MMAP, m.offset=0x96000, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+ioctl(3, VIDIOC_QUERYBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=2, memory=V4L2_MEMORY_MMAP, m.offset=0x12c000, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+ioctl(3, VIDIOC_QUERYBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=3, memory=V4L2_MEMORY_MMAP, m.offset=0x1c2000, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+mmap(NULL, 614400, PROT_READ|PROT_WRITE, MAP_SHARED, 3, 0) = 0x7fa99bc000
+mmap(NULL, 614400, PROT_READ|PROT_WRITE, MAP_SHARED, 3, 0x96000) = 0x7fa9926000
+mmap(NULL, 614400, PROT_READ|PROT_WRITE, MAP_SHARED, 3, 0x12c000) = 0x7fa9890000
+mmap(NULL, 614400, PROT_READ|PROT_WRITE, MAP_SHARED, 3, 0x1c2000) = 0x7fa97fa000
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=0, memory=V4L2_MEMORY_MMAP, m.offset=0, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=1, memory=V4L2_MEMORY_MMAP, m.offset=0x96000, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=2, memory=V4L2_MEMORY_MMAP, m.offset=0x12c000, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=3, memory=V4L2_MEMORY_MMAP, m.offset=0x1c2000, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+ioctl(3, VIDIOC_G_FMT, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, fmt.pix={width=640, height=480, pixelformat=v4l2_fourcc('Y', 'U', 'Y', 'V'), field=V4L2_FIELD_NONE, bytesperline=1280, sizeimage=614400, colorspace=V4L2_COLORSPACE_SRGB}}) = 0
+ioctl(3, VIDIOC_STREAMON, [V4L2_BUF_TYPE_VIDEO_CAPTURE]) = 0
+fcntl(3, F_SETFL, O_RDWR|O_NONBLOCK|0x20000) = 0
+pselect6(4, [3], NULL, [3], {tv_sec=2, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=1, tv_nsec=787080750})
+ioctl(3, VIDIOC_DQBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=0, memory=V4L2_MEMORY_MMAP, m.offset=0, length=614400, bytesused=614400, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, timestamp = {tv_sec=21865, tv_usec=902660}, ...}) = 0
+fstat(4, {st_mode=S_IFREG|0644, st_size=0, ...}) = 0
+write(4, "\35\200\33\200\35\200 \200!\200\36\200\32\200\31\200\31\200\32\200\33\200\35\200!\200#\200 \200\35\200"..., 614400) = 614400
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=0, memory=V4L2_MEMORY_MMAP, m.offset=0, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+write(2, "<", 1)                        = 1
+pselect6(4, [3], NULL, [3], {tv_sec=2, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=1, tv_nsec=998126625})
+ioctl(3, VIDIOC_DQBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=1, memory=V4L2_MEMORY_MMAP, m.offset=0x96000, length=614400, bytesused=614400, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, timestamp = {tv_sec=21866, tv_usec=110819}, ...}) = 0
+write(4, "!\200\37\200 \200\"\200#\200\"\200 \200\35\200\33\200\33\200\35\200\36\200!\200#\200&\200&\200"..., 4096) = 4096
+write(4, " \200\37\200\37\200 \200 \200\37\200\34\200\33\200\35\200\37\200\37\200\36\200\35\200\35\200\35\200\36\200"..., 610304) = 610304
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=1, memory=V4L2_MEMORY_MMAP, m.offset=0x96000, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+write(2, "<", 1)                        = 1
+pselect6(4, [3], NULL, [3], {tv_sec=2, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=1, tv_nsec=970028625})
+ioctl(3, VIDIOC_DQBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=2, memory=V4L2_MEMORY_MMAP, m.offset=0x12c000, length=614400, bytesused=614400, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, timestamp = {tv_sec=21866, tv_usec=146681}, ...}) = 0
+write(4, "!\200\"\200!\200 \200!\200#\200\"\200!\200\"\200$\200(\200(\200#\200 \200 \200 \200"..., 4096) = 4096
+write(4, "#\200!\200\36\200\36\200\37\200\37\200\37\200\36\200\36\200\37\200 \200 \200\36\200\35\200\36\200\37\200"..., 610304) = 610304
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=2, memory=V4L2_MEMORY_MMAP, m.offset=0x12c000, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+write(2, "<", 1)                        = 1
+pselect6(4, [3], NULL, [3], {tv_sec=2, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=1, tv_nsec=976361875})
+ioctl(3, VIDIOC_DQBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=3, memory=V4L2_MEMORY_MMAP, m.offset=0x1c2000, length=614400, bytesused=614400, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, timestamp = {tv_sec=21866, tv_usec=178676}, ...}) = 0
+write(4, "\32\200\32\200\35\200 \200 \200!\200%\200$\200 \200 \200\36\200\37\200\"\200$\200\"\200 \200"..., 4096) = 4096
+write(4, "\34\200\34\200\35\200\35\200\35\200\36\200\36\200\35\200\36\200 \200 \200\36\200\34\200\35\200\36\200\36\200"..., 610304) = 610304
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=3, memory=V4L2_MEMORY_MMAP, m.offset=0x1c2000, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+write(2, "<", 1)                        = 1
+pselect6(4, [3], NULL, [3], {tv_sec=2, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=1, tv_nsec=976853625})
+ioctl(3, VIDIOC_DQBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=0, memory=V4L2_MEMORY_MMAP, m.offset=0, length=614400, bytesused=614400, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, timestamp = {tv_sec=21866, tv_usec=210718}, ...}) = 0
+write(4, "\36\200\34\200\32\200\33\200\33\200\33\200\33\200\32\200\32\200\33\200\35\200 \200$\200%\200 \200\34\200"..., 4096) = 4096
+write(4, "\34\200\37\200!\200 \200\35\200\33\200\33\200\34\200\37\200!\200 \200\35\200\33\200\33\200\34\200\34\200"..., 610304) = 610304
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=0, memory=V4L2_MEMORY_MMAP, m.offset=0, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+write(2, "<", 1)                        = 1
+pselect6(4, [3], NULL, [3], {tv_sec=2, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=1, tv_nsec=976884250})
+ioctl(3, VIDIOC_DQBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=1, memory=V4L2_MEMORY_MMAP, m.offset=0x96000, length=614400, bytesused=614400, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, timestamp = {tv_sec=21866, tv_usec=242733}, ...}) = 0
+write(4, "\36\200 \200#\200(\200&\200$\200&\200&\200#\200$\200$\200 \200\"\200$\200!\200\37\200"..., 4096) = 4096
+write(4, "\35\200\35\200\35\200\36\200!\200\"\200 \200\37\200!\200#\200#\200 \200\37\200\"\200$\200$\200"..., 610304) = 610304
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=1, memory=V4L2_MEMORY_MMAP, m.offset=0x96000, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+write(2, "<", 1)                        = 1
+pselect6(4, [3], NULL, [3], {tv_sec=2, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=1, tv_nsec=976873750})
+ioctl(3, VIDIOC_DQBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=2, memory=V4L2_MEMORY_MMAP, m.offset=0x12c000, length=614400, bytesused=614400, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, timestamp = {tv_sec=21866, tv_usec=274766}, ...}) = 0
+write(4, "#\200\"\200!\200\"\200!\200\37\200\35\200\33\200\33\200\35\200\35\200\36\200\37\200 \200\"\200\"\200"..., 4096) = 4096
+write(4, "$\200#\200$\200%\200%\200\"\200\37\200\36\200\35\200\34\200\33\200\34\200\35\200\36\200\36\200\37\200"..., 610304) = 610304
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=2, memory=V4L2_MEMORY_MMAP, m.offset=0x12c000, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+write(2, "<", 1)                        = 1
+pselect6(4, [3], NULL, [3], {tv_sec=2, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=1, tv_nsec=972833875})
+ioctl(3, VIDIOC_DQBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=3, memory=V4L2_MEMORY_MMAP, m.offset=0x1c2000, length=614400, bytesused=614400, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, timestamp = {tv_sec=21866, tv_usec=310670}, ...}) = 0
+write(4, "$\200#\200$\200#\200#\200%\200%\200#\200 \200!\200%\200%\200&\200,\200.\200(\200"..., 4096) = 4096
+write(4, " \200 \200\"\200\"\200 \200\36\200\36\200\36\200\36\200\35\200\35\200\34\200\35\200\36\200\36\200\36\200"..., 610304) = 610304
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=3, memory=V4L2_MEMORY_MMAP, m.offset=0x1c2000, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+write(2, "<", 1)                        = 1
+pselect6(4, [3], NULL, [3], {tv_sec=2, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=1, tv_nsec=976922750})
+ioctl(3, VIDIOC_DQBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=0, memory=V4L2_MEMORY_MMAP, m.offset=0, length=614400, bytesused=614400, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, timestamp = {tv_sec=21866, tv_usec=342698}, ...}) = 0
+write(4, "\36\200 \200#\200$\200\"\200\"\200$\200%\200$\200$\200&\200\"\200 \200#\200$\200\"\200"..., 4096) = 4096
+write(4, "&\200$\200#\200$\200$\200\"\200\37\200\37\200!\200 \200\36\200\36\200\36\200\35\200\36\200\36\200"..., 610304) = 610304
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=0, memory=V4L2_MEMORY_MMAP, m.offset=0, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+write(2, "<", 1)                        = 1
+pselect6(4, [3], NULL, [3], {tv_sec=2, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=1, tv_nsec=973568292})
+ioctl(3, VIDIOC_DQBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=1, memory=V4L2_MEMORY_MMAP, m.offset=0x96000, length=614400, bytesused=614400, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, timestamp = {tv_sec=21866, tv_usec=374731}, ...}) = 0
+write(4, "#\200#\200\"\200$\200#\200\36\200\35\200!\200'\200*\200%\200\35\200\32\200\33\200\36\200\37\200"..., 4096) = 4096
+write(4, "\34\200\35\200\36\200\37\200\37\200\37\200\36\200\36\200 \200!\200\37\200\35\200\37\200\37\200\36\200\36\200"..., 610304) = 610304
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=1, memory=V4L2_MEMORY_MMAP, m.offset=0x96000, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+write(2, "<", 1)                        = 1
+pselect6(4, [3], NULL, [3], {tv_sec=2, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=1, tv_nsec=972315000})
+ioctl(3, VIDIOC_DQBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=2, memory=V4L2_MEMORY_MMAP, m.offset=0x12c000, length=614400, bytesused=614400, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, timestamp = {tv_sec=21866, tv_usec=406754}, ...}) = 0
+write(4, "\35\200\33\200\35\200\37\200\37\200 \200 \200 \200!\200#\200$\200$\200 \200 \200 \200\35\200"..., 4096) = 4096
+write(4, "\35\200\37\200!\200\"\200\37\200\36\200\35\200\35\200\37\200\37\200\36\200\36\200 \200#\200#\200$\200"..., 610304) = 610304
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=2, memory=V4L2_MEMORY_MMAP, m.offset=0x12c000, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+write(2, "<", 1)                        = 1
+pselect6(4, [3], NULL, [3], {tv_sec=2, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=1, tv_nsec=973926166})
+ioctl(3, VIDIOC_DQBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=3, memory=V4L2_MEMORY_MMAP, m.offset=0x1c2000, length=614400, bytesused=614400, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, timestamp = {tv_sec=21866, tv_usec=438803}, ...}) = 0
+write(4, "!\200#\200&\200(\200$\200!\200!\200!\200 \200!\200#\200&\200'\200&\200&\200%\200"..., 4096) = 4096
+write(4, "\"\200#\200#\200!\200\37\200\36\200\35\200\34\200\34\200\35\200\37\200\37\200\36\200\35\200\34\200\35\200"..., 610304) = 610304
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=3, memory=V4L2_MEMORY_MMAP, m.offset=0x1c2000, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+write(2, "<", 1)                        = 1
+pselect6(4, [3], NULL, [3], {tv_sec=2, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=1, tv_nsec=974664084})
+ioctl(3, VIDIOC_DQBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=0, memory=V4L2_MEMORY_MMAP, m.offset=0, length=614400, bytesused=614400, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, timestamp = {tv_sec=21866, tv_usec=474707}, ...}) = 0
+write(4, "!\200$\200$\200%\200$\200\"\200#\200&\200*\200,\200'\200!\200 \200\36\200\36\200\"\200"..., 4096) = 4096
+write(4, "%\200&\200&\200$\200#\200!\200\36\200\35\200\36\200 \200!\200!\200!\200!\200\"\200!\200"..., 610304) = 610304
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=0, memory=V4L2_MEMORY_MMAP, m.offset=0, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+write(2, "<", 1)                        = 1
+pselect6(4, [3], NULL, [3], {tv_sec=2, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=1, tv_nsec=976782458})
+ioctl(3, VIDIOC_DQBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=1, memory=V4L2_MEMORY_MMAP, m.offset=0x96000, length=614400, bytesused=614400, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, timestamp = {tv_sec=21866, tv_usec=506730}, ...}) = 0
+write(4, " \200\37\200 \200\"\200!\200!\200 \200\37\200\"\200#\200\"\200#\200'\200(\200&\200$\200"..., 4096) = 4096
+write(4, "\"\200\37\200\36\200\36\200\37\200\36\200\36\200\36\200!\200$\200#\200\37\200\35\200\35\200\37\200!\200"..., 610304) = 610304
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=1, memory=V4L2_MEMORY_MMAP, m.offset=0x96000, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+write(2, "<", 1)                        = 1
+pselect6(4, [3], NULL, [3], {tv_sec=2, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=1, tv_nsec=976690000})
+ioctl(3, VIDIOC_DQBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=2, memory=V4L2_MEMORY_MMAP, m.offset=0x12c000, length=614400, bytesused=614400, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, timestamp = {tv_sec=21866, tv_usec=538775}, ...}) = 0
+write(4, "%\200$\200$\200'\200)\200'\200'\200%\200\"\200 \200\36\200\37\200\37\200!\200\"\200\37\200"..., 4096) = 4096
+write(4, "#\200\"\200!\200!\200\"\200$\200$\200\"\200\"\200#\200\37\200\34\200\32\200\32\200\32\200\33\200"..., 610304) = 610304
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=2, memory=V4L2_MEMORY_MMAP, m.offset=0x12c000, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+write(2, "<", 1)                        = 1
+pselect6(4, [3], NULL, [3], {tv_sec=2, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=1, tv_nsec=976950167})
+ioctl(3, VIDIOC_DQBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=3, memory=V4L2_MEMORY_MMAP, m.offset=0x1c2000, length=614400, bytesused=614400, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, timestamp = {tv_sec=21866, tv_usec=570802}, ...}) = 0
+write(4, "!\200\37\200!\200$\200%\200#\200 \200\36\200 \200'\200)\200&\200\37\200\35\200\37\200$\200"..., 4096) = 4096
+write(4, "\"\200\"\200!\200\36\200\34\200\33\200\34\200\34\200\35\200\35\200\34\200\34\200\34\200\33\200\32\200\34\200"..., 610304) = 610304
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=3, memory=V4L2_MEMORY_MMAP, m.offset=0x1c2000, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+write(2, "<", 1)                        = 1
+pselect6(4, [3], NULL, [3], {tv_sec=2, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=1, tv_nsec=976870833})
+ioctl(3, VIDIOC_DQBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=0, memory=V4L2_MEMORY_MMAP, m.offset=0, length=614400, bytesused=614400, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, timestamp = {tv_sec=21866, tv_usec=602836}, ...}) = 0
+write(4, "\37\200 \200\"\200\"\200\"\200\"\200!\200!\200!\200\37\200\37\200 \200$\200%\200!\200\37\200"..., 4096) = 4096
+write(4, "\36\200\37\200 \200 \200\37\200\36\200\34\200\34\200 \200%\200$\200 \200 \200\"\200#\200!\200"..., 610304) = 610304
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=0, memory=V4L2_MEMORY_MMAP, m.offset=0, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+write(2, "<", 1)                        = 1
+pselect6(4, [3], NULL, [3], {tv_sec=2, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=1, tv_nsec=974324292})
+ioctl(3, VIDIOC_DQBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=1, memory=V4L2_MEMORY_MMAP, m.offset=0x96000, length=614400, bytesused=614400, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, timestamp = {tv_sec=21866, tv_usec=638696}, ...}) = 0
+write(4, "\"\200\"\200%\200&\200&\200%\200$\200 \200\36\200 \200\"\200#\200\"\200\"\200#\200#\200"..., 4096) = 4096
+write(4, " \200\36\200\37\200!\200\37\200\33\200\32\200\32\200\34\200\36\200\34\200\32\200\34\200\35\200\35\200\35\200"..., 610304) = 610304
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=1, memory=V4L2_MEMORY_MMAP, m.offset=0x96000, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+write(2, "<", 1)                        = 1
+pselect6(4, [3], NULL, [3], {tv_sec=2, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=1, tv_nsec=976931209})
+ioctl(3, VIDIOC_DQBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=2, memory=V4L2_MEMORY_MMAP, m.offset=0x12c000, length=614400, bytesused=614400, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, timestamp = {tv_sec=21866, tv_usec=670733}, ...}) = 0
+write(4, "\36\200 \200 \200\36\200\35\200\37\200\37\200\35\200\33\200\34\200\37\200$\200*\200'\200!\200\36\200"..., 4096) = 4096
+write(4, "%\200#\200 \200\36\200\37\200 \200\36\200\35\200!\200$\200\"\200\37\200\37\200\37\200\37\200\37\200"..., 610304) = 610304
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=2, memory=V4L2_MEMORY_MMAP, m.offset=0x12c000, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+write(2, "<", 1)                        = 1
+pselect6(4, [3], NULL, [3], {tv_sec=2, tv_nsec=0}, NULL) = 1 (in [3], left {tv_sec=1, tv_nsec=976662875})
+ioctl(3, VIDIOC_DQBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=3, memory=V4L2_MEMORY_MMAP, m.offset=0x1c2000, length=614400, bytesused=614400, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, timestamp = {tv_sec=21866, tv_usec=702763}, ...}) = 0
+write(4, "!\200!\200\37\200\36\200\36\200\35\200\34\200\33\200\34\200\36\200\36\200\35\200 \200#\200!\200\37\200"..., 4096) = 4096
+write(4, "!\200\"\200$\200$\200 \200\35\200\33\200\32\200\34\200\35\200\36\200!\200$\200#\200!\200\"\200"..., 610304) = 610304
+ioctl(3, VIDIOC_QBUF, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, index=3, memory=V4L2_MEMORY_MMAP, m.offset=0x1c2000, length=614400, bytesused=0, flags=V4L2_BUF_FLAG_MAPPED|V4L2_BUF_FLAG_QUEUED|V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC|V4L2_BUF_FLAG_TSTAMP_SRC_SOE, ...}) = 0
+write(2, "<", 1)                        = 1
+ioctl(3, VIDIOC_STREAMOFF, [V4L2_BUF_TYPE_VIDEO_CAPTURE]) = 0
+fcntl(3, F_SETFL, O_RDWR|0x20000)       = 0
+write(2, "\n", 1)                       = 1
+ioctl(3, VIDIOC_STREAMOFF, [V4L2_BUF_TYPE_VIDEO_CAPTURE]) = 0
+munmap(0x7fa99bc000, 614400)            = 0
+munmap(0x7fa9926000, 614400)            = 0
+munmap(0x7fa9890000, 614400)            = 0
+munmap(0x7fa97fa000, 614400)            = 0
+ioctl(3, VIDIOC_REQBUFS, {type=V4L2_BUF_TYPE_VIDEO_CAPTURE, memory=V4L2_MEMORY_MMAP, count=0 => 0}) = 0
+close(4)                                = 0
+close(3)                                = 0
+close(5)                                = 0
+exit_group(0)                           = ?
++++ exited with 0 +++
