@@ -1,10 +1,13 @@
+---------------------------
 username:wanchao-zhu
 password:oahcnawuhz123
 
+---------------------------
 .gdbinit config
 #include /kernel-path/Documentation/kdump/gdbmacros.txt
 #CONFIG_GDB_SCRIPTS=y to generate /kernel-path/vmlinux-gdb.py
 
+---------------------------
  一、apt-get 安装
 deb是debian linus的安装格式，跟red hat的rpm非常相似，最基本的安装命令是：dpkg -i file.deb或者直接双击此文件
 dpkg 是Debian Package的简写，是为Debian 专门开发的套件管理系统，方便软件的安装、更新及移除。所有源自Debian的Linux发行版都使用dpkg，例如Ubuntu、Knoppix 等。
@@ -25,6 +28,7 @@ dpkg 是Debian Package的简写，是为Debian 专门开发的套件管理系统
      显示已安装包裹的信息。同时请看 apt-cache 显示 Debian 存档中的包裹信息，以及 dpkg -I 来显示从一个 .deb 文件中提取的包裹信息。
 8、dpkg-reconfigure
      重新配制一个已经安装的包裹，如果它使用的是 debconf (debconf 为包裹安装提供了一个统一的配制界面)。 
+---------------------------
 二、软件安装后相关文件位置
 1.下载的软件存放位置
 	/var/cache/apt/archives
@@ -36,3 +40,29 @@ dpkg 是Debian Package的简写，是为Debian 专门开发的套件管理系统
 	/etc
 5.lib文件位置
    /usr/lib
+---------------------------
+Ubuntu中使用apt-get install默认会把deb包下载到/var/cache/apt/archives/下，可以通过man apt-get来看到相应的设置：
+
+    /var/cache/apt/archives/
+    Storage area for retrieved package files. Configuration Item: Dir::Cache::Archives.
+
+如果/var/cache/apt/archives/所在的分区空间不够了，你想把这个默认的下载位置改为你想要的位置，应该怎么办呢？
+
+    1 在你想存放的位置建立一个文件夹
+
+        # mkdir -p /home/zhjwpku/apt-archives
+
+    2 在/home/zhjwpku/apt-archives/下建立一个partial文件夹
+
+        # mkdir partial
+
+    3 编辑/etc/apt/apt.conf，这个文件可能并不存在，直接vim就好，添加如下内容（记得用sudo）：
+
+        dir::cache::archives /home/zhjwpku/apt-archives;
+
+现在使用apt-get install安装一个软件，所需的deb包应该都在/home/zhjwpku/apt-archives下了。
+
+---------------------------
+apt-get install安装目录是包的维护者确定的，不是用户
+可以预配置的时候通过./configure --help看一下–prefix的默认值是什么，
+就知道默认安装位置了，或者直接指定安装目录。
