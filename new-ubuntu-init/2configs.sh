@@ -15,6 +15,7 @@
 #firefox browser config:
 #	add-ons:search zoom->set default font size
 #	add-ons:search flash->
+#	add-ons:Dark Background and Light Text
 #vim-scripts config:
 #	cp -rf /usr/share/vim-scripts/ ~/.vim/
 #gnome-control-center config:
