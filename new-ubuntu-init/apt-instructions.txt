@@ -66,3 +66,4 @@ Ubuntu中使用apt-get install默认会把deb包下载到/var/cache/apt/archives
 apt-get install安装目录是包的维护者确定的，不是用户
 可以预配置的时候通过./configure --help看一下–prefix的默认值是什么，
 就知道默认安装位置了，或者直接指定安装目录。
+apt-config dump | grep  -i "dir::cache" show the apt download directory
