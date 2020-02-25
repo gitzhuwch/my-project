@@ -32,6 +32,6 @@
 #	modify windows regedit
 mkdir ~/work
 mkdir ~/bin
-mkdir ~/note
+mkdir ~/notes
 mkdir ~/temp
 mkdir ~/nfs
