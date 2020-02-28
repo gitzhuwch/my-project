@@ -40,3 +40,5 @@ sudo apt -y install gnome-tweaks #hide mounted disk icon on desktop
 sudo apt -y install nfs-kernel-server
 
 sudo apt -y install ffmpeg #preview yuv data
+
+sudo apt -y install wkhtmltopdf #convert html to pdf or image
