@@ -1,0 +1,57 @@
+#qemu
+#----------------------------------------------
+https://www.qemu.org/documentation/
+https://www.qemu.org/docs/master/qemu-doc.html
+
+#gcc
+#----------------------------------------------
+https://gcc.gnu.org/
+https://gcc.gnu.org/onlinedocs/
+https://gcc.gnu.org/onlinedocs/gcc-9.2.0/gcc.pdf
+sudo apt install gcc-doc
+
+#binary utils
+#----------------------------------------------
+https://www.gnu.org/
+http://www.gnu.org/software/binutils/
+https://sourceware.org/binutils/docs-2.34/binutils/index.html
+
+#gdb
+#----------------------------------------------
+https://sourceware.org/gdb/download/onlinedocs/
+sudo apt install gdb-doc
+cd ~/Document
+gunzip /usr/share/doc/gdb/pdf/gdb.pdf.gz
+
+
+#make
+#----------------------------------------------
+https://www.gnu.org/software/make/manual/make.pdf
+
+
+#linux kernel
+#----------------------------------------------
+https://www.kernel.org/
+clone:
+ git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
+ https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
+ https://kernel.googlesource.com/pub/scm/linux/kernel/git/stable/linux.git
+
+#buildroot
+#----------------------------------------------
+
+
+#uboot
+#----------------------------------------------
+
+
+#busybox
+#----------------------------------------------
+
+#git
+#----------------------------------------------
+https://git-scm.com/book/en/v2
+https://legacy.gitbook.com/book/bingohuang/progit2/details
+
+#arm/arm64 cpu architecture
+#----------------------------------------------

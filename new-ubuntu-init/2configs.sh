@@ -9,6 +9,9 @@
 #	git config --global alias.br branch
 #	git config --global diff.tool meld
 #	git config --global core.editor vim
+#	git config color.diff.whitespace "red reverse"
+#	git diff --ws-error-highlight=all
+#	git config diff.wsErrorHighlight all
 #evince config:
 #	backgroud color
 #	asve as default config

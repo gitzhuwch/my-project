@@ -1,0 +1,30 @@
+----------------------------------------------------
+sudo apt install -y qemu-system-arm
+sudo apt install -y gcc-aarch64-linux-gnu
+git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+
+----------------------------------------------------
+Git Repos:
+    QEMU: https://github.com/qemu/qemu
+    Linux: https://github.com/torvalds/linux
+    Busybox: (Deprecated, use the link below)
+    Buildroot: git://git.buildroot.net/buildroot
+
+----------------------------------------------------
+https://www.kernel.org/
+after download kernel modify sourcetree/Makefile
+	add tow variable at Cross compiling and selecting different set of gcc/bin-utils:
+		CROSS_COMPILE := aarch64-linux-gnu-
+		ARCH           ?= arm64
+
+----------------------------------------------------
+sudo apt install qemu
+sudo apt install aarch64-linux-gnu-gcc
+git clone xxx/linux
+cd linux
+vim Makefile
+	CROSS_COMPILE := aarch64-linux-gnu-
+	ARCH ?= arm64
+make defconfig
+make Image -j4
+qemu-system-aarch64 -kernel ./arch/arm64/boot/Image -append "console=ttyAMA0" -m 2048M -smp 4 -M virt -cpu cortex-a57 -nographic
