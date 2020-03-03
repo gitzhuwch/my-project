@@ -26,5 +26,5 @@ vim Makefile
 	CROSS_COMPILE := aarch64-linux-gnu-
 	ARCH ?= arm64
 make defconfig
-make Image -j4
+make Image -j2
 qemu-system-aarch64 -kernel ./arch/arm64/boot/Image -append "console=ttyAMA0" -m 2048M -smp 4 -M virt -cpu cortex-a57 -nographic

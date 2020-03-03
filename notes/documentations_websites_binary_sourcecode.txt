@@ -19,6 +19,7 @@ https://sourceware.org/binutils/docs-2.34/binutils/index.html
 #gdb
 #----------------------------------------------
 https://sourceware.org/gdb/download/onlinedocs/
+https://www.gnu.org/software/gdb/
 sudo apt install gdb-doc
 cd ~/Document
 gunzip /usr/share/doc/gdb/pdf/gdb.pdf.gz
@@ -55,3 +56,10 @@ https://legacy.gitbook.com/book/bingohuang/progit2/details
 
 #arm/arm64 cpu architecture
 #----------------------------------------------
+https://www.arm.com/
+
+#linaro
+#----------------------------------------------
+get aarch64-linux-gnu-(gdb) cross compiler toolchains for arm/arm64
+		https://releases.linaro.org/components/toolchain/binaries/latest-7/aarch64-linux-gnu/
+		https://www.archlinux.org/packages/community/x86_64/aarch64-linux-gnu-gdb/
