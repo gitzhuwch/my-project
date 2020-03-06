@@ -1,0 +1,2 @@
+shift + q enter Ex mode
+vi exit Ex mode
