@@ -1,0 +1,36 @@
+block/partitions/efi.c
+
+/**
+ * efi_partition(struct parsed_partitions *state)
+ * @state: disk parsed partitions
+ *
+ * Description: called from check.c, if the disk contains GPT
+ * partitions, sets up partition entries in the kernel.
+ *
+ * If the first block on the disk is a legacy MBR,
+ * it will get handled by msdos_partition().
+ * If it's a Protective MBR, we'll handle it here.
+ *
+ * We do not create a Linux partition for GPT, but
+ * only for the actual data partitions.
+ * Returns:
+ * -1 if unable to read the partition table
+ *  0 if this isn't our partition table
+ *  1 if successful
+ *
+ */
+int efi_partition(struct parsed_partitions *state)
+{
+    gpt_header *gpt = NULL;
+    gpt_entry *ptes = NULL;
+    u32 i;
+    unsigned ssz = bdev_logical_block_size(state->bdev) / 512;
+
+    if (!find_valid_gpt(state, &gpt, &ptes) || !gpt || !ptes) {
+        kfree(gpt);
+        kfree(ptes);
+        return 0;
+    }
+
+    pr_debug("GUID Partition Table is valid!  Yea!\n");
+

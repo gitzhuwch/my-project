@@ -1,6 +1,10 @@
-arm-poky-linux-gnueabi-gcc --sysroot=/opt/fsl-imx-x11/4.1.15-2.1.0/sysroots/cortexa9hf-neon-poky-linux-gnueabi -print-libgcc-file-name
---->/opt/fsl-imx-x11/4.1.15-2.1.0/sysroots/cortexa9hf-neon-poky-linux-gnueabi/usr/lib/arm-poky-linux-gnueabi/5.3.0/libgcc.a
+type command:
+	arm-poky-linux-gnueabi-gcc  --sysroot=/opt/fsl-imx-x11/4.1.15-2.1.0/sysroots/cortexa9hf-neon-poky-linux-gnueabi   -print-libgcc-file-name
+result:
+	/opt/fsl-imx-x11/4.1.15-2.1.0/sysroots/cortexa9hf-neon-poky-linux-gnueabi/usr/lib/arm-poky-linux-gnueabi/5.3.0/libgcc.a
 
-arm-poky-linux-gnueabi-gcc  -print-libgcc-file-name
---->libgcc.a
+type command:
+	arm-poky-linux-gnueabi-gcc  -print-libgcc-file-name
+result:
+	libgcc.a
 
