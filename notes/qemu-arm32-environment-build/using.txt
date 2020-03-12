@@ -1,0 +1,37 @@
+----------------------------------------------------
+sudo apt install -y qemu-system-arm
+sudo apt install -y gcc-aarch64-linux-gnu
+git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+
+----------------------------------------------------
+Git Repos:
+    QEMU: https://github.com/qemu/qemu
+    Linux: https://github.com/torvalds/linux
+    Busybox: (Deprecated, use the link below)
+    Buildroot: git://git.buildroot.net/buildroot
+
+----------------------------------------------------
+https://www.kernel.org/
+after download kernel modify sourcetree/Makefile
+	add tow variable at Cross compiling and selecting different set of gcc/bin-utils:
+		CROSS_COMPILE := arm-linux-gnueabi-
+		ARCH	?= arm
+
+----------------------------------------------------
+get arm-linux-gnueabi-gdb cross compiler toolchains for arm
+		https://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabi/
+
+----------------------------------------------------
+sudo apt install qemu-system-arm
+sudo apt install gcc-arm-linux-gnueabi
+git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+cd linux
+vim Makefile
+	CROSS_COMPILE := arm-linux-gnueabi-
+	ARCH ?= arm
+####do not modify gcc -O0 that will compiling error!!
+make vexpress_defconfig
+make Image -j2
+#qemu-system-arm -kernel ./arch/arm64/boot/Image -append "console=ttyAMA0" -m 2048M -smp 4 -M virt -cpu cortex-a57 -nographic
+qemu-system-arm -M vexpress-a9 -m 128M -kernel ./arch/arm/boot/zImage -dtb ./arch/arm/boot/dts/vexpress-v2p-ca9.dtb -nographic -append "console=ttyAMA0"
+#must be zImage, Image and vmlinux can't bootup

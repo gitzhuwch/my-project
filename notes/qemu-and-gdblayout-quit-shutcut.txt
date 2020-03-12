@@ -1,0 +1,6 @@
+qemu quit shutcut:
+	ctrl a \r
+	x \r
+gdb layout quit shutcut:
+	ctrl x \r
+	a \r
