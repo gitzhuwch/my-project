@@ -38,3 +38,13 @@ qemu-system-arm -M vexpress-a9 -m 128M -kernel ./arch/arm/boot/zImage -dtb ./arc
 ----------------------------------------------------
 How to enable earlyprintk when qemu debuging kernel?
 	qemu-system-arm cmdline arguments add [ -append "earlyprintk console=ttyAMA0" ]
+
+----------------------------------------------------
+How to set gcc option -O0 in source code file?
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
+void fun()
+{
+	return 0;
+}
+#pragma GCC pop_options
