@@ -29,7 +29,7 @@ cd linux
 vim Makefile
 	CROSS_COMPILE := arm-linux-gnueabi-
 	ARCH ?= arm
-####do not modify gcc -O0 that will compiling error!!
+####do not modify gcc -O0 that will compiling error!! gcc -O can work, but need add local #pragma GCC optimize(O2) for gpu driver code.
 make vexpress_defconfig
 make Image -j2
 #qemu-system-arm -kernel ./arch/arm64/boot/Image -append "console=ttyAMA0" -m 2048M -smp 4 -M virt -cpu cortex-a57 -nographic
