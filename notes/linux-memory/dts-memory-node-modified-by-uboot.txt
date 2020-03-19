@@ -1,0 +1,6 @@
+1. “bootcommandline里面mem@也去掉了”， 你这里只修改了kernel的config中的cmdline， 对吧？
+2. 如果你使用u-boot来引导kernel, 那么在booti的过程中，u-boot会将环境变量bootargs中的mem=xxxM解析出来，并且写入dtb中。 故kernel初始化时还是能scan到这个memory node.
+
+因此， 要彻底去掉memory node,你还需要额外将bootargs中的memory信息去掉； 不过那样你的kernel估计都没法boot起来：）
+
+所以我修改kernel的dts中的memory node不起作用，如果不将uboot中的bootargs改掉的话（qemu中尝试失败,qemu里写死了吧）

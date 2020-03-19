@@ -42,3 +42,10 @@ sudo apt -y install nfs-kernel-server
 sudo apt -y install ffmpeg #preview yuv data
 
 sudo apt -y install wkhtmltopdf #convert html to pdf or image
+
+sudo add-apt-repository ppa:rednotebook/stable
+#Ubuntu 18.04用户可以跳过sudo apt update命令，因为它已经在添加PPA时完成了
+#sudo apt update
+sudo apt -y install rednotebook
+#sudo apt remove --autoremove rednotebook
+#并通过软件和更新实用工具删除PPA - >其他软件选项卡

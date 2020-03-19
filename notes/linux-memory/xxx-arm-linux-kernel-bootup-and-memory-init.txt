@@ -1,0 +1,225 @@
+-------------------------------------------------------------------------------------------------
+第一级的页表的页目录表项用pgd表示，中间级的页表的页目录表项用pud表示（arm架构其实不需要），第三级的页表的页目录表项用pmd表示（由于中间pud是空的，所以pgd=pmd），
+a3 register
+page global directory
+page upper directory
+page middle directory
+page table
+page
+-------------------------------------------------------------------------------------------------
+在开发板tqs3c2440中，SDRAM连接到内存控制器的Bank6中，它的开始内存地址是0x30000000，大小为64M，即0x20000000。 ARM Linux kernel将SDRAM的开始地址定义为PHYS_OFFSET。经bootloader加载kernel并由自解压部分代码运行后，最终kernel被放置到KERNEL_RAM_PADDR（=PHYS_OFFSET + TEXT_OFFSET，即0x30008000）地址上的一段内存，经此放置后，kernel代码以后均不会被移动。
+
+
+
+在进入kernel代码前，即bootloader和自解压缩阶段，ARM未开启MMU功能。因此kernel启动代码一个重要功能是设置好相应的页表，并开启MMU功能。为了支持MMU功能，kernel镜像中的所有符号，包括代码段和数据段的符号，在链接时都生成了它在开启MMU时，所在物理内存地址映射到的虚拟内存地址。
+
+
+
+以arm kernel第一个符号（函数）stext为例，在编译链接，它生成的虚拟地址是0xc0008000，而放置它的物理地址为0x30008000（还记得这是PHYS_OFFSET+TEXT_OFFSET吗？）。实际上这个变换可以利用简单的公式进行表示：va = pa – PHYS_OFFSET + PAGE_OFFSET。Arm linux最终的kernel空间的页表，就是按照这个关系来建立。
+
+
+
+之所以较早提及arm linux 的内存映射，原因是在进入kernel代码，里面所有符号地址值为清一色的0xCXXXXXXX地址，而此时ARM未开启MMU功能，故在执行stext函数第一条执行时，它的PC值就是stext所在的内存地址（即物理地址，0x30008000）。因此，下面有些代码，需要使用地址无关技术。
+-------------------------------------------------------------------------------------------------
+LL:low level log print
+--------------------------------------------------------------------------------------------------
+/*
+ * The following fragment of code is executed with the MMU on in MMU mode,
+ * and uses absolute addresses; this is not position independent.
+ *
+ *  r0  = cp#15 control register
+ *  r1  = machine ID
+ *  r2  = atags/dtb pointer
+ *  r9  = processor ID
+ */
+    __INIT
+__mmap_switched:
+    adr r3, __mmap_switched_data<<-------------------------------------------------------
+
+    ldmia   r3!, {r4, r5, r6, r7}
+    cmp r4, r5              @ Copy data segment if needed
+1:  cmpne   r5, r6
+    ldrne   fp, [r4], #4
+    strne   fp, [r5], #4
+    bne 1b
+
+    mov fp, #0              @ Clear BSS (and zero fp)
+1:  cmp r6, r7
+    strcc   fp, [r6],#4
+    bcc 1b
+
+ ARM(   ldmia   r3, {r4, r5, r6, r7, sp})
+ THUMB( ldmia   r3, {r4, r5, r6, r7}    )
+ THUMB( ldr sp, [r3, #16]       )
+    str r9, [r4]            @ Save processor ID
+    str r1, [r5]            @ Save machine type
+    str r2, [r6]            @ Save atags pointer
+    cmp r7, #0
+    strne   r0, [r7]            @ Save control register values
+    b   start_kernel
+ENDPROC(__mmap_switched)
+    .align  2
+    .type   __mmap_switched_data, %object
+__mmap_switched_data:-------------------------------------------------------------------->>
+    .long   __data_loc          @ r4
+    .long   _sdata              @ r5
+    .long   __bss_start         @ r6
+    .long   _end                @ r7
+    .long   processor_id            @ r4
+    .long   __machine_arch_type     @ r5
+    .long   __atags_pointer         @ r6
+#ifdef CONFIG_CPU_CP15
+    .long   cr_alignment            @ r7
+#else
+    .long   0               @ r7
+#endif
+    .long   init_thread_union + THREAD_START_SP @ sp////////////////////////////////////////////#0 task stack, why "init_thread_union + THREAD_START_SP" ? because stack point grow down!!!!
+    .size   __mmap_switched_data, . - __mmap_switched_data
+---------------------------------------------------------------------------
+Breakpoint 1, create_mapping (md=0x80b01f3c) at arch/arm/mm/mmu.c:961
+961	{
+#0  create_mapping (md=0x80b01f3c) at arch/arm/mm/mmu.c:961
+#1  0x80a08588 in iotable_init (io_desc=0x80b01f3c, nr=0) at arch/arm/mm/mmu.c:1008
+#2  0x80a0890c in debug_ll_io_init () at arch/arm/mm/mmu.c:1132
+#3  0x80a08f10 in devicemaps_init (mdesc=0x80a33028 <__mach_desc_VEXPRESS_DT>) at arch/arm/mm/mmu.c:1423
+#4  0x80a09490 in paging_init (mdesc=0x80a33028 <__mach_desc_VEXPRESS_DT>) at arch/arm/mm/mmu.c:1655
+#5  0x80a044ec in setup_arch (cmdline_p=0x80b01fd4) at arch/arm/kernel/setup.c:1133
+#6  0x80a00c38 in start_kernel () at init/main.c:778
+#7  0x00000000 in ?? ()
+Backtrace stopped: previous frame identical to this frame (corrupt stack?)
+
+Breakpoint 3, mem_init () at arch/arm/mm/init.c:472
+472	{
+#0  mem_init () at arch/arm/mm/init.c:472
+#1  0x80a01100 in mm_init () at init/main.c:738
+#2  start_kernel () at init/main.c:812
+#3  0x00000000 in ?? ()
+Backtrace stopped: previous frame identical to this frame (corrupt stack?)
+---------------------------------------------------------------------------
+start_kernel()
+    |---->page_address_init()
+    |     考虑支持高端内存
+    |     业务：初始化page_address_pool链表；
+    |          将page_address_maps数组元素按索引降序插入
+    |          page_address_pool链表;
+    |          初始化page_address_htable数组.
+    |
+    |---->setup_arch(&command_line);
+    |     初始化特定体系结构的内容
+        |---->arm64_memblock_init( );               [参见memblock和bootmem]
+        |     初始化引导阶段的内存分配器memblock
+        |
+        |---->paging_init();                         [参见分页机制初始化paging_init]
+        |     分页机制初始化
+        |
+        |---->bootmem_init();                       [与build_all_zonelist共同完成内存数据结构的初始化]
+        |       初始化内存数据结构包括内存节点和内存域
+        |
+    |---->setup_per_cpu_areas();
+    |     为per-CPU变量分配空间
+    |
+    |---->build_all_zonelist()                      [bootmem_init初始化数据结构, 该函数初始化zonelists]
+    |     为系统中的zone建立后备zone的列表.
+    |     所有zone的后备列表都在
+    |     pglist_data->node_zonelists[0]中;
+    |
+    |     期间也对per-CPU变量boot_pageset做了初始化.
+    |
+    |---->page_alloc_init()
+         |---->hotcpu_notifier(page_alloc_cpu_notifier, 0);
+         |     不考虑热插拔CPU
+         |
+    |---->pidhash_init()
+    |     详见下文.
+    |     根据低端内存页数和散列度，分配hash空间，并赋予pid_hash
+    |
+    |---->vfs_caches_init_early()
+          |---->dcache_init_early()
+          |     dentry_hashtable空间，d_hash_shift, h_hash_mask赋值；
+          |     同pidhash_init();
+          |     区别:
+          |         散列度变化了（13 - PAGE_SHIFT）;
+          |         传入alloc_large_system_hash的最后参数值为0;
+          |
+          |---->inode_init_early()
+          |     inode_hashtable空间，i_hash_shift, i_hash_mask赋值；
+          |     同pidhash_init();
+          |     区别:
+          |         散列度变化了（14 - PAGE_SHIFT）;
+          |         传入alloc_large_system_hash的最后参数值为0;
+          |
+
+4.3 bootmem_init初始化内存的基础数据结构(结点pg_data, 内存域zone, 页面page)
+bootmem_init(void)
+    |---->min = PFN_UP(memblock_start_of_DRAM());
+    |---->max = PFN_DOWN(memblock_end_of_DRAM());
+    |
+    |
+    |---->arm64_numa_init();
+    |     支持numa架构
+    |---->arm64_numa_init();
+    |     支持numa架构
+    |
+    |
+    |---->zone_sizes_init(min, max);
+        来初始化节点和管理区的一些数据项
+        |
+        |---->free_area_init_node
+        |   初始化内存节点
+        |
+        |
+            |---->free_area_init_core初始化zone
+                |
+                |
+                |---->memmap_init初始化page页面
+                |
+                |
+    |
+    |---->memblock_dump_all();
+    |   初始化完成, 显示memblock的保留的所有内存信息
+
+4.4 build_all_zonelists初始化每个内存节点的zonelists
+void build_all_zonelists(void)
+    |---->set_zonelist_order()
+         |---->current_zonelist_order = ZONELIST_ORDER_ZONE;
+    |
+    |---->__build_all_zonelists(NULL);
+    |    Memory不支持热插拔, 为每个zone建立后备的zone,
+    |    每个zone及自己后备的zone，形成zonelist
+        |
+        |---->pg_data_t *pgdat = NULL;
+        |     pgdat = &contig_page_data;(单node)
+        |
+        |---->build_zonelists(pgdat);
+        |     为每个zone建立后备zone的列表
+            |
+            |---->struct zonelist *zonelist = NULL;
+            |     enum zone_type j;
+            |     zonelist = &pgdat->node_zonelists[0];
+            |
+            |---->j = build_zonelists_node(pddat, zonelist, 0, MAX_NR_ZONES - 1);
+            |     为pgdat->node_zones[0]建立后备的zone，node_zones[0]后备的zone
+            |     存储在node_zonelist[0]内，对于node_zone[0]的后备zone，其后备的zone
+            |     链表如下(只考虑UMA体系，而且不考虑ZONE_DMA)：
+            |     node_zonelist[0]._zonerefs[0].zone = &node_zones[2];
+            |     node_zonelist[0]._zonerefs[0].zone_idx = 2;
+            |     node_zonelist[0]._zonerefs[1].zone = &node_zones[1];
+            |     node_zonelist[0]._zonerefs[1].zone_idx = 1;
+            |     node_zonelist[0]._zonerefs[2].zone = &node_zones[0];
+            |     node_zonelist[0]._zonerefs[2].zone_idx = 0;
+            |
+            |     zonelist->_zonerefs[3].zone = NULL;
+            |     zonelist->_zonerefs[3].zone_idx = 0;
+        |
+        |---->build_zonelist_cache(pgdat);
+              |---->pdat->node_zonelists[0].zlcache_ptr = NULL;
+              |     UMA体系结构
+              |
+        |---->for_each_possible_cpu(cpu)
+        |     setup_pageset(&per_cpu(boot_pageset, cpu), 0);
+              |详见下文
+    |---->vm_total_pages = nr_free_pagecache_pages();
+    |    业务：获得所有zone中的present_pages总和.
+    |
+    |---->page_group_by_mobility_disabled = 0;
+    |     对于代码中的判断条件一般不会成立，因为页数会最够多（内存较大）
