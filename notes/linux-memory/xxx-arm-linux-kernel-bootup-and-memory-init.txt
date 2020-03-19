@@ -1,3 +1,8 @@
+32bit的Linux采用三级映射：PGD-->PMD-->PTE，64bit的Linux采用四级映射：PGD-->PUD-->PMD-->PTE，多了个PUD。
+
+缩写是PGD：Page Global Directory、PUD：Page Upper Directory、PMD：Page Middle Directory、PTE：Page Table Entry。
+
+在ARM32 Linux采用两层映射，省略了PMD，除非在定义了CONFIG_ARM_LPAE才会使用3级映射。
 -------------------------------------------------------------------------------------------------
 第一级的页表的页目录表项用pgd表示，中间级的页表的页目录表项用pud表示（arm架构其实不需要），第三级的页表的页目录表项用pmd表示（由于中间pud是空的，所以pgd=pmd），
 a3 register
