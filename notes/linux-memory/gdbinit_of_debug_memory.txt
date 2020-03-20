@@ -1,0 +1,131 @@
+set print pretty off
+define cbt
+c
+bt
+end
+
+define dump_current
+	set var $stacksize = sizeof(union thread_union)
+	set var $stackp = (size_t)$sp
+	set var $stack_bottom = ($stackp) & (~($stacksize - 1))
+	set var $threadinfo = (struct thread_info *)$stack_bottom
+	set var $task_struct =(struct task_struct *)($threadinfo->task)
+	printf "current::pid:%d; comm:%s; mm:0x%x ", $task_struct->pid, $task_struct->comm, $task_struct->mm
+	if ($task_struct->mm != 0)
+		printf "pgd:0x%x\n", $task_struct->mm->pgd
+	else
+		printf "pgd:0\n"
+	end
+end
+
+define wcbt
+    while (1)
+        bt
+		dump_current
+		c
+    end
+end
+document wcbt
+    while (1) cbt
+end
+
+define while__xxx
+    while (1)
+        bt
+		dump_current
+		if (tsk != 0)
+			printf "switch to::pid:%d; comm:%s; mm:0x%x; pgd:0x%x\n", tsk.pid, tsk.comm, tsk.mm, tsk.mm->pgd
+		else
+			printf "switch to::mm:0x%x; pgd:0x%x\n", mm, mm->pgd
+		end
+		c
+    end
+end
+
+define dump_apt
+	x/4096wx 0xc0004000
+end
+
+define dump_ksptx
+	x/120wx 0xc0007000
+end
+
+define dump_kspt
+	x/1024wx 0xc0007000
+end
+document dump_kspt
+	dump_kernel_space_page_table:
+		0x80004000 + 2G/1M*4
+		0x80004000:	base virtual address of page table
+		2G/1M*4: above 2G is kernel space; one page directory entry cover 1M phy address space; one page directory entry is 4Byte size
+end
+
+
+target remote localhost:1234
+#break start_kernel
+#c
+#b prepare_page_table
+b early_init_dt_add_memory_arch
+b __create_mapping
+b setup_arch
+b check_and_switch_context
+#b cpu_v7_switch_mm
+c
+
+#rb mm/backing-dev.c:
+#rb mm/balloon_compaction.c:
+#rb mm/cma.c:
+#rb mm/compaction.c:
+#rb mm/debug.c:
+#rb mm/dmapool.c:
+#rb mm/early_ioremap.c:
+#rb mm/fadvise.c:
+#rb mm/filemap.c:
+#rb mm/gup.c:
+#rb mm/highmem.c:
+#rb mm/init-mm.c:
+#rb mm/interval_tree.c:
+#rb mm/list_lru.c:
+#rb mm/maccess.c:
+#rb mm/madvise.c:
+#rb mm/memblock.c:
+#rb mm/memfd.c:
+#rb mm/memory.c:
+#rb mm/mempool.c:
+#rb mm/migrate.c:
+#rb mm/mincore.c:
+#rb mm/mlock.c:
+#rb mm/mmap.c:
+#rb mm/mm_init.c:
+#rb mm/mmu_context.c:
+#rb mm/mmu_gather.c:
+#rb mm/mmzone.c:
+#rb mm/mprotect.c:
+#rb mm/mremap.c:
+#rb mm/msync.c:
+#rb mm/oom_kill.c:
+#rb mm/page_alloc.c:
+#rb mm/page_io.c:
+#rb mm/page_isolation.c:
+#rb mm/page_vma_mapped.c:
+#rb mm/pagewalk.c:
+#rb mm/page-writeback.c:
+#rb mm/percpu.c:
+#rb mm/pgtable-generic.c:
+#rb mm/process_vm_access.c:
+#rb mm/readahead.c:
+#rb mm/rmap.c:
+#rb mm/shmem.c:
+#rb mm/slab_common.c:
+#rb mm/slub.c:
+#rb mm/swapfile.c:
+#rb mm/swap.c:
+#rb mm/swap_slots.c:
+#rb mm/swap_state.c:
+#rb mm/truncate.c:
+#rb mm/util.c:
+#rb mm/vmacache.c:
+#rb mm/vmalloc.c:
+#rb mm/vmscan.c:
+#rb mm/vmstat.c:
+#rb mm/workingset.c:
