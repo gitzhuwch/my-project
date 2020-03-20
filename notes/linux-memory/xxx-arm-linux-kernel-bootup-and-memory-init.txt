@@ -1,3 +1,7 @@
+-------------------------------------------------------------------------------------------------
+https://www.cnblogs.com/arnoldlu/category/1132616.html !!!!!!!!!!very very good
+
+-------------------------------------------------------------------------------------------------
 32bit的Linux采用三级映射：PGD-->PMD-->PTE，64bit的Linux采用四级映射：PGD-->PUD-->PMD-->PTE，多了个PUD。
 
 缩写是PGD：Page Global Directory、PUD：Page Upper Directory、PMD：Page Middle Directory、PTE：Page Table Entry。

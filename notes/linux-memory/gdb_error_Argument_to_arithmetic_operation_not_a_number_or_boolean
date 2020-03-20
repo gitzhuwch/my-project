@@ -1,0 +1,22 @@
+--------------------------------error------------------------------------
+define dump_current
+    set var $stacksize = sizeof(union thread_union)
+    set var $stackp = $sp???????????????????????????????????????????????????????????
+    set var $stack_bottom = ($stackp & ~($stacksize - 1))
+
+    set var $threadinfo = (struct thread_info *)$stack_bottom
+    set var $task_struct =(struct task_struct *)($threadinfo->task)
+    printf "pid:%d; comm:%s\n", $task_struct.pid, $task_struct.comm
+end
+
+--------------------------------right------------------------------------
+define dump_current
+    set var $stacksize = sizeof(union thread_union)
+    set var $stackp = (size_t)$sp!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    set var $stack_bottom = ($stackp & ~($stacksize - 1))
+
+    set var $threadinfo = (struct thread_info *)$stack_bottom
+    set var $task_struct =(struct task_struct *)($threadinfo->task)
+    printf "pid:%d; comm:%s\n", $task_struct.pid, $task_struct.comm
+end
+
