@@ -1,4 +1,14 @@
 #-------------------------------------------------------------
+#input sources config:
+#	gnome-control-center->region & language->manage installed languages-> install/remove languages->select [chinese (simplified)]
+#	gnome-control-center->region & language->input sources->add[chinese(intelligent pinyin)]
+#-------------------------------------------------------------
+#the brightness will reset Max when setup every time:
+#	sudo vim /etc/rc.local
+#	add two line:
+#		#!/bin/sh
+#		echo 976 > /sys/class/backlight/intel_backlight/brightness
+#-------------------------------------------------------------
 #gnome-terminal config:
 #	font
 #	background color
@@ -12,7 +22,7 @@
 #	git config --global alias.br branch
 #	git config --global diff.tool meld
 #	git config --global core.editor vim
-#	git config color.diff.whitespace "red reverse"
+#	git config --global color.diff.whitespace "red reverse"
 #	git diff --ws-error-highlight=all
 #	git config --global diff.wsErrorHighlight all
 #	git config --global difftool.prompt no
@@ -47,8 +57,3 @@
 #windows(LTC) and ubuntu(UTC+8) double system time error
 #	modify windows regedit
 #-------------------------------------------------------------
-mkdir ~/work
-mkdir ~/bin
-mkdir ~/notes
-mkdir ~/temp
-mkdir ~/nfs

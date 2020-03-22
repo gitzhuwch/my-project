@@ -49,3 +49,5 @@ sudo add-apt-repository ppa:rednotebook/stable
 sudo apt -y install rednotebook
 #sudo apt remove --autoremove rednotebook
 #并通过软件和更新实用工具删除PPA - >其他软件选项卡
+
+sudo apt -y install ibus-pinyin
