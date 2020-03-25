@@ -2,6 +2,9 @@ sudo apt update
 
 sudo apt -y install vim
 #sudo rm ~/.viminfo #~/.viminfo pession may be cause vim can not record the position
+#will create ~/.vim/bundle/Vundle.vim directory and git clone into it
+git clone --depth=1 https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+
 sudo apt -y install net-tools #ifconfig tools
 sudo apt -y install meld
 sudo apt -y install ctags
@@ -46,8 +49,10 @@ sudo apt -y install wkhtmltopdf #convert html to pdf or image
 sudo add-apt-repository ppa:rednotebook/stable
 #Ubuntu 18.04用户可以跳过sudo apt update命令，因为它已经在添加PPA时完成了
 #sudo apt update
-sudo apt -y install rednotebook
+#sudo apt -y install rednotebook
 #sudo apt remove --autoremove rednotebook
 #并通过软件和更新实用工具删除PPA - >其他软件选项卡
 
 sudo apt -y install ibus-pinyin
+
+sudo apt -y install v4l-utils
