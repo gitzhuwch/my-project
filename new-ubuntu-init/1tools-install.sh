@@ -4,6 +4,7 @@ sudo apt -y install vim
 #sudo rm ~/.viminfo #~/.viminfo pession may be cause vim can not record the position
 #will create ~/.vim/bundle/Vundle.vim directory and git clone into it
 git clone --depth=1 https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+#tar -xf ./bundle.tar -C ~/.vim/
 
 sudo apt -y install net-tools #ifconfig tools
 sudo apt -y install meld

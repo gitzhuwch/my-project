@@ -45,6 +45,9 @@
 #	vim
 #	:PluginInstall
 #	wait vim plugin Install Done
+#	vim ~/.vim/bundle/Vundle.vim/ftplugin/markdown.vim  // resize table of contents window
+#-            execute 'vertical resize ' . (&columns/2)
+#+            execute 'vertical resize ' . (&columns/6)
 #-------------------------------------------------------------
 #gnome-control-center config:
 #	----

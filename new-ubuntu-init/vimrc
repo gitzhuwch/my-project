@@ -31,7 +31,7 @@ set backspace=2
 set cscopetag
 set cursorline
 set cursorcolumn
-"set nowrap
+set nowrap
 syntax enable
 "set foldmethod=indent
 set foldmethod=syntax
@@ -87,7 +87,7 @@ filetype plugin indent on
 " see :h vundle for more details or wiki for FAQ
 " Put your non-Plugin stuff after this line
 
-let g:vim_markdown_toc_autofit = 1
+"let g:vim_markdown_toc_autofit = 1
 let g:vim_markdown_math = 1
 let g:vim_markdown_fenced_languages = ['csharp=cs']
 let g:vim_markdown_frontmatter=1
@@ -106,5 +106,5 @@ let NERDTreeMinimalUI=1 "NERDTree 子窗口中不显示冗余帮助信息
 let NERDTreeAutoDeleteBuffer=1 "删除文件时自动删除文件对应 buffer
 
 autocmd FileType markdown :Toc
+autocmd FileType markdown nmap <Leader>tt :Toc<CR>
 "autocmd Filetype markdown inoremap <buffer> <silent> ,3 ###<Space><Enter><++><Esc>kA
-"
