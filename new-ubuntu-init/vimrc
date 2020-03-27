@@ -1,3 +1,7 @@
+let mapleader=";"
+set nocompatible
+autocmd BufWritePost $MYVIMRC source $MYVIMRC
+set wildmenu "vim 自身命令行模式智能补全
 set nu
 set laststatus=2
 set syntax=on
@@ -8,7 +12,6 @@ set autoread
 set hidden
 filetype on
 set tags=./tags,tags;$HOME
-
 set background=dark
 set showcmd
 set showmatch
@@ -17,7 +20,6 @@ set smartcase
 set incsearch
 set hidden
 set mouse=a
-
 set tabstop=4
 set softtabstop=4
 set shiftwidth=4
@@ -26,26 +28,83 @@ set cindent
 set cinoptions={0,1s,t0,n-2,p2s,(03s,=.5s,>1s,=1s,:1s
 set ruler
 set backspace=2
+set cscopetag
+set cursorline
+set cursorcolumn
+"set nowrap
+syntax enable
+"set foldmethod=indent
+set foldmethod=syntax
+set nofoldenable "启动 vim 时关闭折叠代码
+"set conceallevel=2
+"set laststatus=2
+"set statusline+=%F
+"set statusline=%F%m%r%h%w%=\ [ft=%Y]\ %{\"[fenc=\".(&fenc==\"\"?&enc:&fenc).((exists(\"+bomb\")\ &&\ &bomb)?\"+\":\"\").\"]\"}\ [ff=%{&ff}]\ [asc=%03.3b]\ [hex=%02.2B]\ [pos=%04l,%04v][%p%%]\ [len=%L]
+set sessionoptions="blank,globals,localoptions,tabpages,sesdir,folds,help,options,resize,winpos,winsize"
+highlight WhitespaceEOL ctermbg=red guibg=red
+match WhitespaceEOL /\s\+$/
+"colorscheme adaryn
 
 if has("autocmd")
-  au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
+  autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
 endif
 
-set cscopetag
 map qq :qa!<CR>
 map tt :TlistToggle<CR>
 map <C-Left> <C-w>h
 map <C-Right> <C-w>l
 map ss :%s/\s\+$//g<CR>
+nnoremap nw <C-W><C-W>
+nnoremap <Leader>l <C-W>l
+nnoremap <Leader>h <C-W>h
+nnoremap <Leader>k <C-W>k
+nnoremap <Leader>j <C-W>j
 
-let Tlist_Ctags_Cmd = '/usr/bin/ctags'  "告知系统生成tag的程序的位置
-let Tlist_Show_One_File = 1                   "不同时显示多个文件的tag，只显示当前文件的
-let Tlist_Exit_OnlyWindow = 1                 "如果taglist窗口是最后一个窗口，则退出vim
-let Tlist_Use_Right_Window = 1                 "在左侧窗口中显示taglist窗口
+let Tlist_Ctags_Cmd = '/usr/bin/ctags' "告知系统生成tag的程序的位置
+let Tlist_Show_One_File = 1 "不同时显示多个文件的tag，只显示当前文件的
+let Tlist_Exit_OnlyWindow = 1 "如果taglist窗口是最后一个窗口，则退出vim
+let Tlist_Use_Right_Window = 1 "在左侧窗口中显示taglist窗口
 
-highlight WhitespaceEOL ctermbg=red guibg=red
-match WhitespaceEOL /\s\+$/
+filetype off
+set rtp+=~/.vim/bundle/Vundle.vim/
+call vundle#begin()
+Plugin 'VundleVim/Vundle.vim'
+Plugin 'godlygeek/tabular'
+Plugin 'plasticboy/vim-markdown'
+"Plugin 'suan/vim-instant-markdown'
+"Plugin 'isnowfy/python-vim-instant-markdown'
+"Plugin 'mzlogin/vim-markdown-toc'
+Plugin 'scrooloose/nerdtree'
+Plugin 'scrooloose/nerdcommenter'
 
-"set laststatus=2
-"set statusline+=%F
-"set statusline=%F%m%r%h%w%=\ [ft=%Y]\ %{\"[fenc=\".(&fenc==\"\"?&enc:&fenc).((exists(\"+bomb\")\ &&\ &bomb)?\"+\":\"\").\"]\"}\ [ff=%{&ff}]\ [asc=%03.3b]\ [hex=%02.2B]\ [pos=%04l,%04v][%p%%]\ [len=%L]
+call vundle#end()
+filetype plugin indent on
+" Brief help
+" :PluginList       - lists configured plugins
+" :PluginInstall    - installs plugins; append `!` to update or just :PluginUpdate
+" :PluginSearch foo - searches for foo; append `!` to refresh local cache
+" :PluginClean      - confirms removal of unused plugins; append `!` to auto-approve removal
+" see :h vundle for more details or wiki for FAQ
+" Put your non-Plugin stuff after this line
+
+let g:vim_markdown_toc_autofit = 1
+let g:vim_markdown_math = 1
+let g:vim_markdown_fenced_languages = ['csharp=cs']
+let g:vim_markdown_frontmatter=1
+let g:vim_markdown_new_list_item_indent = 2
+let g:vim_markdown_no_extensions_in_markdown = 1
+let g:vim_markdown_autowrite = 1
+let g:vim_markdown_auto_extension_ext = 'txt'
+
+"使用 NERDTree 插件查看工程文件。设置快捷键，速记：file list
+nmap <Leader>fl :NERDTreeToggle<CR>
+nmap ff :NERDTreeToggle<CR>
+let NERDTreeWinSize=22 "设置 NERDTree 子窗口宽度
+let NERDTreeWinPos="left" "设置 NERDTree 子窗口位置
+"let NERDTreeShowHidden=1 "显示隐藏文件
+let NERDTreeMinimalUI=1 "NERDTree 子窗口中不显示冗余帮助信息
+let NERDTreeAutoDeleteBuffer=1 "删除文件时自动删除文件对应 buffer
+
+autocmd FileType markdown :Toc
+"autocmd Filetype markdown inoremap <buffer> <silent> ,3 ###<Space><Enter><++><Esc>kA
+"

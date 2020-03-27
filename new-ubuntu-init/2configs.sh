@@ -23,9 +23,9 @@
 #	git config --global diff.tool meld
 #	git config --global core.editor vim
 #	git config --global color.diff.whitespace "red reverse"
-#	git diff --ws-error-highlight=all
 #	git config --global diff.wsErrorHighlight all
 #	git config --global difftool.prompt no
+#	git diff --ws-error-highlight=all
 #-------------------------------------------------------------
 #evince config:
 #	backgroud color
@@ -38,6 +38,13 @@
 #-------------------------------------------------------------
 #vim-scripts config:
 #	cp -rf /usr/share/vim-scripts/ ~/.vim/
+#vim vundle plugin config:
+#	vim .vim/bundle/Vundle.vim/autoload/vundle/installer.vim
+#-    let cmd = 'git clone			 --recursive '.vundle#installer#shellesc(a:bundle.uri).' '.vundle#installer#shellesc(a:bundle.path())
+#+    let cmd = 'git clone --depth=1 --recursive '.vundle#installer#shellesc(a:bundle.uri).' '.vundle#installer#shellesc(a:bundle.path())
+#	vim
+#	:PluginInstall
+#	wait vim plugin Install Done
 #-------------------------------------------------------------
 #gnome-control-center config:
 #	----
