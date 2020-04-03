@@ -1,26 +1,27 @@
 #all my notes below:
-##How to make shutcut to Format brush
+##wps:shutcut of Format brush
 	双击格式刷就可以实现这个功能
 
-##autocmd Filetype markdown inoremap<buffer> <silent> ,xxx
-    autocmd Filetype markdown
-    会在打开文件时判断当前文件类型，如果是 markdown 就执行后面的命令
-    inoremap 也就是映射命令map，当然它也可以添加很多前缀
-    nore
-    表示非递归，而递归的映射，也就是如果键a被映射成了b，c又被映射成了a，如果映射是递归的，那么c就被映射成了b
-    n
-    表示在普通模式下生效
-    v
-    表示在可视模式下生效
-    i
-    表示在插入模式下生效
-    c
-    表示在命令行模式下生效
-    所以inoremap也就表示在插入模式下生效的非递归映射
-    <buffer> <silent> map的参数，必须放在map后面
-    <buffer> 表示仅在当前缓冲区生效，就算你一开始打开的是md文件，映射生效了，但当你在当前页面打开非md文件，该映射也只会在md文件中生效
-    <silent> 如果映射的指令中使用了命令行，命令行中也不会显示执行过程
-	后面就是按键和映射的指令了，逻辑什么的就是对 vim 的直接操作，就不详细介绍了
+##vimrc:grammar
+	1, autocmd Filetype markdown inoremap<buffer> <silent> ,xxx
+		autocmd Filetype markdown
+    	会在打开文件时判断当前文件类型，如果是 markdown 就执行后面的命令
+    	inoremap 也就是映射命令map，当然它也可以添加很多前缀
+    	nore
+    	表示非递归，而递归的映射，也就是如果键a被映射成了b，c又被映射成了a，如果映射是递归的，那么c就被映射成了b
+    	n
+    	表示在普通模式下生效
+    	v
+    	表示在可视模式下生效
+    	i
+    	表示在插入模式下生效
+    	c
+    	表示在命令行模式下生效
+    	所以inoremap也就表示在插入模式下生效的非递归映射
+    	<buffer> <silent> map的参数，必须放在map后面
+    	<buffer> 表示仅在当前缓冲区生效，就算你一开始打开的是md文件，映射生效了，但当你在当前页面打开非md文件，该映射也只会在md文件中生效
+    	<silent> 如果映射的指令中使用了命令行，命令行中也不会显示执行过程
+		后面就是按键和映射的指令了，逻辑什么的就是对 vim 的直接操作，就不详细介绍了
 
 ##How to build arm qemu32 debug kernel environment
 	1, sudo apt install qemu-system-arm
@@ -29,6 +30,11 @@
 		3.1 get arm-linux-gnueabi-gdb for arm
 		https://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabi/
 		3.2 sudo apt install gdb-multiarch
+		{
+			if appear error "gdb-multiarch : Depends: gdb (= 8.1-0ubuntu3) but 8.1-0ubuntu3.2 is to be installed"
+			firstly: sudo apt -y install gdb=8.1-0ubuntu3
+			then:    sudo apt -y install gdb-multiarch
+		}
 	4, git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
 		cd linux
 		vim Makefile
@@ -133,27 +139,48 @@
     }
     pr_debug("GUID Partition Table is valid!  Yea!\n");
 
-##disk partition UUID
-	https://blog.csdn.net/smstong/article/details/46417213
-	为解决上述问题，UUID被文件系统设计者采用，使其可以持久唯一标识一个硬盘分区。
-	其实方式很简单，就是在文件系统的超级块中使用128位存放UUID。
-	这个UUID是在使用文件系统格式化分区时计算生成的，
-	例如Linux下的文件系统工具mkfs就在格式化分区的同时，
-	生成UUID并把它记录到超级块的固定区域中。
+##UUID
+	1, https://blog.csdn.net/smstong/article/details/46417213
+		为解决上述问题，UUID被文件系统设计者采用，使其可以持久唯一标识一个硬盘分区。
+		其实方式很简单，就是在文件系统的超级块中使用128位存放UUID。
+		这个UUID是在使用文件系统格式化分区时计算生成的，
+		例如Linux下的文件系统工具mkfs就在格式化分区的同时，
+		生成UUID并把它记录到超级块的固定区域中。
 
-##Linux中查看和修改分区的uuid方便挂载使用
-	查看硬盘UUID：
-	两种方法:
-	ls -l /dev/disk/by-uuid
-	blkid /dev/sda1
-	修改分区UUID：
-	1、修改分区的UUID
-	Ubuntu 使用 uuid命令 生成新的uuid
-	centos 使用uuidgen命令 生成新的uuid
-	Ubuntu
-	sudo uuid | xargs tune2fs /dev/sda1 -U
-	centos
-	sudo uuidgen | xargs tune2fs /dev/sda1 -U
-	2、查看/etc/fstab 将原有UUID写入分区
-	tune2fs -U 578c1ba1-d796-4a54-be90-8a011c7c2dd3 /dev/sda1
+	2, 查看硬盘UUID：
+		两种方法:
+		ls -l /dev/disk/by-uuid
+		blkid /dev/sda1
+		修改分区UUID：
+		1、修改分区的UUID
+		Ubuntu 使用 uuid命令 生成新的uuid
+		centos 使用uuidgen命令 生成新的uuid
+		Ubuntu
+		sudo uuid | xargs tune2fs /dev/sda1 -U
+		centos
+		sudo uuidgen | xargs tune2fs /dev/sda1 -U
+		2、查看/etc/fstab 将原有UUID写入分区
+		tune2fs -U 578c1ba1-d796-4a54-be90-8a011c7c2dd3 /dev/sda1
 
+	3, GPT/UUID :http://en.wikipedia.org/wiki/GUID_Partition_Table
+		GPT:GUID Partition Table
+		MBR:Master Boot Record
+		LBA:Logic Block Address
+
+##nfs:
+	1, server build:
+	2, client mount:
+		mount -t nfs -o nolock 10.3.153.96:/home/user/nfs /mnt/
+##ubuntu/windows share fold
+	1, Windows共享文件夹使用的协议是SMB/CIFS
+		sudo apt install cifs-utils
+		sudo mount.cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw]
+		sudo mount -t cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw]
+		sudo mount.cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw],uid=[UID]
+		sudo mount.cifs //[address]/[folder] [mount point] -o domain=[domain_name],user=[username],passwd=[pw],uid=[UID]
+##git:
+	1, delete local branch
+		git branch -d branchname
+	2, delete remote branch
+		# 冒号前面的空格不能少，相当于把一个空分支push到server上，等于删除该分支
+		git push origin :branchname
