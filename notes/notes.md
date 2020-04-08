@@ -167,6 +167,8 @@
 
 ##nfs:
 	1, server build:
+		nfs-kernel-server config:
+		echo "/home/user/nfs *(rw,sync,no_root_squash)" > /etc/exports
 	2, client mount:
 		mount -t nfs -o nolock 10.3.153.96:/home/user/nfs /mnt/
 
@@ -212,3 +214,60 @@
 
 ##gerrit:
 	1, web browser: 10.3.153.233:8080
+
+##apt:
+	1, man:apt-get(8), apt-cache(8), sources.list(5), apt.conf(5), apt-config(8)
+	2, apt-get install安装目录是包的维护者确定的，不是用户
+		可以预配置的时候通过./configure --help看一下–prefix的默认值是什么，
+		就知道默认安装位置了，或者直接指定安装目录。
+		apt-config dump | grep  -i "dir::cache" show the apt download directory
+
+##ubuntu accounts management:
+	1, su - username (Provide an environment similar to what the user would expect had the user logged in directly)
+	2, users: print the user names of users currently logged in to the current host
+	3, w: Show who is logged on and what they are doing
+	4, 查看当前登录
+		w
+		who
+		users
+	   查看系统中所有用户：
+		grep bash /etc/passwd
+		或者：
+		cat /etc/passwd | cut -f 1 -d:
+	5, users/w/who command principe: read登录记录文件(/var/run/utmp)
+
+##xdg-open:
+	xdg-open: opens a file or URL in the user's preferred application
+
+##kernel-scan-partition-table-gpt-mmc-driver:
+	block/partitions/efi.c
+	/**
+	 * efi_partition(struct parsed_partitions *state)
+	 * @state: disk parsed partitions
+	 *
+	 * Description: called from check.c, if the disk contains GPT
+	 * partitions, sets up partition entries in the kernel.
+	 *
+	 * If the first block on the disk is a legacy MBR,
+	 * it will get handled by msdos_partition().
+	 * If it's a Protective MBR, we'll handle it here.
+	 *
+	 * We do not create a Linux partition for GPT, but
+	 * only for the actual data partitions.
+	 * Returns:
+	 * -1 if unable to read the partition table
+	 *  0 if this isn't our partition table
+	 *  1 if successful
+	 */
+	int efi_partition(struct parsed_partitions *state)
+	{
+	    gpt_header *gpt = NULL;
+	    gpt_entry *ptes = NULL;
+	    u32 i;
+	    unsigned ssz = bdev_logical_block_size(state->bdev) / 512;
+	    if (!find_valid_gpt(state, &gpt, &ptes) || !gpt || !ptes) {
+	        kfree(gpt);
+	        kfree(ptes);
+	        return 0;
+	    }
+	    pr_debug("GUID Partition Table is valid!  Yea!\n");
