@@ -61,6 +61,25 @@
 #nfs-kernel-server config:
 #	echo "/home/user/nfs *(rw,sync,no_root_squash)" > /etc/exports
 #-------------------------------------------------------------
+#samba config:
+#	sudo useradd user
+#	sudo chmod 777 /home/user
+#	sudo smbpasswd -a user
+#	sudo vim /etc/samba/smb.conf
+#add lines:
+#		[user]
+#		comment = share folder
+#		browseable = yes
+#		path = /home/user
+#		create mask = 0700
+#		directory mask = 0700
+#		valid users = user
+#		force user = user
+#		force group = user
+#		public = yes
+#		available = yes
+#		writable = yes
+#-------------------------------------------------------------
 #everytime bootup show "System program problem detected" resolvent
 #	sudo vim /etc/default/apport modfy "enable=0"
 #-------------------------------------------------------------

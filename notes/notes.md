@@ -172,7 +172,8 @@
 	2, client mount:
 		mount -t nfs -o nolock 10.3.153.96:/home/user/nfs /mnt/
 
-##ubuntu/windows share fold
+##smb:samba:ubuntu/windows share folder:
+ For ubuntu mount windows:
 	1, Windows共享文件夹使用的协议是SMB/CIFS
 		sudo apt install cifs-utils
 		sudo mount.cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw]
@@ -182,6 +183,21 @@
 	2, Server Message Block - SMB
 		Common Internet File System - CIFS
 	3, input smb://10.3.153.95/e/ in ubuntu files browser
+ For windows mount ubuntu:
+	4, sudo smbpasswd -a user
+		sudo vim /etc/samba/smb.conf
+		[user]
+		comment = share folder
+		browseable=yes
+		path = /home/user
+		create mask = 0700
+		directory mask = 0700
+		valid users = user
+		force user = user
+		force group = user
+		public = yes
+		available = yes
+		writable = yes
 
 ##git:
 	1, delete local branch
@@ -235,6 +251,7 @@
 		或者：
 		cat /etc/passwd | cut -f 1 -d:
 	5, users/w/who command principe: read登录记录文件(/var/run/utmp)
+	6, sudo useradd username
 
 ##xdg-open:
 	xdg-open: opens a file or URL in the user's preferred application
