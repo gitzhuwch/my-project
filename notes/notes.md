@@ -146,7 +146,6 @@
 		这个UUID是在使用文件系统格式化分区时计算生成的，
 		例如Linux下的文件系统工具mkfs就在格式化分区的同时，
 		生成UUID并把它记录到超级块的固定区域中。
-
 	2, 查看硬盘UUID：
 		两种方法:
 		ls -l /dev/disk/by-uuid
@@ -161,7 +160,6 @@
 		sudo uuidgen | xargs tune2fs /dev/sda1 -U
 		2、查看/etc/fstab 将原有UUID写入分区
 		tune2fs -U 578c1ba1-d796-4a54-be90-8a011c7c2dd3 /dev/sda1
-
 	3, GPT/UUID :http://en.wikipedia.org/wiki/GUID_Partition_Table
 		GPT:GUID Partition Table
 		MBR:Master Boot Record
@@ -171,6 +169,7 @@
 	1, server build:
 	2, client mount:
 		mount -t nfs -o nolock 10.3.153.96:/home/user/nfs /mnt/
+
 ##ubuntu/windows share fold
 	1, Windows共享文件夹使用的协议是SMB/CIFS
 		sudo apt install cifs-utils
@@ -178,9 +177,38 @@
 		sudo mount -t cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw]
 		sudo mount.cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw],uid=[UID]
 		sudo mount.cifs //[address]/[folder] [mount point] -o domain=[domain_name],user=[username],passwd=[pw],uid=[UID]
+	2, Server Message Block - SMB
+		Common Internet File System - CIFS
+	3, input smb://10.3.153.95/e/ in ubuntu files browser
+
 ##git:
 	1, delete local branch
 		git branch -d branchname
 	2, delete remote branch
 		# 冒号前面的空格不能少，相当于把一个空分支push到server上，等于删除该分支
 		git push origin :branchname
+	3, git clone all branchs of remote repository
+		git branch -a，列出所有分支名称如下：
+			remotes
+			   /origin/devremotes
+			   /origin/release
+		git checkout -b dev origin/dev，作用是checkout远程的dev分支，在本地起名为dev分支，并切换到本地的dev分支
+
+##repo:
+	1, sudo apt -y install repo
+	2, vim /usr/bin/repo
+		modify: REPO_URL=https://github.com/esrlabs/git-repo
+		:wq
+	3, repo init -u xxx -b xxx -m xxx
+	4, repo tool dependens:
+		manifest.git repository
+		repo.git repository
+	5, repo help init
+	6, repo init \
+			--repo-url url	\repo repository location
+			-u url			\--manifest-url=URL
+			-b REVISION		\manifest branch or revision
+			-m xx.xml		\initial manifest file
+
+##gerrit:
+	1, web browser: 10.3.153.233:8080
