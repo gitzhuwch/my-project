@@ -1,7 +1,17 @@
 #-------------------------------------------------------------
 #input sources config:
-#	gnome-control-center->region & language->manage installed languages-> install/remove languages->select [chinese (simplified)]
-#	gnome-control-center->region & language->input sources->add[chinese(intelligent pinyin)]
+#	gnome-control-center
+#		-->region & language
+#			-->manage installed languages
+#				--> install/remove languages
+#					-->select "chinese (simplified)"
+#	gnome-control-center
+#		-->region & language
+#			-->input sources
+#				-->click "+"
+#					-->add an input source
+#						-->select "chinese"
+#							-->select "chinese(intelligent pinyin)"
 #-------------------------------------------------------------
 #the brightness will reset Max when setup every time:
 #	sudo vim /etc/rc.local

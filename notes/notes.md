@@ -252,6 +252,9 @@
 		cat /etc/passwd | cut -f 1 -d:
 	5, users/w/who command principe: read登录记录文件(/var/run/utmp)
 	6, sudo useradd username
+	7, usermod:modify a user account
+		-d, --home HOME_DIR
+        The user's new login directory.
 
 ##xdg-open:
 	xdg-open: opens a file or URL in the user's preferred application
@@ -288,3 +291,11 @@
 	        return 0;
 	    }
 	    pr_debug("GUID Partition Table is valid!  Yea!\n");
+
+##partitions-view-tools:
+	df -T 只可以查看已经挂载的分区和文件系统类型。
+	sudo fdisk -l 可以显示出所有挂载和未挂载的分区，但不显示文件系统类型。
+	sudo parted -l 可以查看未挂载的文件系统类型，以及哪些分区尚未格式化。
+	sudo lsblk -f 也可以查看未挂载的文件系统类型。
+	sudo file -s /dev/sda3
+	sudo blkid
