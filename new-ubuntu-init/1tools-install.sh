@@ -59,8 +59,8 @@ sudo apt -y install ibus-pinyin
 sudo apt -y install v4l-utils
 
 #install samba tools for ubuntu/windows sheared folder
-sudo aptitude -y install samba-libs
+#sudo aptitude -y install samba-libs
 #sudo aptitude -y install samba-libs=2:4.7.6+dfsg~ubuntu-0ubuntu2
-sudo aptitude -y install samba-common-bin
-sudo aptitude -y install samba
-sudo aptitude -y install samba-common
+#sudo aptitude -y install samba-common-bin
+#sudo aptitude -y install samba
+#sudo aptitude -y install samba-common
