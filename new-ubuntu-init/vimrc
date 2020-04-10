@@ -54,7 +54,6 @@ map tt :TlistToggle<CR>
 map <C-Left> <C-w>h
 map <C-Right> <C-w>l
 map ss :%s/\s\+$//g<CR>
-nnoremap nw <C-W><C-W>
 nnoremap <Leader>l <C-W>l
 nnoremap <Leader>h <C-W>h
 nnoremap <Leader>k <C-W>k

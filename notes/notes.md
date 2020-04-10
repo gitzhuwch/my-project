@@ -2,10 +2,26 @@
 ##wps:shutcut of Format brush
 	双击格式刷就可以实现这个功能
 
-##vimrc:grammar
+##vim:
+	sudo apt -y install vim
+	1, 查看系统已有键盘映射命令： :map
+	   第一列标明了映射在哪种模式下工作，第二列为 {lhs}，第三列为 {rhs} 。
+	2, sudo apt -y install vim-scripts
+		cp -rf /usr/share/vim-scripts/ ~/.vim/
+	3, git clone --depth=1 https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+		vim .vim/bundle/Vundle.vim/autoload/vundle/installer.vim
+		let cmd = 'git clone           --recursive '.vundle#installer#shellesc(a:bundle.uri).' '.vundle#installer#shellesc(a:bundle.path())
+		let cmd = 'git clone --depth=1 --recursive '.vundle#installer#shellesc(a:bundle.uri).' '.vundle#installer#shellesc(a:bundle.path())
+		vim input command:PluginInstall
+		wait complete......
+		vim ~/.vim/bundle/Vundle.vim/ftplugin/markdown.vim  // resize table of contents window
+          execute 'vertical resize ' . (&columns/2)
+          execute 'vertical resize ' . (&columns/6)
+
+###vimrc grammar:
 	1, autocmd Filetype markdown inoremap<buffer> <silent> ,xxx
 		autocmd Filetype markdown
-    	会在打开文件时判断当前文件类型，如果是 markdown 就执行后面的命令
+		会在打开文件时判断当前文件类型，如果是 markdown 就执行后面的命令
     	inoremap 也就是映射命令map，当然它也可以添加很多前缀
     	nore
     	表示非递归，而递归的映射，也就是如果键a被映射成了b，c又被映射成了a，如果映射是递归的，那么c就被映射成了b
@@ -18,12 +34,15 @@
     	c
     	表示在命令行模式下生效
     	所以inoremap也就表示在插入模式下生效的非递归映射
-    	<buffer> <silent> map的参数，必须放在map后面
-    	<buffer> 表示仅在当前缓冲区生效，就算你一开始打开的是md文件，映射生效了，但当你在当前页面打开非md文件，该映射也只会在md文件中生效
-    	<silent> 如果映射的指令中使用了命令行，命令行中也不会显示执行过程
+		<buffer> <silent> map的参数，必须放在map后面
+		<buffer> 表示仅在当前缓冲区生效，就算你一开始打开的是md文件，映射生效了，但当你在当前页面打开非md文件，该映射也只会在md文件中生效
+		<silent> 如果映射的指令中使用了命令行，命令行中也不会显示执行过程
 		后面就是按键和映射的指令了，逻辑什么的就是对 vim 的直接操作，就不详细介绍了
+	2, below setting will cause vim search speed slowdown!!
+		because prefix 'n'
+		nnoremap nw <C-W><C-W>
 
-##How to build arm qemu32 debug kernel environment
+##qemu32-arm:
 	1, sudo apt install qemu-system-arm
 	2, sudo apt install gcc-arm-linux-gnueabi //has no arm-gdb
 	3,
@@ -75,10 +94,10 @@
 		qemu-system-arm -M vexpress-a9 -smp 4 -m 1024M -kernel ./arch/arm/boot/zImage -initrd rootfs.cpio.gz -append "rdinit=/linuxrc console=ttyAMA0 loglevel=8" -dtb arch/arm/boot/dts/vexpress-v2p-ca9.dtb -nographic -s -S
 		#must be zImage, Image and vmlinux can't bootup
 
-##How to enable earlyprintk when qemu debuging kernel
+##earlyprintk:
 	qemu-system-arm cmdline arguments add [ -append "earlyprintk console=ttyAMA0" ]
 
-##How to set gcc option -O0 in source code file
+##gcc option -O0:
 	#pragma GCC push_options
 	#pragma GCC optimize ("O0")
 	void fun()
@@ -104,40 +123,6 @@
 
 ##ffmpeg-using
 	ffplay -f rawvideo -pixel_format nv12 -video_size 640x480 cap.yuv
-
-##kernel-scan-partition-table-gpt-mmc-driver
-	block/partitions/efi.c
-	/**
-	 * efi_partition(struct parsed_partitions *state)
-	 * @state: disk parsed partitions
-	 *
-	 * Description: called from check.c, if the disk contains GPT
-	 * partitions, sets up partition entries in the kernel.
-	 *
-	 * If the first block on the disk is a legacy MBR,
-	 * it will get handled by msdos_partition().
-	 * If it's a Protective MBR, we'll handle it here.
-	 *
-	 * We do not create a Linux partition for GPT, but
-	 * only for the actual data partitions.
-	 * Returns:
-	 * -1 if unable to read the partition table
-	 *  0 if this isn't our partition table
-	 *  1 if successful
-	 *
-	 */
-	int efi_partition(struct parsed_partitions *state)
-	{
-    gpt_header *gpt = NULL;
-    gpt_entry *ptes = NULL;
-    u32 i;
-    unsigned ssz = bdev_logical_block_size(state->bdev) / 512;
-    if (!find_valid_gpt(state, &gpt, &ptes) || !gpt || !ptes) {
-        kfree(gpt);
-        kfree(ptes);
-        return 0;
-    }
-    pr_debug("GUID Partition Table is valid!  Yea!\n");
 
 ##UUID
 	1, https://blog.csdn.net/smstong/article/details/46417213
@@ -168,7 +153,7 @@
 ##nfs:
 	1, server build:
 		nfs-kernel-server config:
-		echo "/home/user/nfs *(rw,sync,no_root_squash)" > /etc/exports
+		echo "/home/user/nfs \*(rw,sync,no_root_squash)" > /etc/exports
 	2, client mount:
 		mount -t nfs -o nolock 10.3.153.96:/home/user/nfs /mnt/
 
@@ -199,7 +184,8 @@
 		available = yes
 		writable = yes
 
-##git:
+##git:repo:gerrit:
+###git:
 	1, delete local branch
 		git branch -d branchname
 	2, delete remote branch
@@ -212,7 +198,7 @@
 			   /origin/release
 		git checkout -b dev origin/dev，作用是checkout远程的dev分支，在本地起名为dev分支，并切换到本地的dev分支
 
-##repo:
+###repo:
 	1, sudo apt -y install repo
 	2, vim /usr/bin/repo
 		modify: REPO_URL=https://github.com/esrlabs/git-repo
@@ -228,7 +214,7 @@
 			-b REVISION		\manifest branch or revision
 			-m xx.xml		\initial manifest file
 
-##gerrit:
+###gerrit:
 	1, web browser: 10.3.153.233:8080
 
 ##apt:
@@ -259,7 +245,7 @@
 ##xdg-open:
 	xdg-open: opens a file or URL in the user's preferred application
 
-##kernel-scan-partition-table-gpt-mmc-driver:
+##kernel-scan-partition-table-gpt:
 	block/partitions/efi.c
 	/**
 	 * efi_partition(struct parsed_partitions *state)
@@ -299,3 +285,14 @@
 	sudo lsblk -f 也可以查看未挂载的文件系统类型。
 	sudo file -s /dev/sda3
 	sudo blkid
+
+##arm:arm9:armv9:cortex-a9:
+	1,且在GCC编译中，常常要用到 -march,-mcpu等
+	2,ARM（Advanced RISCMachines)
+	3,ＡＲＭ公司定义了６种主要的指令集体系结构版本。Ｖ１－Ｖ６。（所以上面提到的ＡＲＭｖ６是指指令集版本号）。即：ARM architecture
+	4, ARM公司开发了很多ARM处理器核，最新版位ARM11。ARM11：指令集ARMv6，8级流水线，1.25DMIPS/MHz
+	5, Cortex-A8：指令集ARMv7-A，13级整数流水线，超标量双发射，2.0DMIPS/MHz，标配Neon，不支持多核
+	  Scorpion：指令集ARMv7-A，高通获得指令集授权后在A8的基础上设计的。13级整数流水线，超标量双发射，部分乱序执行，2.1DMIPS/MHz，标配Neon，支持多核
+	  Cortex-A9：指令集ARMv7-A，8级整数流水线，超标量双发射，乱序执行，2.5DMIPS/MHz，可选配Neon/VFPv3，支持多核
+	  Cortex-A5：指令集ARMv7-A，8级整数流水线，1.57DMIPS/MHz，可选配Neon/VFPv3，支持多核
+	  Cortex-A15：指令集ARMv7-A，超标量，乱序执行，可选配Neon/VFPv4，支持多核
