@@ -3,6 +3,7 @@
 	双击格式刷就可以实现这个功能
 
 ##vim:
+###vim:
 	sudo apt -y install vim
 	1, 查看系统已有键盘映射命令： :map
 	   第一列标明了映射在哪种模式下工作，第二列为 {lhs}，第三列为 {rhs} 。
@@ -17,6 +18,22 @@
 		vim ~/.vim/bundle/Vundle.vim/ftplugin/markdown.vim  // resize table of contents window
           execute 'vertical resize ' . (&columns/2)
           execute 'vertical resize ' . (&columns/6)
+	4, CTRL-G == :f :file "show current file path
+	5, :help CTRL-] == :tag {ident}
+
+###vim-plugin:
+	1, #如果你的插件来自github，写在下方，只要作者名/项目名就行了
+		 Bundle 'tpope/vim-fugitive' #如这里就安装了vim-fugitive这个插件
+		 Bundle 'bogado/file-line'
+	2, #如果插件来自 vim-scripts，你直接写插件名就行了
+		 Bundle 'L9'
+		 Bundle 'file-line.vim'
+	3, #如使用自己的git库的插件，像下面这样做
+		 Bundle 'git://git.wincent.com/command-t.git'
+	4, 如何移除插件
+		(1)编辑.vimrc文件移除的你要移除的插件行
+		(2)保存退出当前的vim
+		(3)重打开vim，在命令模式下输入命名PluginClean。
 
 ###vimrc grammar:
 	1, autocmd Filetype markdown inoremap<buffer> <silent> ,xxx
@@ -296,3 +313,10 @@
 	  Cortex-A9：指令集ARMv7-A，8级整数流水线，超标量双发射，乱序执行，2.5DMIPS/MHz，可选配Neon/VFPv3，支持多核
 	  Cortex-A5：指令集ARMv7-A，8级整数流水线，1.57DMIPS/MHz，可选配Neon/VFPv3，支持多核
 	  Cortex-A15：指令集ARMv7-A，超标量，乱序执行，可选配Neon/VFPv4，支持多核
+
+##ATE:EVB:SLT
+	1, ATE(Auto Test Equipment) 在测试工厂完成. 大致是给芯片的输入管道施加所需的激励信号，
+		同时监测芯片的输出管脚，看其输出信号是否是预期的值。有特定的测试平台。
+	2, SLT(System Level Test) 也是在测试工厂完成，与ATE一起称之为Final Test.
+		SLT位于ATE后面，执行系统软件程序，测试芯片各个模块的功能是否正常。
+	3, EVB(Evaluation Board) 开发板：软件/驱动开发人员使用EVB开发板验证芯片的正确性，进行软件应用开发
