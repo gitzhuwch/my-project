@@ -64,3 +64,6 @@ sudo apt -y install v4l-utils
 #sudo aptitude -y install samba-common-bin
 #sudo aptitude -y install samba
 #sudo aptitude -y install samba-common
+
+#GAWK 是 GNUProject 的 AWK 解释器的开放源代码实现。尽管早期的GAWK 发行版是旧的 AWK 的替代程序，但不断地对其进行了更新，以包含 NAWK 的特性。
+sudo apt -y install gawk

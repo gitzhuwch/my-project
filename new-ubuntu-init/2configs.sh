@@ -23,6 +23,7 @@
 #	font
 #	background color
 #	"reset and clear" shortcut
+#	disable limit scrolback to
 #-------------------------------------------------------------
 #ubuntu desktop config:
 #	backgroud color
@@ -95,4 +96,9 @@
 #-------------------------------------------------------------
 #windows(LTC) and ubuntu(UTC+8) double system time error
 #	modify windows regedit
+#-------------------------------------------------------------
+#minicom config:
+#ctrl-a o->
+#	screen and keyboard->
+#		R line wrap Yes
 #-------------------------------------------------------------

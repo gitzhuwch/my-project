@@ -233,6 +233,10 @@
 
 ###gerrit:
 	1, web browser: 10.3.153.233:8080
+	2, refs/for/master与refs/for/refs/heads/master区别:
+		a)这个不是git的规则，而是gerrit的规则
+		b)branches, remote-tracking branches, and tags等等都是对commite的引用（reference）
+		c)refs/for/mybranch需要经过code review之后才可以提交；refs/heads/mybranch不需要code review
 
 ##apt:
 	1, man:apt-get(8), apt-cache(8), sources.list(5), apt.conf(5), apt-config(8)
@@ -320,3 +324,26 @@
 	2, SLT(System Level Test) 也是在测试工厂完成，与ATE一起称之为Final Test.
 		SLT位于ATE后面，执行系统软件程序，测试芯片各个模块的功能是否正常。
 	3, EVB(Evaluation Board) 开发板：软件/驱动开发人员使用EVB开发板验证芯片的正确性，进行软件应用开发
+
+##clk/clocksource/time:
+	1, drivers/clk: device clk tree;
+	2, drivers/clocksource: kernel time source;
+	3, kernel/time: kernel time system.
+
+##power/regulator:
+	1, power: sleep wakeup system
+	2, regulator: power management system
+
+##gpio/pinctrl:
+	1, gpio:
+	2, pinctrl:
+
+##cpufreq:
+	1, cat /sys/system/cpu/cpufreq
+	2, drivers/base/bus.c:
+		system_kset = kset_create_and_add("system", NULL, &devices_kset->kobj);
+	3, drivers/base/cpu.c:
+		subsys_system_register(&cpu_subsys, cpu_root_attr_groups)
+
+##arm smp open/close:
+	1, edit smp_init
