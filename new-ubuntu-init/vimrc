@@ -49,6 +49,7 @@ if has("autocmd")
   autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
 endif
 
+map <C-]> g]
 map qq :qa!<CR>
 map tt :TlistToggle<CR>
 map <C-Left> <C-w>h
@@ -79,7 +80,7 @@ Plugin 'scrooloose/nerdcommenter'
 "Plugin 'bogado/file-line' "static add at end of this file
 "如果插件来自 vim-scripts，你直接写插件名就行了
 Plugin 'taglist.vim'
-
+Plugin 'minibufexpl.vim'
 call vundle#end()
 filetype plugin indent on
 " Brief help
@@ -112,6 +113,7 @@ let NERDTreeAutoDeleteBuffer=1 "删除文件时自动删除文件对应 buffer
 autocmd FileType markdown nmap <Leader>tt :Toc<CR>
 "autocmd Filetype markdown inoremap <buffer> <silent> ,3 ###<Space><Enter><++><Esc>kA
 
+""""""""""""""""""""""""""""""""""
 "Plugin 'bogado/file-line'
 " Avoid installing twice or when in unsupported Vim version.
 if exists('g:loaded_file_line') || (v:version < 701)

@@ -20,6 +20,9 @@
           execute 'vertical resize ' . (&columns/6)
 	4, CTRL-G == :f :file "show current file path
 	5, :help CTRL-] == :tag {ident}
+	6, A buffer is the in-memory text of a file.
+		A window is a viewport on a buffer.
+		A tab page is a collection of windows.
 
 ###vim-plugin:
 	1, #如果你的插件来自github，写在下方，只要作者名/项目名就行了
@@ -60,12 +63,12 @@
 		nnoremap nw <C-W><C-W>
 
 ##qemu32-arm:
-	1, sudo apt install qemu-system-arm
-	2, sudo apt install gcc-arm-linux-gnueabi //has no arm-gdb
+	1, sudo apt -y install qemu-system-arm
+	2, sudo apt -y install gcc-arm-linux-gnueabi //has no arm-gdb
 	3,
 		3.1 get arm-linux-gnueabi-gdb for arm
 		https://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabi/
-		3.2 sudo apt install gdb-multiarch
+		3.2 sudo apt -y install gdb-multiarch
 		{
 			if appear error "gdb-multiarch : Depends: gdb (= 8.1-0ubuntu3) but 8.1-0ubuntu3.2 is to be installed"
 			firstly: sudo apt -y install gdb=8.1-0ubuntu3
@@ -110,9 +113,32 @@
 		#qemu-system-arm -M vexpress-a9 -m 128M -kernel ./arch/arm/boot/zImage -dtb ./arch/arm/boot/dts/vexpress-v2p-ca9.dtb -nographic -append "console=ttyAMA0"
 		qemu-system-arm -M vexpress-a9 -smp 4 -m 1024M -kernel ./arch/arm/boot/zImage -initrd rootfs.cpio.gz -append "rdinit=/linuxrc console=ttyAMA0 loglevel=8" -dtb arch/arm/boot/dts/vexpress-v2p-ca9.dtb -nographic -s -S
 		#must be zImage, Image and vmlinux can't bootup
+	7, ctrl+a+x --> exit qemu-system-arm
+		ctrl+x+a --> open/close gdb layout
+		gdb: layout --> open gdb layout
 
 ##earlyprintk:
 	qemu-system-arm cmdline arguments add [ -append "earlyprintk console=ttyAMA0" ]
+
+##kgdb:
+	1, kernel cmdline:kgdboc=ttyxx
+	2, make menuconfig --> kernel hacking --> ... --> kgdb xxx
+	3, uart driver:uart_ops{
+		#ifdef CONFIG_CONSOLE_POLL
+		.poll_init     = pl011_hwinit,
+		.poll_get_char = pl011_get_poll_char,
+		.poll_put_char = pl011_put_poll_char,
+		#endif
+	}
+	4, int uart_poll_init()
+	{
+		port = uart_port_check(state);
+		if (!port || !(port->ops->poll_get_char && port->ops->poll_put_char)) **so uart driver don't realize poll_xxx_char functions;here will failed;
+		{
+			ret = -1;
+			goto out;
+		}
+	}
 
 ##gcc option -O0:
 	#pragma GCC push_options
