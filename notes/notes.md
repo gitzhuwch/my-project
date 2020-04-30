@@ -133,14 +133,23 @@
 	4, int uart_poll_init()
 	{
 		port = uart_port_check(state);
-		if (!port || !(port->ops->poll_get_char && port->ops->poll_put_char)) **so uart driver don't realize poll_xxx_char functions;here will failed;
+		**so uart driver don't realize poll_xxx_char functions;here will failed;**
+		if (!port || !(port->ops->poll_get_char && port->ops->poll_put_char))
 		{
 			ret = -1;
 			goto out;
 		}
 	}
 
-##gcc option -O0:
+##gdb:
+	1, -E, --preserve-env  preserve user environment when running command
+		sudo -E ./t7gdb vmlinux
+			gdb:edit start_kernel	(success)
+		sudo ./t7gdb vmlinux
+			gdb:edit start_kernel	(failed)
+
+##gcc:
+###gcc option -O0:
 	#pragma GCC push_options
 	#pragma GCC optimize ("O0")
 	void fun()
@@ -149,7 +158,7 @@
 	}
 	#pragma GCC pop_options
 
-##gcc sysroot environment
+###gcc sysroot environment
 	type command:
 		arm-poky-linux-gnueabi-gcc  --sysroot=/opt/fsl-imx-x11/4.1.15-2.1.0/sysroots/cortexa9hf-neon-poky-linux-gnueabi   -print-libgcc-file-name
 	result:
@@ -159,39 +168,15 @@
 	result:
 		libgcc.a
 
+###gcc enable openmp?
+
 ##dmesg-principle
 	strace -yf dmesg
 	read /dev/kmsg		#accumulation log
 	read /proc/kmsg		#real time log
 
-##ffmpeg-using
+##ffplay-using
 	ffplay -f rawvideo -pixel_format nv12 -video_size 640x480 cap.yuv
-
-##UUID
-	1, https://blog.csdn.net/smstong/article/details/46417213
-		为解决上述问题，UUID被文件系统设计者采用，使其可以持久唯一标识一个硬盘分区。
-		其实方式很简单，就是在文件系统的超级块中使用128位存放UUID。
-		这个UUID是在使用文件系统格式化分区时计算生成的，
-		例如Linux下的文件系统工具mkfs就在格式化分区的同时，
-		生成UUID并把它记录到超级块的固定区域中。
-	2, 查看硬盘UUID：
-		两种方法:
-		ls -l /dev/disk/by-uuid
-		blkid /dev/sda1
-		修改分区UUID：
-		1、修改分区的UUID
-		Ubuntu 使用 uuid命令 生成新的uuid
-		centos 使用uuidgen命令 生成新的uuid
-		Ubuntu
-		sudo uuid | xargs tune2fs /dev/sda1 -U
-		centos
-		sudo uuidgen | xargs tune2fs /dev/sda1 -U
-		2、查看/etc/fstab 将原有UUID写入分区
-		tune2fs -U 578c1ba1-d796-4a54-be90-8a011c7c2dd3 /dev/sda1
-	3, GPT/UUID :http://en.wikipedia.org/wiki/GUID_Partition_Table
-		GPT:GUID Partition Table
-		MBR:Master Boot Record
-		LBA:Logic Block Address
 
 ##nfs:
 	1, server build:
@@ -240,6 +225,38 @@
 			   /origin/devremotes
 			   /origin/release
 		git checkout -b dev origin/dev，作用是checkout远程的dev分支，在本地起名为dev分支，并切换到本地的dev分支
+	4, git config --global credential.helper=store
+		在使用Git进行开发的时候，我们可以使用ssh url或者http url来进行源码的clone/push/pull，
+		二者的区别是，使用ssh url需要在本地配置ssh key，这也就意味着你必须是开发者或者有一定的权限，
+		每次的代码同步（主要是push和clone）不需要进行用户名和密码的输入操作；
+		那么http url就相对宽松些，但是需要在每次同步操作输入用户名和密码，有时候，为了省去每次都输入密码的重复操作，
+		我们可以在本地新建一个文件，来存储你的用户名和密码，只需要在第一次clone输入用户名和密码，
+		这些信息就被存储起来，以后就可以自动读取，不需要你在手动输入了。在Git官网介绍了这一实现，是通过叫做credential
+		helper的小玩意儿实现的。可以把它叫做证书或者凭证小助手，它帮我们存储了credential(凭证，里面包含了用户名和密码)
+		原文链接：https://blog.csdn.net/u012163684/java/article/details/52433645
+
+####error: RPC failed; curl 18 transfer closed with outstanding read data remaining
+	RPC: Remote Procedure Call
+	原因1：缓存区溢出
+	解决方法：
+	1,  clone https方式换成SSH的方式，把 https:// 改为 git://
+	例：git clone https://github.com/libgit2/libgit2
+	改为：git clone git://github.com/libgit2/libgit2
+	2, 加大缓存区 治标不治本
+	git config --global http.postBuffer 500000000
+	3, 少clone一些，每个文件只取最近一次提交，不是整个历史版本
+	git clone https://github.com/flutter/flutter.git --depth 1
+	然后更新远程库到本地
+	git clone --depth=1 http://gitlab.xxx.cn/yyy/zzz.git
+	git fetch --unshallow
+
+####no matching key exchange method found. Their offer: diffie-hellman-group1-sha1
+	这个问题主要是客户端与服务端安装的git版本不兼容
+	vi ~/.ssh/config加入以下内容
+	Host somehost.example.org(你的gerrit服务器，域名或IP) or Host *
+	KexAlgorithms +diffie-hellman-group1-sha1
+
+####git describe failed; cannot deduce version numbe?
 
 ###repo:
 	1, sudo apt -y install repo
@@ -264,6 +281,44 @@
 		b)branches, remote-tracking branches, and tags等等都是对commite的引用（reference）
 		c)refs/for/mybranch需要经过code review之后才可以提交；refs/heads/mybranch不需要code review
 
+###gitolite:
+	1, sudo useradd -r -m -s /bin/bash gitolite
+	2, sudo passwd gitolite
+	3, su - gitolite
+	4, mkdir -p \$HOME/bin
+	5, git clone https://github.com/sitaramc/gitolite.git
+	6, gitolite/install -to \$HOME/bin
+	7, \$HOME/bin/gitolite setup -pk YourName.pub
+
+####git describe failed; cannot deduce version numbe
+	  a)--depth=1 will not cover the release version so install failed
+		git clone --depth=1  https://github.com/sitaramc/gitolite.git
+		gitolite/install -to \$HOME/bin
+		**git describe failed; cannot deduce version numbe**
+	  b)success
+		git clone https://github.com/sitaramc/gitolite.git
+		gitolite/install -to \$HOME/bin
+
+####PTY allocation request failed on channel 0 hello id_rsa, this is git@user-ThinkPad-E490 running gitolite3 v3.6.11-9-gd89c7dd on git 2.17.1
+	ssh -X git@10.3.153.96 report title error
+	cat .ssh/authorized_keys
+		\# gitolite start
+		command="/home/git/bin/gitolite-shell id_rsa",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty
+		ssh-rsa
+		AAAAB3NzaC1yc2EAAA......T4UNW7kAwKgonTeNg3
+		user@user-ThinkPad-E490
+		\# gitolite end
+
+####fatal: No path specified. See 'man git-pull' for valid url syntax
+	git clone ssh://git@10.3.153.96:gitolite-admin report title error
+	fix: below two all right
+		git clone ssh://git@10.3.153.96:/gitolite-admin
+		git clone ssh://git@10.3.153.96/gitolite-admin
+
+###gitolite/gerrit:
+	gitolite is through .ssh/authorized_keys-->command to export git repository
+	gerrit is through ip:29418 port to process client requestion
+
 ##apt:
 	1, man:apt-get(8), apt-cache(8), sources.list(5), apt.conf(5), apt-config(8)
 	2, apt-get install安装目录是包的维护者确定的，不是用户
@@ -271,7 +326,7 @@
 		就知道默认安装位置了，或者直接指定安装目录。
 		apt-config dump | grep  -i "dir::cache" show the apt download directory
 
-##ubuntu accounts management:
+##accounts management:
 	1, su - username (Provide an environment similar to what the user would expect had the user logged in directly)
 	2, users: print the user names of users currently logged in to the current host
 	3, w: Show who is logged on and what they are doing
@@ -333,6 +388,32 @@
 	sudo file -s /dev/sda3
 	sudo blkid
 
+##UUID
+	1, https://blog.csdn.net/smstong/article/details/46417213
+		为解决上述问题，UUID被文件系统设计者采用，使其可以持久唯一标识一个硬盘分区。
+		其实方式很简单，就是在文件系统的超级块中使用128位存放UUID。
+		这个UUID是在使用文件系统格式化分区时计算生成的，
+		例如Linux下的文件系统工具mkfs就在格式化分区的同时，
+		生成UUID并把它记录到超级块的固定区域中。
+	2, 查看硬盘UUID：
+		两种方法:
+		ls -l /dev/disk/by-uuid
+		blkid /dev/sda1
+		修改分区UUID：
+		1、修改分区的UUID
+		Ubuntu 使用 uuid命令 生成新的uuid
+		centos 使用uuidgen命令 生成新的uuid
+		Ubuntu
+		sudo uuid | xargs tune2fs /dev/sda1 -U
+		centos
+		sudo uuidgen | xargs tune2fs /dev/sda1 -U
+		2、查看/etc/fstab 将原有UUID写入分区
+		tune2fs -U 578c1ba1-d796-4a54-be90-8a011c7c2dd3 /dev/sda1
+	3, GPT/UUID :http://en.wikipedia.org/wiki/GUID_Partition_Table
+		GPT:GUID Partition Table
+		MBR:Master Boot Record
+		LBA:Logic Block Address
+
 ##arm:arm9:armv9:cortex-a9:
 	1,且在GCC编译中，常常要用到 -march,-mcpu等
 	2,ARM（Advanced RISCMachines)
@@ -373,3 +454,33 @@
 
 ##arm smp open/close:
 	1, edit smp_init
+
+##sudo/su/login:
+	1, -E, --preserve-env  preserve user environment when running command
+		sudo -E ./t7gdb vmlinux
+			gdb:edit start_kernel	(success)
+		sudo ./t7gdb vmlinux
+			gdb:edit start_kernel	(failed)
+	2,	su -l username
+		su - username //login as username
+	3,	sudo:	execute a command as another user
+		su:		The su command is used to become another user during a login session.
+		login:	The login program is used to establish a new session with the system.
+	4, sudo report:
+		test is not in the sudoers file.  This incident will be reported.
+		resolve mathods:
+			a) modify /etc/sudoers
+			b) modify user group to sudo group
+
+##url:
+	在WWW上，每一信息资源都有统一的且在网上唯一的地址，该地址就叫URL（Uniform Resource Locator,统一资源定位符），它是WWW的统一资源定位标志，就是指网络地址
+	URL由三部分组成：资源类型、存放资源的主机域名、资源文件名。
+	也可认为由4部分组成：协议、主机、端口、路径
+	URL的一般语法格式为：
+	(带方括号[]的为可选项)：
+	protocol :// hostname[:port] / path / [;parameters][?query]#fragment
+
+##service/systemd/systemctl?
+
+##ssh/ssh-agent/ssh-copy-id?
+
