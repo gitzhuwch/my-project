@@ -234,6 +234,20 @@
 		这些信息就被存储起来，以后就可以自动读取，不需要你在手动输入了。在Git官网介绍了这一实现，是通过叫做credential
 		helper的小玩意儿实现的。可以把它叫做证书或者凭证小助手，它帮我们存储了credential(凭证，里面包含了用户名和密码)
 		原文链接：https://blog.csdn.net/u012163684/java/article/details/52433645
+	5,	git help --all
+		git ls-files -s
+		git ls-remote
+		git show-ref
+		git fetch origin refs/for/refs/heads/cc:refs/for/refs/heads/cc
+		git fetch origin refs/for/refs/heads/cc:refs/heads/cc
+	6, git tag
+		git tag -a v1.4 -m 'my version 1.4'
+		git tag v1.4-lw
+		git tag -a v1.2 9fceb02
+		git push origin v1.5 : git push origin [tagname]
+		git push origin --tags
+		git checkout -b version2 v2.0.0
+		git reset --hard v2.0.0
 
 ####error: RPC failed; curl 18 transfer closed with outstanding read data remaining
 	RPC: Remote Procedure Call
@@ -273,6 +287,47 @@
 			-u url			\--manifest-url=URL
 			-b REVISION		\manifest branch or revision
 			-m xx.xml		\initial manifest file
+	7,.repo/manifests/.git/xxx symlink to .repo/manifests.git/xxx
+	strace -fy repo init --repo-url ssh://git@www.rockchip.com.cn/repo/rk/tools/repo -u ssh://git@www.rockchip.com.cn/linux/rk/platform/manifests -b linux -m rk3399_linux_release.xml
+		mkdir("/home/git/temp/.repo/manifests", 0777) = 0
+		mkdir("/home/git/temp/.repo/manifests/.git.tmp", 0777) = 0
+		...
+		mkdir("/home/git/temp/.repo/manifests.git/rr-cache", 0777) = 0
+		symlink("../../manifests.git/rr-cache", "/home/git/temp/.repo/manifests/.git.tmp/rr-cache") = 0
+		...
+		lstat("/home", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+		lstat("/home/git", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+		lstat("/home/git/temp", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+		lstat("/home/git/temp/.repo", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+		lstat("/home/git/temp/.repo/manifests.git", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+		lstat("/home/git/temp/.repo/manifests.git/objects", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+		lstat("/home/git/temp/.repo/manifests/.git.tmp/objects", 0x7ffda7de1ab0) = -1 ENOENT (No such file or directory)
+		lstat("/home/git/temp/.repo/manifests.git/objects", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+		symlink("../../manifests.git/objects", "/home/git/temp/.repo/manifests/.git.tmp/objects") = 0
+		...
+		rename("/home/git/temp/.repo/manifests/.git.tmp", "/home/git/temp/.repo/manifests/.git") = 0
+		...
+		chdir("/home/git/temp/.repo/manifests") = 0
+		...
+		execve("/usr/bin/git", ["git", "read-tree", "--reset", "-u", "-v", "HEAD"], 0x7fb3bbec0ce0 /* 28 vars */ <unfinished ...>
+	8, 想冻结某个时间点调试好的代码，将其manifest保存起来，以备将来使用
+		repo manifest -r -o name.xml
+		cp name.xml .repo/manifests/
+		repo init -m name.xml
+		repo sync
+		------
+		repo manifest -h
+			Usage: repo manifest [-o {-|NAME.xml} [-r]]
+			Options:
+			  -h, --help            show this help message and exit
+			  -r, --revision-as-HEAD
+			                        Save revisions as current HEAD	把当前HEAD保存为manifest里的revision字段
+			  --suppress-upstream-revision							去除manifest里的upstream字段
+			                        If in -r mode, do not write the upstream field.  Only
+			                        of use if the branch names for a sha1 manifest are
+			                        sensitive.
+			  -o -|NAME.xml, --output-file=-|NAME.xml
+			                        File to save the manifest to
 
 ###gerrit:
 	1, web browser: 10.3.153.233:8080
@@ -343,6 +398,11 @@
 	7, usermod:modify a user account
 		-d, --home HOME_DIR
         The user's new login directory.
+	8,Linux用户类型
+	Linux用户类型分为 3 类：超级用户、系统用户和普通用户。
+    超级用户：用户名为 root 或 USER ID(UID)为0的账号，具有一切权限，可以操作系统中的所有资源。root可以进行基础的文件操作以及特殊的文件管理，另外还可以进行网络管理，可以修改系统中的任何文件。日常工作中应避免使用此类账号，只有在必要的时候才使用root登录系统。
+    系统用户：正常运行系统时使用的账户。每个进程运行在系统里都有一个相应的属主，比如某个进程以何种身份运行，这些身份就是系统里对应的用户账号。注意系统账户是不能用来登录的，比如 bin、daemon、mail等。
+    普通用户：普通使用者，能使用Linux的大部分资源，一些特定的权限受到控制。用户只对自己的目录有写权限，读写权限受到一定的限制，从而有效保证了Linux的系统安全，大部分用户属于此类。
 
 ##xdg-open:
 	xdg-open: opens a file or URL in the user's preferred application
