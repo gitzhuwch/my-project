@@ -251,6 +251,7 @@
 	7,git checkout master
 		git checkout xxx-SHA1: HEAD == xxx-SHA1 != refs/heads/master
 		git reset    xxx-SHA1: HEAD == refs/heads/master == xxx-SHA1
+	8, git clone url = mkdir repo-name + cd repo-name + git init + git remote add + git fetch + git checkout
 
 ####error: RPC failed; curl 18 transfer closed with outstanding read data remaining
 	RPC: Remote Procedure Call
