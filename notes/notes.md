@@ -248,6 +248,9 @@
 		git push origin --tags
 		git checkout -b version2 v2.0.0
 		git reset --hard v2.0.0
+	7,git checkout master
+		git checkout xxx-SHA1: HEAD == xxx-SHA1 != refs/heads/master
+		git reset    xxx-SHA1: HEAD == refs/heads/master == xxx-SHA1
 
 ####error: RPC failed; curl 18 transfer closed with outstanding read data remaining
 	RPC: Remote Procedure Call
