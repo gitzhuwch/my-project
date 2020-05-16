@@ -1,7 +1,7 @@
 alias tags='ctags -R *'
 alias gcf='git cat-file'
 alias gcfp='git cat-file -p'
-PATH=$PATH:~/bin/
+PATH=~/bin/:$PATH
 export EDITOR=/usr/bin/vim
 #export PS4='+${BASH_SOURCE}:${LINENO}:${FUNCNAME[0]}: '
 #export PS1="\[\033[36m\]\[\u@\h \w]$\n\[\033[00m\]->"
