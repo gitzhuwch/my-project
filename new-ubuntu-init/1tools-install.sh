@@ -69,3 +69,5 @@ sudo apt -y install v4l-utils
 sudo apt -y install gawk
 
 sudo apt -y install tree
+
+sudo apt -y install patchelf
