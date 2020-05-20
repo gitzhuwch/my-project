@@ -116,6 +116,9 @@
 	7, ctrl+a+x --> exit qemu-system-arm
 		ctrl+x+a --> open/close gdb layout
 		gdb: layout --> open gdb layout
+	8,
+		gdb-multiarch vmlinux
+		target remote localhost:1234
 
 ##earlyprintk:
 	qemu-system-arm cmdline arguments add [ -append "earlyprintk console=ttyAMA0" ]
@@ -140,6 +143,10 @@
 			goto out;
 		}
 	}
+	5,
+		set serial baud 115200
+		target remote /dev/ttyUSB0
+
 
 ##gdb:
 	1, -E, --preserve-env  preserve user environment when running command
