@@ -555,3 +555,57 @@
 
 ##ssh/ssh-agent/ssh-copy-id?
 
+##char dev name where defining:
+	1, drivers/base/core.c:
+		dev_uevent(){}
+			device_get_devnode()
+###ttyS0 char device name generate
+struct uart_port.line=x-------------------------
+ttySx-------------------------
+static struct uart_driver amba_reg = {
+    .owner          = THIS_MODULE,
+    .driver_name        = "ttyAMA",
+    .dev_name       = "ttyS",---------------------------this is the uart port name base; +port.line =ttySx
+    .major          = SERIAL_AMBA_MAJOR,
+    .minor          = SERIAL_AMBA_MINOR,
+    .nr         = UART_NR,
+    .cons           = AMBA_CONSOLE,
+};
+uart_register_driver(&amba_reg)
+{
+	struct tty_driver *normal;
+	int i, retval = -ENOMEM;
+	drv->state = kcalloc(drv->nr, sizeof(struct uart_state), GFP_KERNEL);
+	normal = alloc_tty_driver(drv->nr);
+	drv->tty_driver = normal;
+	normal->driver_name = drv->driver_name;
+	normal->name        = drv->dev_name;---------------------------using uart_driver init tty_driver
+	normal->major       = drv->major;
+	normal->minor_start = drv->minor;
+	normal->type        = TTY_DRIVER_TYPE_SERIAL;
+	normal->subtype     = SERIAL_TYPE_NORMAL;
+	normal->init_termios    = tty_std_termios;
+	normal->init_termios.c_cflag = B9600 | CS8 | CREAD | HUPCL | CLOCAL;
+	normal->init_termios.c_ispeed = normal->init_termios.c_ospeed = 9600;
+	normal->flags       = TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
+	normal->driver_state    = drv;
+	tty_set_operations(normal, &uart_ops);
+	for (i = 0; i < drv->nr; i++) {
+		struct uart_state *state = drv->state + i;
+		struct tty_port *port = &state->port;
+		tty_port_init(port);
+		port->ops = &uart_port_ops;
+	}
+	retval = tty_register_driver(normal);
+}
+uart_add_one_port(&amba_reg, &uap->port)
+	-->tty_port_register_device_attr_serdev(port, drv->tty_driver, uport->line, uport->dev, port, uport->tty_groups)
+		-->tty_register_device_attr(driver, index, device, drvdata, attr_grp)------------kzallock struct device and device_register
+			-->static ssize_t tty_line_name(struct tty_driver *driver, int index, char *p)------------driver is tty_driver not is uart_driver
+				{
+				    if (driver->flags & TTY_DRIVER_UNNUMBERED_NODE)
+				        return sprintf(p, "%s", driver->name);
+				    else
+				        return sprintf(p, "%s%d", driver->name,-----------------is driver->name not is driver->driver_name
+				                   index + driver->name_base);
+				}
