@@ -154,6 +154,20 @@
 			gdb:edit start_kernel	(success)
 		sudo ./t7gdb vmlinux
 			gdb:edit start_kernel	(failed)
+##gdbinit:
+	define dump_current
+	set var $stacksize = sizeof(union thread_union)
+	set var $stackp = (size_t)$sp--------这里必须加上强制类型转换，否则下面计算错的，非常坑
+	set var $stack_bottom = ($stackp) & (~($stacksize - 1))
+	set var $threadinfo = (struct thread_info *)$stack_bottom
+	set var $task_struct =(struct task_struct *)($threadinfo->task)
+	printf "current::pid:%d; comm:%s; mm:0x%x ", $task_struct->pid, $task_struct->comm, $task_struct->mm
+	if ($task_struct->mm != 0)
+	    printf "pgd:0x%x\n", $task_struct->mm->pgd
+	else
+	    printf "pgd:0\n"
+	end
+	end
 
 ##gcc:
 ###gcc option -O0:
@@ -259,6 +273,7 @@
 		git checkout xxx-SHA1: HEAD == xxx-SHA1 != refs/heads/master
 		git reset    xxx-SHA1: HEAD == refs/heads/master == xxx-SHA1
 	8, git clone url = mkdir repo-name + cd repo-name + git init + git remote add + git fetch + git checkout
+	9, git ls-remote 查看远程所有references
 
 ####error: RPC failed; curl 18 transfer closed with outstanding read data remaining
 	RPC: Remote Procedure Call
@@ -609,3 +624,201 @@ uart_add_one_port(&amba_reg, &uap->port)
 				        return sprintf(p, "%s%d", driver->name,-----------------is driver->name not is driver->driver_name
 				                   index + driver->name_base);
 				}
+##1号进程的in/out终端怎么产生
+do_basic_setup();
+所有驱动模块初始化完后
+console_on_rootfs();
+void console_on_rootfs(void)
+{
+    /* Open the /dev/console as stdin, this should never fail */
+    if (ksys_open((const char __user *) "/dev/console", O_RDWR, 0) < 0)
+------------do_sys_open
+	->do_sys_openat2
+		->do_filp_open
+			->path_openat
+				->do_last
+					->vfs_open
+						->do_dentry_open
+							->chrdev_open
+								->tty_open
+									->tty_open_by_driver
+										->tty_lookup_driver到console_drivers链表里找第一个，即cmdline中最后一个console=xx指定的
+        pr_err("Warning: unable to open an initial console.\n");
+    /* create stdout/stderr */
+    (void) ksys_dup(0);
+    (void) ksys_dup(0);
+}
+###/dev/console节点怎么创建的
+1,noinitramfs
+static int \__init default_rootfs(void)
+{
+    int err;
+    err = ksys_mkdir((const char __user __force *) "/dev", 0755);
+    if (err < 0)
+        goto out;
+    err = ksys_mknod((const char __user __force *) "/dev/console",-------这里创建console
+            S_IFCHR | S_IRUSR | S_IWUSR,
+            new_encode_dev(MKDEV(5, 1)));
+    if (err < 0)
+        goto out;
+    err = ksys_mkdir((const char __user __force *) "/root", 0700);
+    if (err < 0)
+        goto out;
+    return 0;
+out:
+    printk(KERN_WARNING "Failed to create a rootfs\n");
+    return err;
+}
+rootfs_initcall(default_rootfs);------以initcall形式调用
+2,initramfs
+static int \__init populate_rootfs(void)
+{
+    /* Load the built in initramfs */
+    char *err = unpack_to_rootfs(__initramfs_start, __initramfs_size);-----这里创建console
+    if (err)
+        panic("%s", err); /* Failed to decompress INTERNAL initramfs */
+    if (!initrd_start || IS_ENABLED(CONFIG_INITRAMFS_FORCE))
+        goto done;
+    if (IS_ENABLED(CONFIG_BLK_DEV_RAM))
+        printk(KERN_INFO "Trying to unpack rootfs image as initramfs...\n");
+    else
+        printk(KERN_INFO "Unpacking initramfs...\n");
+    err = unpack_to_rootfs((char *)initrd_start, initrd_end - initrd_start);-----这里解压ramdisk
+    if (err) {
+        clean_rootfs();
+        populate_initrd_image(err);
+    }
+done:
+    /*
+     * If the initrd region is overlapped with crashkernel reserved region,
+     * free only memory that is not part of crashkernel region.
+     */
+    if (!do_retain_initrd && initrd_start && !kexec_free_initrd())
+        free_initrd_mem(initrd_start, initrd_end);
+    initrd_start = 0;
+    initrd_end = 0;
+    flush_delayed_fput();
+    return 0;
+}
+rootfs_initcall(populate_rootfs);-------以initcall形式调用
+###__initramfs_start这个段怎么产生
+在kernel源码目录下usr/gen_init_cpio.c这个代码中产生
+###devtmpfs文件系统作用和节点产生
+首先要在menuconfig中选上
+然后do_basic_setup->driver_init->devtmpfs_init->kthread_run(devtmpfsd, &err, "kdevtmpfs");创建devtmpfsd线程
+在device_add()函数中
+if (MAJOR(dev->devt)) {
+    error = device_create_file(dev, &dev_attr_dev);
+    if (error)
+        goto DevAttrError;
+    error = device_create_sys_dev_entry(dev);
+    if (error)
+        goto SysEntryError;
+    devtmpfs_create_node(dev);----在这里唤醒devtmpfsd线程，创建设备节点
+}
+####devtmpfs挂载
+选中CONFIG_DEVTMPFS_MOUNT=y会自动挂载
+prepare_namespace->mount_root之后调用->devtmpfs_mount
+int \__init devtmpfs_mount(void)
+{
+    int err;
+    if (!mount_dev)----这个变量决定是否自动挂载
+        return 0;
+    if (!thread)
+        return 0;
+    err = do_mount("devtmpfs", "dev", "devtmpfs", MS_SILENT, NULL);
+    if (err)
+        printk(KERN_INFO "devtmpfs: error mounting %i\n", err);
+    else
+        printk(KERN_INFO "devtmpfs: mounted\n");
+    return err;
+}
+默认没有挂载；kernel起来后可以手动挂载
+##linux driver model
+###device_add()
+	drivers/base/core.c::device_add----这里会创建设备在sys下的所有节点和链接文件，也会在devtmpfs下创建节点
+###driver_register()
+	drivers/base/driver.c::driver_register
+	drivers/base/bus.c::bus_add_driver---这里真正创建driver->kobj目录
+##linux vfs
+###register_filesystem()
+	只是将file_system_type实例加到全局链表file_systems中
+###vfs_kern_mount()
+	会产生一个文件系统mount实例，产生root inode/dentry
+###rootfs mount
+	#0  rootfs_init_fs_context (fc=0xee403280) at init/do_mounts.c:701
+	#1  alloc_fs_context (fs_type=0xc0b07a2c <rootfs_fs_type>, reference=0x0, sb_flags=0, sb_flags_mask=0, purpose=FS_CONTEXT_FOR_MOUNT) at fs/fs_context.c:293
+	#2  fs_context_for_mount (fs_type=<optimized out>, sb_flags=<optimized out>) at fs/fs_context.c:307
+	#3  vfs_kern_mount (type=<optimized out>, flags=<optimized out>, name=0xc08e866c "rootfs", data=0x0) at fs/namespace.c:982
+	#4  init_mount_tree () at fs/namespace.c:3716
+	#5  mnt_init () at fs/namespace.c:3771
+	#6  vfs_caches_init () at fs/dcache.c:3215
+	#7  start_kernel () at init/main.c:950
+static int rootfs_init_fs_context(struct fs_context *fc)
+{
+    if (IS_ENABLED(CONFIG_TMPFS) && is_tmpfs)
+        return shmem_init_fs_context(fc);
+    return ramfs_init_fs_context(fc);
+}
+所以rootfs的root是shmemfs或者ramfs类型的
+###rootfs root inode generate
+	#0  shmem_alloc_inode (sb=0xee428800) at mm/shmem.c:3737
+	#1  alloc_inode (sb=0xee428800) at fs/inode.c:231
+	#2  new_inode_pseudo (sb=<optimized out>) at fs/inode.c:927
+	#3  new_inode (sb=<optimized out>) at fs/inode.c:956
+	#4  shmem_get_inode (sb=0xee428800, dir=0x0, mode=17407, dev=0, flags=2097152) at mm/shmem.c:2249
+	#5  shmem_fill_super (sb=0xee428800, fc=<optimized out>) at mm/shmem.c:3694
+	#6  vfs_get_super (fc=0xee403280, keying=<optimized out>, fill_super=0xc0222ba0 <shmem_fill_super>) at fs/super.c:1191
+	#7  get_tree_nodev (fc=<optimized out>, fill_super=<optimized out>) at fs/super.c:1221
+	#8  shmem_get_tree (fc=<optimized out>) at mm/shmem.c:3711
+	#9  vfs_get_tree (fc=0xee403280) at fs/super.c:1547
+	#10 fc_mount (fc=0xee403280) at fs/namespace.c:962
+	#11 vfs_kern_mount (type=<optimized out>, flags=<optimized out>, name=<optimized out>, data=0x0) at fs/namespace.c:992
+	#12 init_mount_tree () at fs/namespace.c:3716
+	#13 mnt_init () at fs/namespace.c:3771
+	#14 vfs_caches_init () at fs/dcache.c:3215
+	#15 start_kernel () at init/main.c:950
+在shmem_get_inode函数中调用init_special_inode(inode, mode, dev);生成设备节点
+###rootfs root dentry generate
+shmem_fill_super
+	-->d_make_root
+##tty
+	1,tty 设备号5,0;打开时会用当前进程的tty
+	2,console 设备号5,1;打开时会找cmdline中console=xxx指定的tty
+##uevent_helper
+	1, /sys/kernel/uevent_helper
+###/sys/kernel怎么创建的
+	kernel/ksysfs.c
+		ksysfs_init()
+			-->kernel_kobj = kobject_create_and_add("kernel", NULL);
+###uevent_helper节点怎么创建的
+/kernel/ksysfs.c
+	static struct attribute * kernel_attrs[] = {
+	    &fscaps_attr.attr,
+	    &uevent_seqnum_attr.attr,
+	#ifdef CONFIG_UEVENT_HELPER
+	    &uevent_helper_attr.attr,------------这里
+	#endif
+	#ifdef CONFIG_PROFILING
+	    &profiling_attr.attr,
+	#endif
+	#ifdef CONFIG_KEXEC_CORE
+	    &kexec_loaded_attr.attr,
+	    &kexec_crash_loaded_attr.attr,
+	    &kexec_crash_size_attr.attr,
+	#endif
+	#ifdef CONFIG_CRASH_CORE
+	    &vmcoreinfo_attr.attr,
+	#endif
+	#ifndef CONFIG_TINY_RCU
+	    &rcu_expedited_attr.attr,
+	    &rcu_normal_attr.attr,
+	#endif
+	    NULL
+	};
+	static const struct attribute_group kernel_attr_group = {
+	    .attrs = kernel_attrs,
+	};
+	error = sysfs_create_group(kernel_kobj, &kernel_attr_group);
+##mdev
+	1,在qemu中kernel起来后，在rcS里加了mdev -s 所以/dev下会有节点

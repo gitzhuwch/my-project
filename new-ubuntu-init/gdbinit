@@ -42,3 +42,17 @@ define dump_initcall_section
 end
 document dump_initcall_section
 end
+
+define dump_current
+	set var $stacksize = sizeof(union thread_union)
+	set var $stackp = (size_t)$sp
+	set var $stack_bottom = ($stackp) & (~($stacksize - 1))
+	set var $threadinfo = (struct thread_info *)$stack_bottom
+	set var $task_struct =(struct task_struct *)($threadinfo->task)
+	printf "current::pid:%d; comm:%s; mm:0x%x ", $task_struct->pid, $task_struct->comm, $task_struct->mm
+	if ($task_struct->mm != 0)
+		printf "pgd:0x%x\n", $task_struct->mm->pgd
+	else
+		printf "pgd:0\n"
+	end
+end
