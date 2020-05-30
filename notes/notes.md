@@ -574,65 +574,75 @@
 	1, drivers/base/core.c:
 		dev_uevent(){}
 			device_get_devnode()
+###devtmpfs下产生的设备名称
+	#0  device_get_devnode (dev=0xee58f600, mode=0xee4b7a6c, uid=0xee4b7a70, gid=0xee4b7a74, tmp=0xee4b7a4c) at drivers/base/core.c:2743
+	#1  devtmpfs_create_node (dev=0xee58f600) at drivers/base/devtmpfs.c:120
+	#2  device_add (dev=0xee58f600) at drivers/base/core.c:2450
+###uevent产生的设备名称
+	#0  device_get_devnode (dev=0xee5c0408, mode=0xee4b7cce, uid=0xee4b7cd4, gid=0xee4b7cd8, tmp=0xee4b7cd0) at drivers/base/core.c:2743
+	#1  dev_uevent (kset=<optimized out>, kobj=0xee5c0408, env=0xee4b8000) at drivers/base/core.c:1433
+	#2  kobject_uevent_env (kobj=0xee5c0408, action=<optimized out>, envp_ext=0x0) at lib/kobject_uevent.c:556
+	#3  kobject_uevent (kobj=<optimized out>, action=<optimized out>) at lib/kobject_uevent.c:641
+	#4  device_add (dev=0xee5c0408) at drivers/base/core.c:2460
+
 ###ttyS0 char device name generate
-struct uart_port.line=x-------------------------
-ttySx-------------------------
-static struct uart_driver amba_reg = {
-    .owner          = THIS_MODULE,
-    .driver_name        = "ttyAMA",
-    .dev_name       = "ttyS",---------------------------this is the uart port name base; +port.line =ttySx
-    .major          = SERIAL_AMBA_MAJOR,
-    .minor          = SERIAL_AMBA_MINOR,
-    .nr         = UART_NR,
-    .cons           = AMBA_CONSOLE,
-};
-uart_register_driver(&amba_reg)
-{
-	struct tty_driver *normal;
-	int i, retval = -ENOMEM;
-	drv->state = kcalloc(drv->nr, sizeof(struct uart_state), GFP_KERNEL);
-	normal = alloc_tty_driver(drv->nr);
-	drv->tty_driver = normal;
-	normal->driver_name = drv->driver_name;
-	normal->name        = drv->dev_name;---------------------------using uart_driver init tty_driver
-	normal->major       = drv->major;
-	normal->minor_start = drv->minor;
-	normal->type        = TTY_DRIVER_TYPE_SERIAL;
-	normal->subtype     = SERIAL_TYPE_NORMAL;
-	normal->init_termios    = tty_std_termios;
-	normal->init_termios.c_cflag = B9600 | CS8 | CREAD | HUPCL | CLOCAL;
-	normal->init_termios.c_ispeed = normal->init_termios.c_ospeed = 9600;
-	normal->flags       = TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
-	normal->driver_state    = drv;
-	tty_set_operations(normal, &uart_ops);
-	for (i = 0; i < drv->nr; i++) {
-		struct uart_state *state = drv->state + i;
-		struct tty_port *port = &state->port;
-		tty_port_init(port);
-		port->ops = &uart_port_ops;
+	struct uart_port.line=x-------------------------
+	ttySx-------------------------
+	static struct uart_driver amba_reg = {
+	    .owner          = THIS_MODULE,
+	    .driver_name        = "ttyAMA",
+	    .dev_name       = "ttyS",---------------------------this is the uart port name base; +port.line =ttySx
+	    .major          = SERIAL_AMBA_MAJOR,
+	    .minor          = SERIAL_AMBA_MINOR,
+	    .nr         = UART_NR,
+	    .cons           = AMBA_CONSOLE,
+	};
+	uart_register_driver(&amba_reg)
+	{
+		struct tty_driver *normal;
+		int i, retval = -ENOMEM;
+		drv->state = kcalloc(drv->nr, sizeof(struct uart_state), GFP_KERNEL);
+		normal = alloc_tty_driver(drv->nr);
+		drv->tty_driver = normal;
+		normal->driver_name = drv->driver_name;
+		normal->name        = drv->dev_name;---------------------------using uart_driver init tty_driver
+		normal->major       = drv->major;
+		normal->minor_start = drv->minor;
+		normal->type        = TTY_DRIVER_TYPE_SERIAL;
+		normal->subtype     = SERIAL_TYPE_NORMAL;
+		normal->init_termios    = tty_std_termios;
+		normal->init_termios.c_cflag = B9600 | CS8 | CREAD | HUPCL | CLOCAL;
+		normal->init_termios.c_ispeed = normal->init_termios.c_ospeed = 9600;
+		normal->flags       = TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
+		normal->driver_state    = drv;
+		tty_set_operations(normal, &uart_ops);
+		for (i = 0; i < drv->nr; i++) {
+			struct uart_state *state = drv->state + i;
+			struct tty_port *port = &state->port;
+			tty_port_init(port);
+			port->ops = &uart_port_ops;
+		}
+		retval = tty_register_driver(normal);
 	}
-	retval = tty_register_driver(normal);
-}
-uart_add_one_port(&amba_reg, &uap->port)
-	-->tty_port_register_device_attr_serdev(port, drv->tty_driver, uport->line, uport->dev, port, uport->tty_groups)
-		-->tty_register_device_attr(driver, index, device, drvdata, attr_grp)------------kzallock struct device and device_register
-			-->static ssize_t tty_line_name(struct tty_driver *driver, int index, char *p)------------driver is tty_driver not is uart_driver
-				{
-				    if (driver->flags & TTY_DRIVER_UNNUMBERED_NODE)
-				        return sprintf(p, "%s", driver->name);
-				    else
-				        return sprintf(p, "%s%d", driver->name,-----------------is driver->name not is driver->driver_name
-				                   index + driver->name_base);
-				}
+	uart_add_one_port(&amba_reg, &uap->port)
+		-->tty_port_register_device_attr_serdev(port, drv->tty_driver, uport->line, uport->dev, port, uport->tty_groups)
+			-->tty_register_device_attr(driver, index, device, drvdata, attr_grp)------------kzallock struct device and device_register
+				-->static ssize_t tty_line_name(struct tty_driver *driver, int index, char *p)------------driver is tty_driver not is uart_driver
+					{
+					    if (driver->flags & TTY_DRIVER_UNNUMBERED_NODE)
+					        return sprintf(p, "%s", driver->name);
+					    else
+					        return sprintf(p, "%s%d", driver->name,-----------------is driver->name not is driver->driver_name
+					                   index + driver->name_base);
+					}
 ##1号进程的in/out终端怎么产生
-do_basic_setup();
-所有驱动模块初始化完后
-console_on_rootfs();
+do_basic_setup();所有驱动模块初始化完后
+调用console_on_rootfs();
 void console_on_rootfs(void)
 {
     /* Open the /dev/console as stdin, this should never fail */
     if (ksys_open((const char __user *) "/dev/console", O_RDWR, 0) < 0)
-------------do_sys_open
+---do_sys_open
 	->do_sys_openat2
 		->do_filp_open
 			->path_openat
@@ -642,98 +652,99 @@ void console_on_rootfs(void)
 							->chrdev_open
 								->tty_open
 									->tty_open_by_driver
-										->tty_lookup_driver到console_drivers链表里找第一个，即cmdline中最后一个console=xx指定的
+										->tty_lookup_driver到struct console *console_drivers;链表里找第一个，即cmdline中最后一个console=xx指定的
         pr_err("Warning: unable to open an initial console.\n");
     /* create stdout/stderr */
     (void) ksys_dup(0);
     (void) ksys_dup(0);
 }
 ###/dev/console节点怎么创建的
-1,noinitramfs
-static int \__init default_rootfs(void)
-{
-    int err;
-    err = ksys_mkdir((const char __user __force *) "/dev", 0755);
-    if (err < 0)
-        goto out;
-    err = ksys_mknod((const char __user __force *) "/dev/console",-------这里创建console
-            S_IFCHR | S_IRUSR | S_IWUSR,
-            new_encode_dev(MKDEV(5, 1)));
-    if (err < 0)
-        goto out;
-    err = ksys_mkdir((const char __user __force *) "/root", 0700);
-    if (err < 0)
-        goto out;
-    return 0;
-out:
-    printk(KERN_WARNING "Failed to create a rootfs\n");
-    return err;
-}
-rootfs_initcall(default_rootfs);------以initcall形式调用
-2,initramfs
-static int \__init populate_rootfs(void)
-{
-    /* Load the built in initramfs */
-    char *err = unpack_to_rootfs(__initramfs_start, __initramfs_size);-----这里创建console
-    if (err)
-        panic("%s", err); /* Failed to decompress INTERNAL initramfs */
-    if (!initrd_start || IS_ENABLED(CONFIG_INITRAMFS_FORCE))
-        goto done;
-    if (IS_ENABLED(CONFIG_BLK_DEV_RAM))
-        printk(KERN_INFO "Trying to unpack rootfs image as initramfs...\n");
-    else
-        printk(KERN_INFO "Unpacking initramfs...\n");
-    err = unpack_to_rootfs((char *)initrd_start, initrd_end - initrd_start);-----这里解压ramdisk
-    if (err) {
-        clean_rootfs();
-        populate_initrd_image(err);
-    }
-done:
-    /*
-     * If the initrd region is overlapped with crashkernel reserved region,
-     * free only memory that is not part of crashkernel region.
-     */
-    if (!do_retain_initrd && initrd_start && !kexec_free_initrd())
-        free_initrd_mem(initrd_start, initrd_end);
-    initrd_start = 0;
-    initrd_end = 0;
-    flush_delayed_fput();
-    return 0;
-}
-rootfs_initcall(populate_rootfs);-------以initcall形式调用
-###__initramfs_start这个段怎么产生
-在kernel源码目录下usr/gen_init_cpio.c这个代码中产生
-###devtmpfs文件系统作用和节点产生
-首先要在menuconfig中选上
-然后do_basic_setup->driver_init->devtmpfs_init->kthread_run(devtmpfsd, &err, "kdevtmpfs");创建devtmpfsd线程
-在device_add()函数中
-if (MAJOR(dev->devt)) {
-    error = device_create_file(dev, &dev_attr_dev);
-    if (error)
-        goto DevAttrError;
-    error = device_create_sys_dev_entry(dev);
-    if (error)
-        goto SysEntryError;
-    devtmpfs_create_node(dev);----在这里唤醒devtmpfsd线程，创建设备节点
-}
-####devtmpfs挂载
-选中CONFIG_DEVTMPFS_MOUNT=y会自动挂载
-prepare_namespace->mount_root之后调用->devtmpfs_mount
-int \__init devtmpfs_mount(void)
-{
-    int err;
-    if (!mount_dev)----这个变量决定是否自动挂载
-        return 0;
-    if (!thread)
-        return 0;
-    err = do_mount("devtmpfs", "dev", "devtmpfs", MS_SILENT, NULL);
-    if (err)
-        printk(KERN_INFO "devtmpfs: error mounting %i\n", err);
-    else
-        printk(KERN_INFO "devtmpfs: mounted\n");
-    return err;
-}
-默认没有挂载；kernel起来后可以手动挂载
+####noinitramfs的时候
+	static int \__init default_rootfs(void)
+	{
+	    int err;
+	    err = ksys_mkdir((const char __user __force *) "/dev", 0755);
+	    if (err < 0)
+	        goto out;
+	    err = ksys_mknod((const char __user __force *) "/dev/console",-------这里创建console
+	            S_IFCHR | S_IRUSR | S_IWUSR,
+	            new_encode_dev(MKDEV(5, 1)));
+	    if (err < 0)
+	        goto out;
+	    err = ksys_mkdir((const char __user __force *) "/root", 0700);
+	    if (err < 0)
+	        goto out;
+	    return 0;
+	out:
+	    printk(KERN_WARNING "Failed to create a rootfs\n");
+	    return err;
+	}
+	rootfs_initcall(default_rootfs);------以initcall形式调用
+####initramfs的时候
+	static int \__init populate_rootfs(void)
+	{
+	    /* Load the built in initramfs */
+	    char *err = unpack_to_rootfs(__initramfs_start, __initramfs_size);-----这个段里里创建console
+	    if (err)
+	        panic("%s", err); /* Failed to decompress INTERNAL initramfs */
+	    if (!initrd_start || IS_ENABLED(CONFIG_INITRAMFS_FORCE))
+	        goto done;
+	    if (IS_ENABLED(CONFIG_BLK_DEV_RAM))
+	        printk(KERN_INFO "Trying to unpack rootfs image as initramfs...\n");
+	    else
+	        printk(KERN_INFO "Unpacking initramfs...\n");
+	    err = unpack_to_rootfs((char *)initrd_start, initrd_end - initrd_start);-----这里解压ramdisk
+	    if (err) {
+	        clean_rootfs();
+	        populate_initrd_image(err);
+	    }
+	done:
+	    /*
+	     * If the initrd region is overlapped with crashkernel reserved region,
+	     * free only memory that is not part of crashkernel region.
+	     */
+	    if (!do_retain_initrd && initrd_start && !kexec_free_initrd())
+	        free_initrd_mem(initrd_start, initrd_end);
+	    initrd_start = 0;
+	    initrd_end = 0;
+	    flush_delayed_fput();
+	    return 0;
+	}
+	rootfs_initcall(populate_rootfs);-------以initcall形式调用
+#####initramfs_start这个段怎么产生
+	在kernel源码目录下usr/gen_init_cpio.c这个代码中产生
+##devtmpfs文件系统
+###devtmpfs下设备节点产生
+	首先要在menuconfig中选上
+	然后do_basic_setup->driver_init->devtmpfs_init->kthread_run(devtmpfsd, &err, "kdevtmpfs");创建devtmpfsd线程
+	在device_add()函数中
+	if (MAJOR(dev->devt)) {-----必须有设备号才会在devtmpfs下创建节点
+	    error = device_create_file(dev, &dev_attr_dev);
+	    if (error)
+	        goto DevAttrError;
+	    error = device_create_sys_dev_entry(dev);
+	    if (error)
+	        goto SysEntryError;
+	    devtmpfs_create_node(dev);----在这里唤醒devtmpfsd线程，创建设备节点
+	}
+###devtmpfs挂载
+	选中CONFIG_DEVTMPFS_MOUNT=y会自动挂载
+	prepare_namespace->mount_root之后调用->devtmpfs_mount
+	int \__init devtmpfs_mount(void)
+	{
+	    int err;
+	    if (!mount_dev)----这个变量决定是否自动挂载
+	        return 0;
+	    if (!thread)
+	        return 0;
+	    err = do_mount("devtmpfs", "dev", "devtmpfs", MS_SILENT, NULL);
+	    if (err)
+	        printk(KERN_INFO "devtmpfs: error mounting %i\n", err);
+	    else
+	        printk(KERN_INFO "devtmpfs: mounted\n");
+	    return err;
+	}
+	默认没有挂载；kernel起来后可以手动挂载
 ##linux driver model
 ###device_add()
 	drivers/base/core.c::device_add----这里会创建设备在sys下的所有节点和链接文件，也会在devtmpfs下创建节点
@@ -741,11 +752,12 @@ int \__init devtmpfs_mount(void)
 	drivers/base/driver.c::driver_register
 	drivers/base/bus.c::bus_add_driver---这里真正创建driver->kobj目录
 ##linux vfs
-###register_filesystem()
+###所有文件系统挂载的关键:
+####register_filesystem()
 	只是将file_system_type实例加到全局链表file_systems中
-###vfs_kern_mount()
+####vfs_kern_mount()
 	会产生一个文件系统mount实例，产生root inode/dentry
-###rootfs mount
+###rootfs的挂载
 	#0  rootfs_init_fs_context (fc=0xee403280) at init/do_mounts.c:701
 	#1  alloc_fs_context (fs_type=0xc0b07a2c <rootfs_fs_type>, reference=0x0, sb_flags=0, sb_flags_mask=0, purpose=FS_CONTEXT_FOR_MOUNT) at fs/fs_context.c:293
 	#2  fs_context_for_mount (fs_type=<optimized out>, sb_flags=<optimized out>) at fs/fs_context.c:307
@@ -754,14 +766,14 @@ int \__init devtmpfs_mount(void)
 	#5  mnt_init () at fs/namespace.c:3771
 	#6  vfs_caches_init () at fs/dcache.c:3215
 	#7  start_kernel () at init/main.c:950
-static int rootfs_init_fs_context(struct fs_context *fc)
-{
-    if (IS_ENABLED(CONFIG_TMPFS) && is_tmpfs)
-        return shmem_init_fs_context(fc);
-    return ramfs_init_fs_context(fc);
-}
-所以rootfs的root是shmemfs或者ramfs类型的
-###rootfs root inode generate
+	static int rootfs_init_fs_context(struct fs_context *fc)
+	{
+	    if (IS_ENABLED(CONFIG_TMPFS) && is_tmpfs)
+	        return shmem_init_fs_context(fc);
+	    return ramfs_init_fs_context(fc);
+	}
+	所以rootfs的root是shmemfs或者ramfs类型的
+####rootfs root inode generate
 	#0  shmem_alloc_inode (sb=0xee428800) at mm/shmem.c:3737
 	#1  alloc_inode (sb=0xee428800) at fs/inode.c:231
 	#2  new_inode_pseudo (sb=<optimized out>) at fs/inode.c:927
@@ -778,26 +790,124 @@ static int rootfs_init_fs_context(struct fs_context *fc)
 	#13 mnt_init () at fs/namespace.c:3771
 	#14 vfs_caches_init () at fs/dcache.c:3215
 	#15 start_kernel () at init/main.c:950
-在shmem_get_inode函数中调用init_special_inode(inode, mode, dev);生成设备节点
-###rootfs root dentry generate
-shmem_fill_super
-	-->d_make_root
+	在shmem_get_inode函数中调用init_special_inode(inode, mode, dev);生成设备节点
+####rootfs root dentry generate
+	shmem_fill_super
+		-->d_make_root
 ##tty
+	static struct tty_driver *tty_lookup_driver(dev_t device, struct file *filp,
+	        int *index)
+	{
+	    struct tty_driver *driver = NULL;
+	    switch (device) {
+	#ifdef CONFIG_VT
+	    case MKDEV(TTY_MAJOR, 0): {
+	        extern struct tty_driver *console_driver;---------找设备号为4,0的tty_driver;/dev/tty0
+	        driver = tty_driver_kref_get(console_driver);
+	        *index = fg_console;
+	        break;
+	    }
+	#endif
+	    case MKDEV(TTYAUX_MAJOR, 1): {
+	        struct tty_driver *console_driver = console_device(index);---------找设备号为5,1的tty_driver;/dev/console
+	        if (console_driver) {
+	            driver = tty_driver_kref_get(console_driver);
+	            if (driver && filp) {
+	                /* Don't let /dev/console block */
+	                filp->f_flags |= O_NONBLOCK;
+	                break;
+	            }
+	        }
+	        if (driver)
+	            tty_driver_kref_put(driver);
+	        return ERR_PTR(-ENODEV);
+	    }
+	    default:
+	        driver = get_tty_driver(device, index);---------会到tty_drivers链表里找/dev/ttySn和/dev/tty1-x
+	        if (!driver)
+	            return ERR_PTR(-ENODEV);
+	        break;
+	    }
+	    return driver;
+	}
+###tty_drivers
+	所有tty_driver都会注册到tty_drivers里面,所以tty_open的时候到这个链表找tty_driver，都可以找得到
+###/dev/tty设备
 	1,tty 设备号5,0;打开时会用当前进程的tty
-	2,console 设备号5,1;打开时会找cmdline中console=xxx指定的tty
+	2,cdev_init(&tty_cdev, &tty_fops);
+	3,cdev_add(&tty_cdev, MKDEV(TTYAUX_MAJOR, 0), 1)
+###/dev/console设备
+	1,console 设备号5,1;打开时会找cmdline中console=xxx指定的tty
+	2,cdev_init(&console_cdev, &console_fops);
+	3,cdev_add(&console_cdev, MKDEV(TTYAUX_MAJOR, 1), 1)
+###/dev/tty0设备
+	1,设备号4,0，打开时会找到struct tty_driver *console_driver
+	2,cdev_init(&vc0_cdev, console_fops);
+	3,cdev_add(&vc0_cdev, MKDEV(TTY_MAJOR, 0), 1)
+###/dev/tty1-63设备
+	1,设备号4,1-63，打开时会到tty_drivers链表里找
+###/dev/ttySn设备
+####/dev/ttySn设备号设定
+#####由tty_driver->major决定
+	#2  tty_register_device_attr (driver=0xee635200, index=3230862924, device=0x0, drvdata=0xee4b9000, attr_grp=0xee612c00) at drivers/tty/tty_io.c:3145
+	#3  tty_port_register_device_attr_serdev (port=<optimized out>, driver=0xee614380, index=0, device=0xee540c00, drvdata=0xee4b9000, attr_grp=<optimized out>) at drivers/tty/tty_port.c:166
+	#4  uart_add_one_port (drv=0xc0b49c14 <amba_reg>, uport=0xee635040) at drivers/tty/serial/serial_core.c:2861
+	#5  pl011_register_port (uap=0xee635040) at drivers/tty/serial/amba-pl011.c:2601
+	struct device *tty_register_device_attr(struct tty_driver *driver,
+	                   unsigned index, struct device *device,
+	                   void *drvdata,
+	                   const struct attribute_group **attr_grp)
+	{
+	...
+	dev_t devt = MKDEV(driver->major, driver->minor_start) + index;----由tty_driver->major决定
+	...
+	}
+#####tty_driver->major怎么设定
+#####由uart_driver决定
+	int uart_register_driver(struct uart_driver *drv)
+	{
+	...
+	struct tty_driver *normal;
+	normal = alloc_tty_driver(drv->nr);
+	drv->tty_driver = normal;
+	normal->driver_name = drv->driver_name;
+	normal->name        = drv->dev_name;
+	normal->major       = drv->major;---------tty_driver由uart_driver初始化
+	normal->minor_start = drv->minor;
+	normal->type        = TTY_DRIVER_TYPE_SERIAL;
+	normal->subtype     = SERIAL_TYPE_NORMAL;
+	normal->init_termios    = tty_std_termios;
+	normal->init_termios.c_cflag = B9600 | CS8 | CREAD | HUPCL | CLOCAL;
+	normal->init_termios.c_ispeed = normal->init_termios.c_ospeed = 9600;
+	normal->flags       = TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
+	normal->driver_state    = drv;
+	tty_set_operations(normal, &uart_ops);
+	...
+	}
+
+	static struct uart_driver amba_reg = {
+	    .owner          = THIS_MODULE,
+	    .driver_name        = "ttyAMA",
+	    .dev_name       = "ttyAMA",
+	    .major          = SERIAL_AMBA_MAJOR,--------uart_driver定义处
+	    .minor          = SERIAL_AMBA_MINOR,
+	    .nr         = UART_NR,
+	    .cons           = AMBA_CONSOLE,
+	};
+
 ##uevent_helper
 	1, /sys/kernel/uevent_helper
-###/sys/kernel怎么创建的
+###/sys/kernel目录怎么创建的
 	kernel/ksysfs.c
 		ksysfs_init()
 			-->kernel_kobj = kobject_create_and_add("kernel", NULL);
-###uevent_helper节点怎么创建的
-/kernel/ksysfs.c
+###/sys/kernel/uevent_helper节点怎么创建的
+	kernel/ksysfs.c:
 	static struct attribute * kernel_attrs[] = {
 	    &fscaps_attr.attr,
 	    &uevent_seqnum_attr.attr,
 	#ifdef CONFIG_UEVENT_HELPER
-	    &uevent_helper_attr.attr,------------这里
+	    &uevent_helper_attr.attr,------------这里定义
 	#endif
 	#ifdef CONFIG_PROFILING
 	    &profiling_attr.attr,
@@ -822,3 +932,33 @@ shmem_fill_super
 	error = sysfs_create_group(kernel_kobj, &kernel_attr_group);
 ##mdev
 	1,在qemu中kernel起来后，在rcS里加了mdev -s 所以/dev下会有节点
+##cdev:
+###cdev创建的3大步
+	1, __register_chrdev_region():主要申请设备号
+	申请设备号，并实例化一个struct char_device_struct对象，并把该对象地址加入到chrdevs[major_to_index(major)]数组中
+	2，cdev_add():真正注册设备
+	int cdev_add(struct cdev *p, dev_t dev, unsigned count)
+	{
+	    int error;
+	    p->dev = dev;
+	    p->count = count;
+	    error = kobj_map(cdev_map, dev, count, NULL,
+	             exact_match, exact_lock, p);----------映射完,chrdev_open函数就可以根据设备号找到该cdev
+	    if (error)
+	        return error;
+	    kobject_get(p->kobj.parent);
+	    return 0;
+	}
+	3,device_create(tty_class, NULL, MKDEV(TTYAUX_MAJOR, 0), NULL, "tty");
+	会在tty class下链接生成tty子目录，mdev就能够遍历到，然后自动在/dev下mknod创建设备节点
+	会调到device_add()函数里：
+	if (MAJOR(dev->devt)) {
+		error = device_create_file(dev, &dev_attr_dev);----在该设备目录下创建uevent节点
+		if (error)
+			goto DevAttrError;
+		error = device_create_sys_dev_entry(dev);---------创建/sys/dev/char/xx:xx节点
+		if (error)
+			goto SysEntryError;
+		devtmpfs_create_node(dev);
+	}
+	device_add()->device_add_class_symlinks(dev);----如果dev->class存在，就会将该设备目录链接到/sys/class/xxx/目录下一个子目录(以设备名命名的子目录)
