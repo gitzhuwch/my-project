@@ -147,7 +147,6 @@
 		set serial baud 115200
 		target remote /dev/ttyUSB0
 
-
 ##gdb:
 	1, -E, --preserve-env  preserve user environment when running command
 		sudo -E ./t7gdb vmlinux
@@ -655,29 +654,30 @@
 					        return sprintf(p, "%s%d", driver->name,-----------------is driver->name not is driver->driver_name
 					                   index + driver->name_base);
 					}
+
 ##1号进程的in/out终端怎么产生
-do_basic_setup();所有驱动模块初始化完后
-调用console_on_rootfs();
-void console_on_rootfs(void)
-{
-    /* Open the /dev/console as stdin, this should never fail */
-    if (ksys_open((const char __user *) "/dev/console", O_RDWR, 0) < 0)
----do_sys_open
-	->do_sys_openat2
-		->do_filp_open
-			->path_openat
-				->do_last
-					->vfs_open
-						->do_dentry_open
-							->chrdev_open
-								->tty_open
-									->tty_open_by_driver
-										->tty_lookup_driver到struct console *console_drivers;链表里找第一个，即cmdline中最后一个console=xx指定的
-        pr_err("Warning: unable to open an initial console.\n");
-    /* create stdout/stderr */
-    (void) ksys_dup(0);
-    (void) ksys_dup(0);
-}
+	do_basic_setup();所有驱动模块初始化完后
+	调用console_on_rootfs();
+	void console_on_rootfs(void)
+	{
+	    /* Open the /dev/console as stdin, this should never fail */
+	    if (ksys_open((const char __user *) "/dev/console", O_RDWR, 0) < 0)
+	---do_sys_open
+		->do_sys_openat2
+			->do_filp_open
+				->path_openat
+					->do_last
+						->vfs_open
+							->do_dentry_open
+								->chrdev_open
+									->tty_open
+										->tty_open_by_driver
+											->tty_lookup_driver到struct console *console_drivers;链表里找第一个，即cmdline中最后一个console=xx指定的
+	        pr_err("Warning: unable to open an initial console.\n");
+	    /* create stdout/stderr */
+	    (void) ksys_dup(0);
+	    (void) ksys_dup(0);
+	}
 ###/dev/console节点怎么创建的
 ####noinitramfs的时候
 	static int \__init default_rootfs(void)
@@ -733,6 +733,7 @@ void console_on_rootfs(void)
 	rootfs_initcall(populate_rootfs);-------以initcall形式调用
 #####initramfs_start这个段怎么产生
 	在kernel源码目录下usr/gen_init_cpio.c这个代码中产生
+
 ##devtmpfs文件系统
 ###devtmpfs下设备节点产生
 	首先要在menuconfig中选上
@@ -765,12 +766,14 @@ void console_on_rootfs(void)
 	    return err;
 	}
 	默认没有挂载；kernel起来后可以手动挂载
+
 ##linux driver model
 ###device_add()
 	drivers/base/core.c::device_add----这里会创建设备在sys下的所有节点和链接文件，也会在devtmpfs下创建节点
 ###driver_register()
 	drivers/base/driver.c::driver_register
 	drivers/base/bus.c::bus_add_driver---这里真正创建driver->kobj目录
+
 ##linux vfs
 ###所有文件系统挂载的关键:
 ####register_filesystem()
@@ -816,13 +819,40 @@ void console_on_rootfs(void)
 		-->d_make_root
 
 ##linux memory management:
+###arm32内存管理调试在qemu上
+	1, 用下面的gdbinit调试
+	.gdbinit: notes/linux-memory/gdbinit_of_debug_memory.txt
+	kernel boot时关键的几个函数
+	b prepare_page_table
+	b early_init_dt_add_memory_arch
+	b __create_mapping
+	b setup_arch
+	b check_and_switch_context
+	b cpu_v7_switch_mm
+	2, 通过gdb执行一下命令，多执行几次
+	b __create_mapping
+	cbt
+	dump_ksptx
+	可以得出：
+		在汇编阶段只map kernel code;
+		map_lowmem()map整个低端内存;
+		然后创建一些io map等等.
+
 ###virtual address space layout:
+	1, low memory:虚拟地址与物理地址偏移量固定
+	2, hight memory:随机映射
+	3, 高端内存是为了利用1G/2G内核虚拟地址空间访问超过1G/2G的物理内存而设计的
+
 ###kmalloc and vmalloc difference:
+	1, kmalloc在低端内存中分配，虚拟地址连续，物理地址连续
+	2，vmalloc在高端内存中申请，虚拟地址连续，物理地址不一定连续
+
 ###PGD/PUD/PMD/PTE:
 	1, PGD: page global directory
 	2, PUD: page upper directory
 	3, PMD: page middle directory
 	4, PTE: page table
+
 ##linux process managemnet:
 ###semaphore:
 	1, /* Please don't access any members of this structure directly */
@@ -865,12 +895,12 @@ void console_on_rootfs(void)
 		    return _do_fork(&args);
 		}
 
-
 ##linux interrupt system:
-
 ###interrupt bottom:
 ####softirq:
+
 #####tasklet:
+
 ####workqueue:
 #####系统前期一些workqueue创建流程:
 	1,实例化workqueue_struct
@@ -887,6 +917,7 @@ void console_on_rootfs(void)
 
 
 ###workqueue and waitqueue difference:
+
 ##tty
 	static struct tty_driver *tty_lookup_driver(dev_t device, struct file *filp,
 	        int *index)
@@ -923,22 +954,28 @@ void console_on_rootfs(void)
 	    }
 	    return driver;
 	}
+
 ###tty_drivers
 	所有tty_driver都会注册到tty_drivers里面,所以tty_open的时候到这个链表找tty_driver，都可以找得到
+
 ###/dev/tty设备
 	1,tty 设备号5,0;打开时会用当前进程的tty
 	2,cdev_init(&tty_cdev, &tty_fops);
 	3,cdev_add(&tty_cdev, MKDEV(TTYAUX_MAJOR, 0), 1)
+
 ###/dev/console设备
 	1,console 设备号5,1;打开时会找cmdline中console=xxx指定的tty
 	2,cdev_init(&console_cdev, &console_fops);
 	3,cdev_add(&console_cdev, MKDEV(TTYAUX_MAJOR, 1), 1)
+
 ###/dev/tty0设备
 	1,设备号4,0，打开时会找到struct tty_driver *console_driver
 	2,cdev_init(&vc0_cdev, console_fops);
 	3,cdev_add(&vc0_cdev, MKDEV(TTY_MAJOR, 0), 1)
+
 ###/dev/tty1-63设备
 	1,设备号4,1-63，打开时会到tty_drivers链表里找
+
 ###/dev/ttySn设备
 ####/dev/ttySn设备号设定
 #####由tty_driver->major决定
@@ -990,6 +1027,7 @@ void console_on_rootfs(void)
 
 ###/dev/ptmx-/dev/pts/n设备
 	1,drivers/tty/pty.c
+
 ##uevent_helper
 	1, /sys/kernel/uevent_helper
 ###/sys/kernel目录怎么创建的
@@ -1025,6 +1063,7 @@ void console_on_rootfs(void)
 	    .attrs = kernel_attrs,
 	};
 	error = sysfs_create_group(kernel_kobj, &kernel_attr_group);
+
 ##mdev
 	1,在qemu中kernel起来后，在rcS里加了mdev -s 所以/dev下会有节点
 
