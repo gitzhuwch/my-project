@@ -155,6 +155,7 @@
 		sudo ./t7gdb vmlinux
 			gdb:edit start_kernel	(failed)
 ##gdbinit:
+	1,
 	define dump_current
 	set var $stacksize = sizeof(union thread_union)
 	set var $stackp = (size_t)$sp--------这里必须加上强制类型转换，否则下面计算错的，非常坑
@@ -167,6 +168,25 @@
 	else
 	    printf "pgd:0\n"
 	end
+	end
+	2, notes/linux-memory/gdb_error_Argument_to_arithmetic_operation_not_a_number_or_boolean
+	--------------------------------error------------------------------------
+	define dump_current
+    set var $stacksize = sizeof(union thread_union)
+    set var $stackp = $sp???????????????????????????????????????????????????????????
+    set var $stack_bottom = ($stackp & ~($stacksize - 1))
+    set var $threadinfo = (struct thread_info *)$stack_bottom
+    set var $task_struct =(struct task_struct *)($threadinfo->task)
+    printf "pid:%d; comm:%s\n", $task_struct.pid, $task_struct.comm
+	end
+	--------------------------------right------------------------------------
+	define dump_current
+    set var $stacksize = sizeof(union thread_union)
+    set var $stackp = (size_t)$sp!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    set var $stack_bottom = ($stackp & ~($stacksize - 1))
+    set var $threadinfo = (struct thread_info *)$stack_bottom
+    set var $task_struct =(struct task_struct *)($threadinfo->task)
+    printf "pid:%d; comm:%s\n", $task_struct.pid, $task_struct.comm
 	end
 
 ##gcc:
@@ -794,6 +814,79 @@ void console_on_rootfs(void)
 ####rootfs root dentry generate
 	shmem_fill_super
 		-->d_make_root
+
+##linux memory management:
+###virtual address space layout:
+###kmalloc and vmalloc difference:
+###PGD/PUD/PMD/PTE:
+	1, PGD: page global directory
+	2, PUD: page upper directory
+	3, PMD: page middle directory
+	4, PTE: page table
+##linux process managemnet:
+###semaphore:
+	1, /* Please don't access any members of this structure directly */
+	struct semaphore {
+	    raw_spinlock_t      lock;
+	    unsigned int        count;
+	    struct list_head    wait_list;
+	};
+###completion:
+	1, struct completion {
+		unsigned int done;
+		wait_queue_head_t wait;
+	};
+###wait_queue_head:
+	1, struct wait_queue_head {
+		spinlock_t      lock;
+		struct list_head    head;
+	};
+
+###signal:
+
+###schedual:
+	1, wake_up_process(struct task_struct *p)
+
+###所有内核线程的创建过程:
+(包括工作队列的工作者进程的创建):
+	1,start_kernel->rest_init->kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES)----创建kthreadd进程
+	2,kthread_create_on_node->__kthread_create_on_node->list_add_tail(&create->list, &kthread_create_list);---加到链表中
+	wake_up_process(kthreadd_task);----唤醒kthreadd进程
+	3,kthreadd()->create_kthread(create)->kernel_thread(kthread, create, CLONE_FS | CLONE_FILES | SIGCHLD);
+	----最终通过kernel_thread()函数创建内核进程
+	4,pid_t kernel_thread(int (*fn)(void *), void *arg, unsigned long flags)
+		{
+		    struct kernel_clone_args args = {
+		        .flags      = ((flags | CLONE_VM | CLONE_UNTRACED) & ~CSIGNAL),
+		        .exit_signal    = (flags & CSIGNAL),
+		        .stack      = (unsigned long)fn,
+		        .stack_size = (unsigned long)arg,
+		    };
+		    return _do_fork(&args);
+		}
+
+
+##linux interrupt system:
+
+###interrupt bottom:
+####softirq:
+#####tasklet:
+####workqueue:
+#####系统前期一些workqueue创建流程:
+	1,实例化workqueue_struct
+	start_kernel->workqueue_init_early->alloc_workqueue->list_add_tail_rcu(&wq->list, &workqueues);
+	2,为workqueue_struct创建工作者进程
+	worker->task = kthread_create_on_node(worker_thread, worker, pool->node,--------所有工作者进程都是执行worker_thread
+                      "kworker/%s", id_buf);
+	#0  kthread_create_on_node (threadfn=0xc01404a0 <rescuer_thread>, data=0xee403600, node=-1, namefmt=0xc013cb44 <init_rescuer+48> "") at kernel/kthread.c:383
+	#1  init_rescuer (wq=0xee405900) at kernel/workqueue.c:4206
+	#2  workqueue_init () at kernel/workqueue.c:6006
+	#3  kernel_init_freeable () at init/main.c:1402
+	#4  kernel_init (unused=<optimized out>) at init/main.c:1323
+	#5  ret_from_fork () at arch/arm/kernel/entry-common.S:155
+
+
+###workqueue and waitqueue difference:
 ##tty
 	static struct tty_driver *tty_lookup_driver(dev_t device, struct file *filp,
 	        int *index)
@@ -895,6 +988,8 @@ void console_on_rootfs(void)
 	    .cons           = AMBA_CONSOLE,
 	};
 
+###/dev/ptmx-/dev/pts/n设备
+	1,drivers/tty/pty.c
 ##uevent_helper
 	1, /sys/kernel/uevent_helper
 ###/sys/kernel目录怎么创建的
@@ -932,6 +1027,7 @@ void console_on_rootfs(void)
 	error = sysfs_create_group(kernel_kobj, &kernel_attr_group);
 ##mdev
 	1,在qemu中kernel起来后，在rcS里加了mdev -s 所以/dev下会有节点
+
 ##cdev:
 ###cdev创建的3大步
 	1, __register_chrdev_region():主要申请设备号
