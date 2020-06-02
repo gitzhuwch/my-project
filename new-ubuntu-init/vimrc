@@ -111,6 +111,7 @@ let NERDTreeAutoDeleteBuffer=1 "删除文件时自动删除文件对应 buffer
 
 "autocmd FileType markdown :Toc "confict with file-line plugin
 autocmd FileType markdown nmap <Leader>tt :Toc<CR>
+autocmd FileType markdown set syntax=off
 "autocmd Filetype markdown inoremap <buffer> <silent> ,3 ###<Space><Enter><++><Esc>kA
 
 """"""""""""""""""""""""""""""""""

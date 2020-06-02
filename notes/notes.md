@@ -233,9 +233,10 @@
 		sudo mount -t cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw]
 		sudo mount.cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw],uid=[UID]
 		sudo mount.cifs //[address]/[folder] [mount point] -o domain=[domain_name],user=[username],passwd=[pw],uid=[UID]
-	2, Server Message Block - SMB
-		Common Internet File System - CIFS
-	3, input smb://10.3.153.95/e/ in ubuntu files browser
+	2, 直接在文件浏览器中挂载或打开,input smb://10.3.153.95/e/ in ubuntu files browser
+	3,
+		SMB:	Server Message Block
+		CIFS:	Common Internet File System
  For windows mount ubuntu:
 	4, sudo smbpasswd -a user
 		sudo vim /etc/samba/smb.conf
@@ -530,23 +531,39 @@
 	  Cortex-A5：指令集ARMv7-A，8级整数流水线，1.57DMIPS/MHz，可选配Neon/VFPv3，支持多核
 	  Cortex-A15：指令集ARMv7-A，超标量，乱序执行，可选配Neon/VFPv4，支持多核
 
-##ATE:EVB:SLT
-	1, ATE(Auto Test Equipment) 在测试工厂完成. 大致是给芯片的输入管道施加所需的激励信号，
+##IC设计/生产/封装/测试：
+###wafer/die/chip:
+	1, wafer——晶圆
+	2, die——晶粒,Wafer上的一个小块，就是一个晶片晶圆体，学名die，封装后就成为一个颗粒。
+	3, chip——芯片
+###chip package
+	1, PGA:Pin Grid Array
+	2, BGA:Ball Grid Array
+	3, DIP:Dual Inline Package,双排直立式封装,黑色长得像蜈蚣
+	4, QFP:塑料方形扁平封装
+###chip test:
+	1, WAT: Wafer Acceptance Test,是晶圆出厂前对testkey的测试
+	2, CP: Circuit Probe/chip probing，是封装前晶圆级别对芯片测试。这里就涉及到测试芯片的基本功能了。
+		通过了这两项后, 晶圆会被切割.
+	3, FT:Final test，封装完成后的测试
+	4, SLT:system level test
+	5, ATE(Auto Test Equipment) 在测试工厂完成. 大致是给芯片的输入管道施加所需的激励信号，
 		同时监测芯片的输出管脚，看其输出信号是否是预期的值。有特定的测试平台。
-	2, SLT(System Level Test) 也是在测试工厂完成，与ATE一起称之为Final Test.
-		SLT位于ATE后面，执行系统软件程序，测试芯片各个模块的功能是否正常。
-	3, EVB(Evaluation Board) 开发板：软件/驱动开发人员使用EVB开发板验证芯片的正确性，进行软件应用开发
 
-##clk/clocksource/time:
+##开发板种类(EVB/REF):
+	1, EVB(Evaluation Board) 开发板：软件/驱动开发人员使用EVB开发板验证芯片的正确性，进行软件应用开发
+	2, REF(reference Board) 开发板：参考板
+
+##clk/clocksource/time区别:
 	1, drivers/clk: device clk tree;
 	2, drivers/clocksource: kernel time source;
 	3, kernel/time: kernel time system.
 
-##power/regulator:
+##power/regulator区别:
 	1, power: sleep wakeup system
 	2, regulator: power management system
 
-##gpio/pinctrl:
+##gpio/pinctrl区别:
 	1, gpio:
 	2, pinctrl:
 
@@ -557,7 +574,7 @@
 	3, drivers/base/cpu.c:
 		subsys_system_register(&cpu_subsys, cpu_root_attr_groups)
 
-##arm smp open/close:
+##arm smp多核使能:
 	1, edit smp_init
 
 ##sudo/su/login:
@@ -837,16 +854,13 @@
 		在汇编阶段只map kernel code;
 		map_lowmem()map整个低端内存;
 		然后创建一些io map等等.
-
 ###virtual address space layout:
 	1, low memory:虚拟地址与物理地址偏移量固定
 	2, hight memory:随机映射
 	3, 高端内存是为了利用1G/2G内核虚拟地址空间访问超过1G/2G的物理内存而设计的
-
 ###kmalloc and vmalloc difference:
 	1, kmalloc在低端内存中分配，虚拟地址连续，物理地址连续
 	2，vmalloc在高端内存中申请，虚拟地址连续，物理地址不一定连续
-
 ###PGD/PUD/PMD/PTE:
 	1, PGD: page global directory
 	2, PUD: page upper directory
