@@ -1,7 +1,4 @@
 #all my notes below:
-##wps:shutcut of Format brush
-	双击格式刷就可以实现这个功能
-
 ##vim:
 ###vim:
 	sudo apt -y install vim
@@ -20,7 +17,7 @@
           execute 'vertical resize ' . (&columns/6)
 	4, CTRL-G == :f :file "show current file path
 	5, :help CTRL-] == :tag {ident}
-	6, A buffer is the in-memory text of a file.
+	6,	A buffer is the in-memory text of a file.
 		A window is a viewport on a buffer.
 		A tab page is a collection of windows.
 
@@ -62,7 +59,8 @@
 		because prefix 'n'
 		nnoremap nw <C-W><C-W>
 
-##qemu32-arm:
+##kernel debug methods:
+###qemu32-arm:
 	1, sudo apt -y install qemu-system-arm
 	2, sudo apt -y install gcc-arm-linux-gnueabi //has no arm-gdb
 	3,
@@ -120,10 +118,7 @@
 		gdb-multiarch vmlinux
 		target remote localhost:1234
 
-##earlyprintk:
-	qemu-system-arm cmdline arguments add [ -append "earlyprintk console=ttyAMA0" ]
-
-##kgdb:
+###kgdb:
 	1, kernel cmdline:kgdboc=ttyxx
 	2, make menuconfig --> kernel hacking --> ... --> kgdb xxx
 	3, uart driver:uart_ops{
@@ -146,14 +141,21 @@
 	5,
 		set serial baud 115200
 		target remote /dev/ttyUSB0
+###earlyprintk:
+	qemu-system-arm cmdline arguments add [ -append "earlyprintk console=ttyAMA0" ]
+###dmesg-principle
+	strace -yf dmesg
+	read /dev/kmsg		#accumulation log
+	read /proc/kmsg		#real time log
 
-##gdb:
+##GNU binary utilities:
+###gdb:
 	1, -E, --preserve-env  preserve user environment when running command
 		sudo -E ./t7gdb vmlinux
 			gdb:edit start_kernel	(success)
 		sudo ./t7gdb vmlinux
 			gdb:edit start_kernel	(failed)
-##gdbinit:
+####gdbinit:
 	1,
 	define dump_current
 	set var $stacksize = sizeof(union thread_union)
@@ -188,8 +190,8 @@
     printf "pid:%d; comm:%s\n", $task_struct.pid, $task_struct.comm
 	end
 
-##gcc:
-###gcc option -O0:
+###gcc:
+####gcc option -O0:
 	#pragma GCC push_options
 	#pragma GCC optimize ("O0")
 	void fun()
@@ -197,8 +199,7 @@
 		return 0;
 	}
 	#pragma GCC pop_options
-
-###gcc sysroot environment
+####gcc sysroot environment
 	type command:
 		arm-poky-linux-gnueabi-gcc  --sysroot=/opt/fsl-imx-x11/4.1.15-2.1.0/sysroots/cortexa9hf-neon-poky-linux-gnueabi   -print-libgcc-file-name
 	result:
@@ -207,53 +208,13 @@
 		arm-poky-linux-gnueabi-gcc  -print-libgcc-file-name
 	result:
 		libgcc.a
+####gcc enable openmp?
+###objcopy:
+	1,要将一个二进制的文件，如图片作为一个目标文件的段:
+	objcopy -I binary -O elf32-i386 -B i386 Dark.jpg image.o
+	gcc -o test_elf main.c image.o
 
-###gcc enable openmp?
-
-##dmesg-principle
-	strace -yf dmesg
-	read /dev/kmsg		#accumulation log
-	read /proc/kmsg		#real time log
-
-##ffplay-using
-	ffplay -f rawvideo -pixel_format nv12 -video_size 640x480 cap.yuv
-
-##nfs:
-	1, server build:
-		nfs-kernel-server config:
-		echo "/home/user/nfs \*(rw,sync,no_root_squash)" > /etc/exports
-	2, client mount:
-		mount -t nfs -o nolock 10.3.153.96:/home/user/nfs /mnt/
-
-##smb:samba:ubuntu/windows share folder:
- For ubuntu mount windows:
-	1, Windows共享文件夹使用的协议是SMB/CIFS
-		sudo apt install cifs-utils
-		sudo mount.cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw]
-		sudo mount -t cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw]
-		sudo mount.cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw],uid=[UID]
-		sudo mount.cifs //[address]/[folder] [mount point] -o domain=[domain_name],user=[username],passwd=[pw],uid=[UID]
-	2, 直接在文件浏览器中挂载或打开,input smb://10.3.153.95/e/ in ubuntu files browser
-	3,
-		SMB:	Server Message Block
-		CIFS:	Common Internet File System
- For windows mount ubuntu:
-	4, sudo smbpasswd -a user
-		sudo vim /etc/samba/smb.conf
-		[user]
-		comment = share folder
-		browseable=yes
-		path = /home/user
-		create mask = 0700
-		directory mask = 0700
-		valid users = user
-		force user = user
-		force group = user
-		public = yes
-		available = yes
-		writable = yes
-
-##git:repo:gerrit:
+##code version control:
 ###git:
 	1, delete local branch
 		git branch -d branchname
@@ -420,217 +381,120 @@
 	gitolite is through .ssh/authorized_keys-->command to export git repository
 	gerrit is through ip:29418 port to process client requestion
 
-##apt:
-	1, man:apt-get(8), apt-cache(8), sources.list(5), apt.conf(5), apt-config(8)
-	2, apt-get install安装目录是包的维护者确定的，不是用户
-		可以预配置的时候通过./configure --help看一下–prefix的默认值是什么，
-		就知道默认安装位置了，或者直接指定安装目录。
-		apt-config dump | grep  -i "dir::cache" show the apt download directory
-
-##accounts management:
-	1, su - username (Provide an environment similar to what the user would expect had the user logged in directly)
-	2, users: print the user names of users currently logged in to the current host
-	3, w: Show who is logged on and what they are doing
-	4, 查看当前登录
-		w
-		who
-		users
-	   查看系统中所有用户：
-		grep bash /etc/passwd
-		或者：
-		cat /etc/passwd | cut -f 1 -d:
-	5, users/w/who command principe: read登录记录文件(/var/run/utmp)
-	6, sudo useradd username
-	7, usermod:modify a user account
-		-d, --home HOME_DIR
-        The user's new login directory.
-	8,Linux用户类型
-	Linux用户类型分为 3 类：超级用户、系统用户和普通用户。
-    超级用户：用户名为 root 或 USER ID(UID)为0的账号，具有一切权限，可以操作系统中的所有资源。root可以进行基础的文件操作以及特殊的文件管理，另外还可以进行网络管理，可以修改系统中的任何文件。日常工作中应避免使用此类账号，只有在必要的时候才使用root登录系统。
-    系统用户：正常运行系统时使用的账户。每个进程运行在系统里都有一个相应的属主，比如某个进程以何种身份运行，这些身份就是系统里对应的用户账号。注意系统账户是不能用来登录的，比如 bin、daemon、mail等。
-    普通用户：普通使用者，能使用Linux的大部分资源，一些特定的权限受到控制。用户只对自己的目录有写权限，读写权限受到一定的限制，从而有效保证了Linux的系统安全，大部分用户属于此类。
-
-##xdg-open:
-	xdg-open: opens a file or URL in the user's preferred application
-
-##kernel-scan-partition-table-gpt:
-	block/partitions/efi.c
-	/**
-	 * efi_partition(struct parsed_partitions *state)
-	 * @state: disk parsed partitions
-	 *
-	 * Description: called from check.c, if the disk contains GPT
-	 * partitions, sets up partition entries in the kernel.
-	 *
-	 * If the first block on the disk is a legacy MBR,
-	 * it will get handled by msdos_partition().
-	 * If it's a Protective MBR, we'll handle it here.
-	 *
-	 * We do not create a Linux partition for GPT, but
-	 * only for the actual data partitions.
-	 * Returns:
-	 * -1 if unable to read the partition table
-	 *  0 if this isn't our partition table
-	 *  1 if successful
-	 */
-	int efi_partition(struct parsed_partitions *state)
+##Linux driver model:
+###device_add()
+	drivers/base/core.c::device_add----这里会创建设备在sys下的所有节点和链接文件，也会在devtmpfs下创建节点
+###driver_register()
+	drivers/base/driver.c::driver_register
+	drivers/base/bus.c::bus_add_driver---这里真正创建driver->kobj目录
+###cdev:
+####cdev创建的3大步
+	1, __register_chrdev_region():主要申请设备号
+	申请设备号，并实例化一个struct char_device_struct对象，并把该对象地址加入到chrdevs[major_to_index(major)]数组中
+	2，cdev_add():真正注册设备
+	int cdev_add(struct cdev *p, dev_t dev, unsigned count)
 	{
-	    gpt_header *gpt = NULL;
-	    gpt_entry *ptes = NULL;
-	    u32 i;
-	    unsigned ssz = bdev_logical_block_size(state->bdev) / 512;
-	    if (!find_valid_gpt(state, &gpt, &ptes) || !gpt || !ptes) {
-	        kfree(gpt);
-	        kfree(ptes);
-	        return 0;
-	    }
-	    pr_debug("GUID Partition Table is valid!  Yea!\n");
-
-##partitions-view-tools:
-	df -T 只可以查看已经挂载的分区和文件系统类型。
-	sudo fdisk -l 可以显示出所有挂载和未挂载的分区，但不显示文件系统类型。
-	sudo parted -l 可以查看未挂载的文件系统类型，以及哪些分区尚未格式化。
-	sudo lsblk -f 也可以查看未挂载的文件系统类型。
-	sudo file -s /dev/sda3
-	sudo blkid
-
-##UUID
-	1, https://blog.csdn.net/smstong/article/details/46417213
-		为解决上述问题，UUID被文件系统设计者采用，使其可以持久唯一标识一个硬盘分区。
-		其实方式很简单，就是在文件系统的超级块中使用128位存放UUID。
-		这个UUID是在使用文件系统格式化分区时计算生成的，
-		例如Linux下的文件系统工具mkfs就在格式化分区的同时，
-		生成UUID并把它记录到超级块的固定区域中。
-	2, 查看硬盘UUID：
-		两种方法:
-		ls -l /dev/disk/by-uuid
-		blkid /dev/sda1
-		修改分区UUID：
-		1、修改分区的UUID
-		Ubuntu 使用 uuid命令 生成新的uuid
-		centos 使用uuidgen命令 生成新的uuid
-		Ubuntu
-		sudo uuid | xargs tune2fs /dev/sda1 -U
-		centos
-		sudo uuidgen | xargs tune2fs /dev/sda1 -U
-		2、查看/etc/fstab 将原有UUID写入分区
-		tune2fs -U 578c1ba1-d796-4a54-be90-8a011c7c2dd3 /dev/sda1
-	3, GPT/UUID :http://en.wikipedia.org/wiki/GUID_Partition_Table
-		GPT:GUID Partition Table
-		MBR:Master Boot Record
-		LBA:Logic Block Address
-
-##arm:arm9:armv9:cortex-a9:
-	1,且在GCC编译中，常常要用到 -march,-mcpu等
-	2,ARM（Advanced RISCMachines)
-	3,ＡＲＭ公司定义了６种主要的指令集体系结构版本。Ｖ１－Ｖ６。（所以上面提到的ＡＲＭｖ６是指指令集版本号）。即：ARM architecture
-	4, ARM公司开发了很多ARM处理器核，最新版位ARM11。ARM11：指令集ARMv6，8级流水线，1.25DMIPS/MHz
-	5, Cortex-A8：指令集ARMv7-A，13级整数流水线，超标量双发射，2.0DMIPS/MHz，标配Neon，不支持多核
-	  Scorpion：指令集ARMv7-A，高通获得指令集授权后在A8的基础上设计的。13级整数流水线，超标量双发射，部分乱序执行，2.1DMIPS/MHz，标配Neon，支持多核
-	  Cortex-A9：指令集ARMv7-A，8级整数流水线，超标量双发射，乱序执行，2.5DMIPS/MHz，可选配Neon/VFPv3，支持多核
-	  Cortex-A5：指令集ARMv7-A，8级整数流水线，1.57DMIPS/MHz，可选配Neon/VFPv3，支持多核
-	  Cortex-A15：指令集ARMv7-A，超标量，乱序执行，可选配Neon/VFPv4，支持多核
-
-##IC设计/生产/封装/测试：
-###wafer/die/chip:
-	1, wafer——晶圆
-	2, die——晶粒,Wafer上的一个小块，就是一个晶片晶圆体，学名die，封装后就成为一个颗粒。
-	3, chip——芯片
-###chip package
-	1, PGA:Pin Grid Array
-	2, BGA:Ball Grid Array
-	3, DIP:Dual Inline Package,双排直立式封装,黑色长得像蜈蚣
-	4, QFP:塑料方形扁平封装
-###chip test:
-	1, WAT: Wafer Acceptance Test,是晶圆出厂前对testkey的测试
-	2, CP: Circuit Probe/chip probing，是封装前晶圆级别对芯片测试。这里就涉及到测试芯片的基本功能了。
-		通过了这两项后, 晶圆会被切割.
-	3, FT:Final test，封装完成后的测试
-	4, SLT:system level test
-	5, ATE(Auto Test Equipment) 在测试工厂完成. 大致是给芯片的输入管道施加所需的激励信号，
-		同时监测芯片的输出管脚，看其输出信号是否是预期的值。有特定的测试平台。
-
-##开发板种类(EVB/REF):
-	1, EVB(Evaluation Board) 开发板：软件/驱动开发人员使用EVB开发板验证芯片的正确性，进行软件应用开发
-	2, REF(reference Board) 开发板：参考板
-
-##clk/clocksource/time区别:
-	1, drivers/clk: device clk tree;
-	2, drivers/clocksource: kernel time source;
-	3, kernel/time: kernel time system.
-
-##power/regulator区别:
-	1, power: sleep wakeup system
-	2, regulator: power management system
-
-##gpio/pinctrl区别:
-	1, gpio:
-	2, pinctrl:
-
-##cpufreq:
-	1, cat /sys/system/cpu/cpufreq
-	2, drivers/base/bus.c:
-		system_kset = kset_create_and_add("system", NULL, &devices_kset->kobj);
-	3, drivers/base/cpu.c:
-		subsys_system_register(&cpu_subsys, cpu_root_attr_groups)
-
-##arm smp多核使能:
-	1, edit smp_init
-
-##sudo/su/login:
-	1, -E, --preserve-env  preserve user environment when running command
-		sudo -E ./t7gdb vmlinux
-			gdb:edit start_kernel	(success)
-		sudo ./t7gdb vmlinux
-			gdb:edit start_kernel	(failed)
-	2,	su -l username
-		su - username //login as username
-	3,	sudo:	execute a command as another user
-		su:		The su command is used to become another user during a login session.
-		login:	The login program is used to establish a new session with the system.
-	4, sudo report:
-		test is not in the sudoers file.  This incident will be reported.
-		resolve mathods:
-			a) modify /etc/sudoers
-			b) modify user group to sudo group
-
-##url:
-	在WWW上，每一信息资源都有统一的且在网上唯一的地址，该地址就叫URL（Uniform Resource Locator,统一资源定位符），它是WWW的统一资源定位标志，就是指网络地址
-	URL由三部分组成：资源类型、存放资源的主机域名、资源文件名。
-	也可认为由4部分组成：协议、主机、端口、路径
-	URL的一般语法格式为：
-	(带方括号[]的为可选项)：
-	protocol :// hostname[:port] / path / [;parameters][?query]#fragment
-
-##service/systemd/systemctl?
-
-##ssh/ssh-agent/ssh-copy-id?
-
-##char dev name where defining:
+	    int error;
+	    p->dev = dev;
+	    p->count = count;
+	    error = kobj_map(cdev_map, dev, count, NULL,
+	             exact_match, exact_lock, p);----------映射完,chrdev_open函数就可以根据设备号找到该cdev
+	    if (error)
+	        return error;
+	    kobject_get(p->kobj.parent);
+	    return 0;
+	}
+	3,device_create(tty_class, NULL, MKDEV(TTYAUX_MAJOR, 0), NULL, "tty");
+	会在tty class下链接生成tty子目录，mdev就能够遍历到，然后自动在/dev下mknod创建设备节点
+	会调到device_add()函数里：
+	if (MAJOR(dev->devt)) {
+		error = device_create_file(dev, &dev_attr_dev);----在该设备目录下创建uevent节点
+		if (error)
+			goto DevAttrError;
+		error = device_create_sys_dev_entry(dev);---------创建/sys/dev/char/xx:xx节点
+		if (error)
+			goto SysEntryError;
+		devtmpfs_create_node(dev);
+	}
+	device_add()->device_add_class_symlinks(dev);----如果dev->class存在，就会将该设备目录链接到/sys/class/xxx/目录下一个子目录(以设备名命名的子目录)
+###char dev name where defining:
 	1, drivers/base/core.c:
 		dev_uevent(){}
 			device_get_devnode()
-###devtmpfs下产生的设备名称
+####devtmpfs下产生的设备名称
 	#0  device_get_devnode (dev=0xee58f600, mode=0xee4b7a6c, uid=0xee4b7a70, gid=0xee4b7a74, tmp=0xee4b7a4c) at drivers/base/core.c:2743
 	#1  devtmpfs_create_node (dev=0xee58f600) at drivers/base/devtmpfs.c:120
 	#2  device_add (dev=0xee58f600) at drivers/base/core.c:2450
-###uevent产生的设备名称
+####uevent产生的设备名称
 	#0  device_get_devnode (dev=0xee5c0408, mode=0xee4b7cce, uid=0xee4b7cd4, gid=0xee4b7cd8, tmp=0xee4b7cd0) at drivers/base/core.c:2743
 	#1  dev_uevent (kset=<optimized out>, kobj=0xee5c0408, env=0xee4b8000) at drivers/base/core.c:1433
 	#2  kobject_uevent_env (kobj=0xee5c0408, action=<optimized out>, envp_ext=0x0) at lib/kobject_uevent.c:556
 	#3  kobject_uevent (kobj=<optimized out>, action=<optimized out>) at lib/kobject_uevent.c:641
 	#4  device_add (dev=0xee5c0408) at drivers/base/core.c:2460
+###tty subsystem:
+	static struct tty_driver *tty_lookup_driver(dev_t device, struct file *filp,
+	        int *index)
+	{
+	    struct tty_driver *driver = NULL;
+	    switch (device) {
+	#ifdef CONFIG_VT
+	    case MKDEV(TTY_MAJOR, 0): {
+	        extern struct tty_driver *console_driver;---------找设备号为4,0的tty_driver;/dev/tty0
+	        driver = tty_driver_kref_get(console_driver);
+	        *index = fg_console;
+	        break;
+	    }
+	#endif
+	    case MKDEV(TTYAUX_MAJOR, 1): {
+	        struct tty_driver *console_driver = console_device(index);---------找设备号为5,1的tty_driver;/dev/console
+	        if (console_driver) {
+	            driver = tty_driver_kref_get(console_driver);
+	            if (driver && filp) {
+	                /* Don't let /dev/console block */
+	                filp->f_flags |= O_NONBLOCK;
+	                break;
+	            }
+	        }
+	        if (driver)
+	            tty_driver_kref_put(driver);
+	        return ERR_PTR(-ENODEV);
+	    }
+	    default:
+	        driver = get_tty_driver(device, index);---------会到tty_drivers链表里找/dev/ttySn和/dev/tty1-x
+	        if (!driver)
+	            return ERR_PTR(-ENODEV);
+	        break;
+	    }
+	    return driver;
+	}
+####tty_drivers
+	所有tty_driver都会注册到tty_drivers里面,所以tty_open的时候到这个链表找tty_driver，都可以找得到
+####/dev/tty设备
+	1,tty 设备号5,0;打开时会用当前进程的tty
+	2,cdev_init(&tty_cdev, &tty_fops);
+	3,cdev_add(&tty_cdev, MKDEV(TTYAUX_MAJOR, 0), 1)
+####/dev/console设备
+	1,console 设备号5,1;打开时会找cmdline中console=xxx指定的tty
+	2,cdev_init(&console_cdev, &console_fops);
+	3,cdev_add(&console_cdev, MKDEV(TTYAUX_MAJOR, 1), 1)
+####/dev/tty0设备
+	1,设备号4,0，打开时会找到struct tty_driver *console_driver
+	2,cdev_init(&vc0_cdev, console_fops);
+	3,cdev_add(&vc0_cdev, MKDEV(TTY_MAJOR, 0), 1)
+####/dev/tty1-63设备
+	1,设备号4,1-63，打开时会到tty_drivers链表里找
 
-###ttyS0 char device name generate
+####/dev/ttySn设备
+#####ttyS0设备名的产生
 	struct uart_port.line=x-------------------------
 	ttySx-------------------------
 	static struct uart_driver amba_reg = {
 	    .owner          = THIS_MODULE,
-	    .driver_name        = "ttyAMA",
+	    .driver_name    = "ttyAMA",
 	    .dev_name       = "ttyS",---------------------------this is the uart port name base; +port.line =ttySx
 	    .major          = SERIAL_AMBA_MAJOR,
 	    .minor          = SERIAL_AMBA_MINOR,
-	    .nr         = UART_NR,
+	    .nr				= UART_NR,
 	    .cons           = AMBA_CONSOLE,
 	};
 	uart_register_driver(&amba_reg)
@@ -672,126 +536,97 @@
 					                   index + driver->name_base);
 					}
 
-##1号进程的in/out终端怎么产生
-	do_basic_setup();所有驱动模块初始化完后
-	调用console_on_rootfs();
-	void console_on_rootfs(void)
+#####/dev/ttySn设备号设定
+######由tty_driver->major决定
+	#2  tty_register_device_attr (driver=0xee635200, index=3230862924, device=0x0, drvdata=0xee4b9000, attr_grp=0xee612c00) at drivers/tty/tty_io.c:3145
+	#3  tty_port_register_device_attr_serdev (port=<optimized out>, driver=0xee614380, index=0, device=0xee540c00, drvdata=0xee4b9000, attr_grp=<optimized out>) at drivers/tty/tty_port.c:166
+	#4  uart_add_one_port (drv=0xc0b49c14 <amba_reg>, uport=0xee635040) at drivers/tty/serial/serial_core.c:2861
+	#5  pl011_register_port (uap=0xee635040) at drivers/tty/serial/amba-pl011.c:2601
+	struct device *tty_register_device_attr(struct tty_driver *driver,
+	                   unsigned index, struct device *device,
+	                   void *drvdata,
+	                   const struct attribute_group **attr_grp)
 	{
-	    /* Open the /dev/console as stdin, this should never fail */
-	    if (ksys_open((const char __user *) "/dev/console", O_RDWR, 0) < 0)
-	---do_sys_open
-		->do_sys_openat2
-			->do_filp_open
-				->path_openat
-					->do_last
-						->vfs_open
-							->do_dentry_open
-								->chrdev_open
-									->tty_open
-										->tty_open_by_driver
-											->tty_lookup_driver到struct console *console_drivers;链表里找第一个，即cmdline中最后一个console=xx指定的
-	        pr_err("Warning: unable to open an initial console.\n");
-	    /* create stdout/stderr */
-	    (void) ksys_dup(0);
-	    (void) ksys_dup(0);
+	...
+	dev_t devt = MKDEV(driver->major, driver->minor_start) + index;----由tty_driver->major决定
+	...
 	}
-###/dev/console节点怎么创建的
-####noinitramfs的时候
-	static int \__init default_rootfs(void)
+######tty_driver->major怎么设定
+######由uart_driver决定
+	int uart_register_driver(struct uart_driver *drv)
 	{
-	    int err;
-	    err = ksys_mkdir((const char __user __force *) "/dev", 0755);
-	    if (err < 0)
-	        goto out;
-	    err = ksys_mknod((const char __user __force *) "/dev/console",-------这里创建console
-	            S_IFCHR | S_IRUSR | S_IWUSR,
-	            new_encode_dev(MKDEV(5, 1)));
-	    if (err < 0)
-	        goto out;
-	    err = ksys_mkdir((const char __user __force *) "/root", 0700);
-	    if (err < 0)
-	        goto out;
-	    return 0;
-	out:
-	    printk(KERN_WARNING "Failed to create a rootfs\n");
-	    return err;
+	...
+	struct tty_driver *normal;
+	normal = alloc_tty_driver(drv->nr);
+	drv->tty_driver = normal;
+	normal->driver_name = drv->driver_name;
+	normal->name        = drv->dev_name;
+	normal->major       = drv->major;---------tty_driver由uart_driver初始化
+	normal->minor_start = drv->minor;
+	normal->type        = TTY_DRIVER_TYPE_SERIAL;
+	normal->subtype     = SERIAL_TYPE_NORMAL;
+	normal->init_termios    = tty_std_termios;
+	normal->init_termios.c_cflag = B9600 | CS8 | CREAD | HUPCL | CLOCAL;
+	normal->init_termios.c_ispeed = normal->init_termios.c_ospeed = 9600;
+	normal->flags       = TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
+	normal->driver_state    = drv;
+	tty_set_operations(normal, &uart_ops);
+	...
 	}
-	rootfs_initcall(default_rootfs);------以initcall形式调用
-####initramfs的时候
-	static int \__init populate_rootfs(void)
-	{
-	    /* Load the built in initramfs */
-	    char *err = unpack_to_rootfs(__initramfs_start, __initramfs_size);-----这个段里里创建console
-	    if (err)
-	        panic("%s", err); /* Failed to decompress INTERNAL initramfs */
-	    if (!initrd_start || IS_ENABLED(CONFIG_INITRAMFS_FORCE))
-	        goto done;
-	    if (IS_ENABLED(CONFIG_BLK_DEV_RAM))
-	        printk(KERN_INFO "Trying to unpack rootfs image as initramfs...\n");
-	    else
-	        printk(KERN_INFO "Unpacking initramfs...\n");
-	    err = unpack_to_rootfs((char *)initrd_start, initrd_end - initrd_start);-----这里解压ramdisk
-	    if (err) {
-	        clean_rootfs();
-	        populate_initrd_image(err);
-	    }
-	done:
-	    /*
-	     * If the initrd region is overlapped with crashkernel reserved region,
-	     * free only memory that is not part of crashkernel region.
-	     */
-	    if (!do_retain_initrd && initrd_start && !kexec_free_initrd())
-	        free_initrd_mem(initrd_start, initrd_end);
-	    initrd_start = 0;
-	    initrd_end = 0;
-	    flush_delayed_fput();
-	    return 0;
-	}
-	rootfs_initcall(populate_rootfs);-------以initcall形式调用
-#####initramfs_start这个段怎么产生
-	在kernel源码目录下usr/gen_init_cpio.c这个代码中产生
 
-##devtmpfs文件系统
-###devtmpfs下设备节点产生
-	首先要在menuconfig中选上
-	然后do_basic_setup->driver_init->devtmpfs_init->kthread_run(devtmpfsd, &err, "kdevtmpfs");创建devtmpfsd线程
-	在device_add()函数中
-	if (MAJOR(dev->devt)) {-----必须有设备号才会在devtmpfs下创建节点
-	    error = device_create_file(dev, &dev_attr_dev);
-	    if (error)
-	        goto DevAttrError;
-	    error = device_create_sys_dev_entry(dev);
-	    if (error)
-	        goto SysEntryError;
-	    devtmpfs_create_node(dev);----在这里唤醒devtmpfsd线程，创建设备节点
-	}
-###devtmpfs挂载
-	选中CONFIG_DEVTMPFS_MOUNT=y会自动挂载
-	prepare_namespace->mount_root之后调用->devtmpfs_mount
-	int \__init devtmpfs_mount(void)
-	{
-	    int err;
-	    if (!mount_dev)----这个变量决定是否自动挂载
-	        return 0;
-	    if (!thread)
-	        return 0;
-	    err = do_mount("devtmpfs", "dev", "devtmpfs", MS_SILENT, NULL);
-	    if (err)
-	        printk(KERN_INFO "devtmpfs: error mounting %i\n", err);
-	    else
-	        printk(KERN_INFO "devtmpfs: mounted\n");
-	    return err;
-	}
-	默认没有挂载；kernel起来后可以手动挂载
+	static struct uart_driver amba_reg = {
+	    .owner          = THIS_MODULE,
+	    .driver_name        = "ttyAMA",
+	    .dev_name       = "ttyAMA",
+	    .major          = SERIAL_AMBA_MAJOR,--------uart_driver定义处
+	    .minor          = SERIAL_AMBA_MINOR,
+	    .nr         = UART_NR,
+	    .cons           = AMBA_CONSOLE,
+	};
 
-##linux driver model
-###device_add()
-	drivers/base/core.c::device_add----这里会创建设备在sys下的所有节点和链接文件，也会在devtmpfs下创建节点
-###driver_register()
-	drivers/base/driver.c::driver_register
-	drivers/base/bus.c::bus_add_driver---这里真正创建driver->kobj目录
+####/dev/ptmx-/dev/pts/n设备
+	1,drivers/tty/pty.c
 
-##linux vfs
+###uevent subsystem:
+####uevent_helper
+	1, /sys/kernel/uevent_helper
+#####/sys/kernel目录怎么创建的
+	kernel/ksysfs.c
+		ksysfs_init()
+			-->kernel_kobj = kobject_create_and_add("kernel", NULL);
+#####/sys/kernel/uevent_helper节点怎么创建的
+	kernel/ksysfs.c:
+	static struct attribute * kernel_attrs[] = {
+	    &fscaps_attr.attr,
+	    &uevent_seqnum_attr.attr,
+	#ifdef CONFIG_UEVENT_HELPER
+	    &uevent_helper_attr.attr,------------这里定义
+	#endif
+	#ifdef CONFIG_PROFILING
+	    &profiling_attr.attr,
+	#endif
+	#ifdef CONFIG_KEXEC_CORE
+	    &kexec_loaded_attr.attr,
+	    &kexec_crash_loaded_attr.attr,
+	    &kexec_crash_size_attr.attr,
+	#endif
+	#ifdef CONFIG_CRASH_CORE
+	    &vmcoreinfo_attr.attr,
+	#endif
+	#ifndef CONFIG_TINY_RCU
+	    &rcu_expedited_attr.attr,
+	    &rcu_normal_attr.attr,
+	#endif
+	    NULL
+	};
+	static const struct attribute_group kernel_attr_group = {
+	    .attrs = kernel_attrs,
+	};
+	error = sysfs_create_group(kernel_kobj, &kernel_attr_group);
+####mdev开机自动生成设备节点
+	1,在qemu中kernel起来后，在rcS里加了mdev -s 所以/dev下会有节点
+
+##linux file system:
 ###所有文件系统挂载的关键:
 ####register_filesystem()
 	只是将file_system_type实例加到全局链表file_systems中
@@ -834,6 +669,38 @@
 ####rootfs root dentry generate
 	shmem_fill_super
 		-->d_make_root
+###devtmpfs文件系统
+####devtmpfs下设备节点产生
+	首先要在menuconfig中选上
+	然后do_basic_setup->driver_init->devtmpfs_init->kthread_run(devtmpfsd, &err, "kdevtmpfs");创建devtmpfsd线程
+	在device_add()函数中
+	if (MAJOR(dev->devt)) {-----必须有设备号才会在devtmpfs下创建节点
+	    error = device_create_file(dev, &dev_attr_dev);
+	    if (error)
+	        goto DevAttrError;
+	    error = device_create_sys_dev_entry(dev);
+	    if (error)
+	        goto SysEntryError;
+	    devtmpfs_create_node(dev);----在这里唤醒devtmpfsd线程，创建设备节点
+	}
+####devtmpfs挂载
+	选中CONFIG_DEVTMPFS_MOUNT=y会自动挂载
+	prepare_namespace->mount_root之后调用->devtmpfs_mount
+	int \__init devtmpfs_mount(void)
+	{
+	    int err;
+	    if (!mount_dev)----这个变量决定是否自动挂载
+	        return 0;
+	    if (!thread)
+	        return 0;
+	    err = do_mount("devtmpfs", "dev", "devtmpfs", MS_SILENT, NULL);
+	    if (err)
+	        printk(KERN_INFO "devtmpfs: error mounting %i\n", err);
+	    else
+	        printk(KERN_INFO "devtmpfs: mounted\n");
+	    return err;
+	}
+	默认没有挂载；kernel起来后可以手动挂载
 
 ##linux memory management:
 ###arm32内存管理调试在qemu上
@@ -868,28 +735,112 @@
 	4, PTE: page table
 
 ##linux process managemnet:
-###semaphore:
+###1号进程的in/out终端怎么产生
+	do_basic_setup();所有驱动模块初始化完后
+	调用console_on_rootfs();
+	void console_on_rootfs(void)
+	{
+	    /* Open the /dev/console as stdin, this should never fail */
+	    if (ksys_open((const char __user *) "/dev/console", O_RDWR, 0) < 0)
+	---do_sys_open
+		->do_sys_openat2
+			->do_filp_open
+				->path_openat
+					->do_last
+						->vfs_open
+							->do_dentry_open
+								->chrdev_open
+									->tty_open
+										->tty_open_by_driver
+											->tty_lookup_driver到struct console *console_drivers;链表里找第一个，即cmdline中最后一个console=xx指定的
+	        pr_err("Warning: unable to open an initial console.\n");
+	    /* create stdout/stderr */
+	    (void) ksys_dup(0);
+	    (void) ksys_dup(0);
+	}
+####/dev/console节点怎么创建的
+#####noinitramfs的时候
+	static int \__init default_rootfs(void)
+	{
+	    int err;
+	    err = ksys_mkdir((const char __user __force *) "/dev", 0755);
+	    if (err < 0)
+	        goto out;
+	    err = ksys_mknod((const char __user __force *) "/dev/console",-------这里创建console
+	            S_IFCHR | S_IRUSR | S_IWUSR,
+	            new_encode_dev(MKDEV(5, 1)));
+	    if (err < 0)
+	        goto out;
+	    err = ksys_mkdir((const char __user __force *) "/root", 0700);
+	    if (err < 0)
+	        goto out;
+	    return 0;
+	out:
+	    printk(KERN_WARNING "Failed to create a rootfs\n");
+	    return err;
+	}
+	rootfs_initcall(default_rootfs);------以initcall形式调用
+#####initramfs的时候
+	static int \__init populate_rootfs(void)
+	{
+	    /* Load the built in initramfs */
+	    char *err = unpack_to_rootfs(__initramfs_start, __initramfs_size);-----这个段里里创建console
+	    if (err)
+	        panic("%s", err); /* Failed to decompress INTERNAL initramfs */
+	    if (!initrd_start || IS_ENABLED(CONFIG_INITRAMFS_FORCE))
+	        goto done;
+	    if (IS_ENABLED(CONFIG_BLK_DEV_RAM))
+	        printk(KERN_INFO "Trying to unpack rootfs image as initramfs...\n");
+	    else
+	        printk(KERN_INFO "Unpacking initramfs...\n");
+	    err = unpack_to_rootfs((char *)initrd_start, initrd_end - initrd_start);-----这里解压ramdisk
+	    if (err) {
+	        clean_rootfs();
+	        populate_initrd_image(err);
+	    }
+	done:
+	    /*
+	     * If the initrd region is overlapped with crashkernel reserved region,
+	     * free only memory that is not part of crashkernel region.
+	     */
+	    if (!do_retain_initrd && initrd_start && !kexec_free_initrd())
+	        free_initrd_mem(initrd_start, initrd_end);
+	    initrd_start = 0;
+	    initrd_end = 0;
+	    flush_delayed_fput();
+	    return 0;
+	}
+	rootfs_initcall(populate_rootfs);-------以initcall形式调用
+######initrd_start这个段怎么产生
+	链接脚本中产生
+######initramfs_start这个段怎么产生
+	在kernel源码目录下usr/gen_init_cpio.c这个代码中产生
+
+###进程间通信/协作:
+####semaphore:
 	1, /* Please don't access any members of this structure directly */
 	struct semaphore {
 	    raw_spinlock_t      lock;
 	    unsigned int        count;
 	    struct list_head    wait_list;
 	};
-###completion:
+####completion:
 	1, struct completion {
 		unsigned int done;
 		wait_queue_head_t wait;
 	};
-###wait_queue_head:
+####wait_queue_head:
 	1, struct wait_queue_head {
 		spinlock_t      lock;
 		struct list_head    head;
 	};
 
-###signal:
+####signal:
 
-###schedual:
+###schedual调度相关:
 	1, wake_up_process(struct task_struct *p)
+	2, 所有drivers框架中grep "wake"/"wake_up",基本上都能分析它的数据流处理流程；
+	基本上都是来一个中断，中断唤醒一个workqueue，workqueue调work，work唤醒waitqueue或者semaphore
 
 ###所有内核线程的创建过程:
 (包括工作队列的工作者进程的创建):
@@ -909,7 +860,7 @@
 		    return _do_fork(&args);
 		}
 
-##linux interrupt system:
+##linux interrupt subsystem:
 ###interrupt bottom:
 ####softirq:
 
@@ -918,9 +869,9 @@
 ####workqueue:
 #####系统前期一些workqueue创建流程:
 	1,实例化workqueue_struct
-	start_kernel->workqueue_init_early->alloc_workqueue->list_add_tail_rcu(&wq->list, &workqueues);
+		start_kernel->workqueue_init_early->alloc_workqueue->list_add_tail_rcu(&wq->list, &workqueues);
 	2,为workqueue_struct创建工作者进程
-	worker->task = kthread_create_on_node(worker_thread, worker, pool->node,--------所有工作者进程都是执行worker_thread
+		worker->task = kthread_create_on_node(worker_thread, worker, pool->node,--------所有工作者进程的入口函数都是worker_thread
                       "kworker/%s", id_buf);
 	#0  kthread_create_on_node (threadfn=0xc01404a0 <rescuer_thread>, data=0xee403600, node=-1, namefmt=0xc013cb44 <init_rescuer+48> "") at kernel/kthread.c:383
 	#1  init_rescuer (wq=0xee405900) at kernel/workqueue.c:4206
@@ -928,186 +879,411 @@
 	#3  kernel_init_freeable () at init/main.c:1402
 	#4  kernel_init (unused=<optimized out>) at init/main.c:1323
 	#5  ret_from_fork () at arch/arm/kernel/entry-common.S:155
-
+#####workqueue的使用
+	1, 以tty为例
+	void tty_buffer_init(struct tty_port *port)
+	{
+	    struct tty_bufhead *buf = &port->buf;
+	    mutex_init(&buf->lock);
+	    tty_buffer_reset(&buf->sentinel, 0);
+	    buf->head = &buf->sentinel;
+	    buf->tail = &buf->sentinel;
+	    init_llist_head(&buf->free);
+	    atomic_set(&buf->mem_used, 0);
+	    atomic_set(&buf->priority, 0);
+	    INIT_WORK(&buf->work, flush_to_ldisc);------1,先初始化一个work
+	    buf->mem_limit = TTYB_DEFAULT_MEM_LIMIT;
+	}
+	queue_work(system_unbound_wq, &buf->work);-----2，中断来的时候会执行该函数，将work挂到worker thread的等待队列中，然后唤醒worker thread，
+											------worker thread执行完work后，会将work从work queue中卸载，所以下次又可以执行queue_work
 
 ###workqueue and waitqueue difference:
+	1, waitqueue用wake_up唤醒
+	2, workqueue用queue_work()->wake_up()唤醒，
 
-##tty
-	static struct tty_driver *tty_lookup_driver(dev_t device, struct file *filp,
-	        int *index)
+##linux misc subsystem:
+###clk/clocksource/time区别:
+	1, drivers/clk: device clk tree;
+	2, drivers/clocksource: kernel time source;
+	3, kernel/time: kernel time system.
+###power/regulator区别:
+	1, power: sleep wakeup system
+	2, regulator: power management system
+###cpufreq:
+	1, cat /sys/devices/system/cpu/cpufreq
+	2, drivers/base/bus.c:
+		system_kset = kset_create_and_add("system", NULL, &devices_kset->kobj);-----这是在/sys/devices目录下
+	3, drivers/base/cpu.c:
+		subsys_system_register(&cpu_subsys, cpu_root_attr_groups)
+###gpio/pinctrl区别:
+	1, gpio:
+	2, pinctrl:
+###arm smp多核使能:
+	1, edit smp_init
+
+##linux sound architecture:
+###Advanced Linux Sound Architecture:
+
+##linux media architecture:
+###Video4Linux:
+
+##USB(universal serial bus):
+
+##linux参数传递和管理:
+###参数类型:
+	1, 在__setup_start段里
+	struct obs_kernel_param {
+	    const char *str;
+	    int (*setup_func)(char *);
+	    int early;
+	}
+	#define __setup(str, fn)	__setup_param(str, fn, fn, 0)
+	2, 在__start___param段里
+	struct kernel_param {
+	    const char *name;
+	    struct module *mod;
+	    const struct kernel_param_ops *ops;
+	    const u16 perm;
+	    s8 level;
+	    u8 flags;
+	    union {
+	        void *arg;
+	        const struct kparam_string *str;
+	        const struct kparam_array *arr;
+	    };
+	}
+	#define module_param(name, type, perm)	module_param_named(name, name, type, perm)
+
+###参数节点创建:
+	static void __init param_sysfs_builtin(void)
 	{
-	    struct tty_driver *driver = NULL;
-	    switch (device) {
-	#ifdef CONFIG_VT
-	    case MKDEV(TTY_MAJOR, 0): {
-	        extern struct tty_driver *console_driver;---------找设备号为4,0的tty_driver;/dev/tty0
-	        driver = tty_driver_kref_get(console_driver);
-	        *index = fg_console;
-	        break;
-	    }
-	#endif
-	    case MKDEV(TTYAUX_MAJOR, 1): {
-	        struct tty_driver *console_driver = console_device(index);---------找设备号为5,1的tty_driver;/dev/console
-	        if (console_driver) {
-	            driver = tty_driver_kref_get(console_driver);
-	            if (driver && filp) {
-	                /* Don't let /dev/console block */
-	                filp->f_flags |= O_NONBLOCK;
-	                break;
-	            }
+	    const struct kernel_param *kp;
+	    unsigned int name_len;
+	    char modname[MODULE_NAME_LEN];
+	    for (kp = __start___param; kp < __stop___param; kp++) {------只有这个段里的参数创建sys节点
+	        char *dot;
+	        if (kp->perm == 0)
+	            continue;
+	        dot = strchr(kp->name, '.');
+	        if (!dot) {
+	            /* This happens for core_param() */
+	            strcpy(modname, "kernel");
+	            name_len = 0;
+	        } else {
+	            name_len = dot - kp->name + 1;
+	            strlcpy(modname, kp->name, name_len);
 	        }
-	        if (driver)
-	            tty_driver_kref_put(driver);
-	        return ERR_PTR(-ENODEV);
+	        kernel_add_sysfs_param(modname, kp, name_len);
 	    }
-	    default:
-	        driver = get_tty_driver(device, index);---------会到tty_drivers链表里找/dev/ttySn和/dev/tty1-x
-	        if (!driver)
-	            return ERR_PTR(-ENODEV);
-	        break;
+	}
+
+##Linux accounts management:
+	1, su - username (Provide an environment similar to what the user would expect had the user logged in directly)
+	2, users: print the user names of users currently logged in to the current host
+	3, w: Show who is logged on and what they are doing
+	4, 查看当前登录
+		w
+		who
+		users
+	   查看系统中所有用户：
+		grep bash /etc/passwd
+		或者：
+		cat /etc/passwd | cut -f 1 -d:
+	5, users/w/who command principe: read登录记录文件(/var/run/utmp)
+###Linux用户类型:
+	Linux用户类型分为 3 类：超级用户、系统用户和普通用户。
+    超级用户：用户名为 root 或 USER ID(UID)为0的账号，具有一切权限，可以操作系统中的所有资源。root可以进行基础的文件操作以及特殊的文件管理，另外还可以进行网络管理，可以修改系统中的任何文件。日常工作中应避免使用此类账号，只有在必要的时候才使用root登录系统。
+    系统用户：正常运行系统时使用的账户。每个进程运行在系统里都有一个相应的属主，比如某个进程以何种身份运行，这些身份就是系统里对应的用户账号。注意系统账户是不能用来登录的，比如 bin、daemon、mail等。
+    普通用户：普通使用者，能使用Linux的大部分资源，一些特定的权限受到控制。用户只对自己的目录有写权限，读写权限受到一定的限制，从而有效保证了Linux的系统安全，大部分用户属于此类。
+###Linux用户创建:
+	6, sudo useradd username
+	7, usermod:modify a user account
+		-d, --home HOME_DIR
+        The user's new login directory.
+###登录或切换:sudo/su/login
+	1, -E, --preserve-env  preserve user environment when running command
+		sudo -E ./t7gdb vmlinux
+			gdb:edit start_kernel	(success)
+		sudo ./t7gdb vmlinux
+			gdb:edit start_kernel	(failed)
+	2,	su -l username
+		su - username //login as username
+	3,	sudo:	execute a command as another user
+		su:		The su command is used to become another user during a login session.
+		login:	The login program is used to establish a new session with the system.
+	4, sudo report:使用sudo时报一下错误
+		test is not in the sudoers file.  This incident will be reported.
+		resolve mathods:解决方法
+			a) modify /etc/sudoers
+			b) modify user group to sudo group
+
+##Bootloader:
+###Bootloader种类
+	Bootloader	Monitor		描述							x86		ARM			PowerPC
+	LILO		否			Linux磁盘引导程序				是		否			否
+	GRUB		否			GNU的LILO替代程序				是		否			否
+	Loadlin		否			从DOS引导Linux					是		否			否
+	ROLO		否			从ROM引导Linux而不需要BIOS		是		否			否
+	Etherboot	否			通过以太网卡启动Linux系统的固件	是		否			否
+	LinuxBIOS	否			完全替代BUIS的Linux引导程序		是		否			否
+	BLOB		否			LART等硬件平台的引导程序		否		是			否
+	U-boot		是			通用引导程序					是		是			是
+	RedBoot		是			基于eCos的引导程序				是		是			是
+###grub给kernel传参修改网络设备名eth0:
+	1, 修改/boot/grub/grub.cfg,在linux参数项中加net.ifnames=0 biosdevname=0
+
+##IC related:
+###DMA burst:
+	1, burst传输就是占用多个总线周期，完成一次块传输，此间cpu不能访问总线; DMA占用的周期个数叫做burst length.
+	2, Burst操作还是要通过CPU的参与的，与单独的一次读写操作相比，burst只需要提供一个其实地址就行了，
+	以后的地址依次加1，而非burst操作每次都要给出地址，以及需要中间的一些应答、等待状态等等。
+	如果是对地址连续的读取，burst效率高得多，但如果地址是跳跃的，则无法采用burst操作
+	3, DMA controler支持链表的，美其名曰“scatter”，内核有struct scatter可以参考
+	4, transfer size：就是数据宽度，比如8位、32位，一般跟外设的FIFO相同。
+	5, burst size：就是一次传几个 transfer size.
+
+##nfs的使用:
+	1, server端构建:
+		安装nfs-kernel-server并配置:
+		echo "/home/user/nfs \*(rw,sync,no_root_squash)" > /etc/exports
+	2, client mount:
+		mount -t nfs -o nolock 10.3.153.96:/home/user/nfs /mnt/
+
+##smb:samba:ubuntu/windows share folder:
+ For ubuntu mount windows:
+	1, Windows共享文件夹使用的协议是SMB/CIFS
+		sudo apt install cifs-utils
+		sudo mount.cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw]
+		sudo mount -t cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw]
+		sudo mount.cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw],uid=[UID]
+		sudo mount.cifs //[address]/[folder] [mount point] -o domain=[domain_name],user=[username],passwd=[pw],uid=[UID]
+	2, 直接在文件浏览器中挂载或打开,input smb://10.3.153.95/e/ in ubuntu files browser
+	3,
+		SMB:	Server Message Block
+		CIFS:	Common Internet File System
+ For windows mount ubuntu:
+	4, sudo smbpasswd -a user
+		sudo vim /etc/samba/smb.conf
+		[user]
+		comment = share folder
+		browseable=yes
+		path = /home/user
+		create mask = 0700
+		directory mask = 0700
+		valid users = user
+		force user = user
+		force group = user
+		public = yes
+		available = yes
+		writable = yes
+
+##apt使用介绍:
+	1, man:apt-get(8), apt-cache(8), sources.list(5), apt.conf(5), apt-config(8)
+	2, apt-get install安装目录是包的维护者确定的，不是用户
+		可以预配置的时候通过./configure --help看一下–prefix的默认值是什么，
+		就知道默认安装位置了，或者直接指定安装目录。
+		apt-config dump | grep  -i "dir::cache" show the apt download directory
+
+##xdg-open:
+	xdg-open: opens a file or URL in the user's preferred application
+
+##ffplay-using
+	ffplay -f rawvideo -pixel_format nv12 -video_size 640x480 cap.yuv
+
+##wps:shutcut of Format brush
+	双击格式刷就可以实现这个功能
+
+##url:
+	在WWW上，每一信息资源都有统一的且在网上唯一的地址，该地址就叫URL（Uniform Resource Locator,统一资源定位符），它是WWW的统一资源定位标志，就是指网络地址
+	URL由三部分组成：资源类型、存放资源的主机域名、资源文件名。
+	也可认为由4部分组成：协议、主机、端口、路径
+	URL的一般语法格式为：
+	(带方括号[]的为可选项)：
+	protocol :// hostname[:port] / path / [;parameters][?query]#fragment
+
+##service/systemd/systemctl?
+
+##ssh/ssh-agent/ssh-copy-id?
+
+##disk分区相关:
+###MBR:
+	1, MBR:Master Boot Record
+	2, mbr最多支持四个主分区，gpt没有限制
+	3, MBR结束标志：占MBR扇区最后2个字节，一直为“55 AA”
+	4, MBR一共占用64个字节，其中每16个字节为一个分区表项
+	也就是在MBR扇区中只能记录4个分区信息，可以是4个主分区，或者是3个主分区1个扩展分区。
+https://www.cnblogs.com/hwli/p/8633314.html:
+	5, 磁盘的第1个扇区叫做MBR扇区，一共有512B，主要有3个部分，引导信息、分区表、结束标志。
+	  5.1 0~0x1BD即为引导程序，占扇区前446字节,计算机在上电完成BIOS自检后，会将该主引导扇区加载到内存中并执行前面446字节的引导程序，
+		引导程序首先会在分区表中查找活动分区，若存在活动分区，则根据活动分区的偏移量找到该活动分区上的引导扇区的地址，并将该引导扇区加载到内存中，
+		同时检查该引导扇区的有效性，然后根据该引导扇区的规则去引导操作系统。在一些非启动磁盘上，MBR引导代码可能都是0，这对磁盘使用没有任何影响。
+	  5.2 0x1BE~0x1FD即为分区表，占扇区中间64字节。分区表是磁盘管理最重要的部分，通过分区表信息来定位各个分区，访问用户数据。
+		分区表包含4个分区项，每一个分区项通过位置偏移、分区大小来唯一确定一个主分区或者扩展分区。
+		每个分区项占16字节，包括引导标识、起始和结束位置的CHS参数、分区类型、开始扇区、分区大小等，具体描述如下表所示
+		字节位移 	占用字节数 	描述
+		0x01BE		1Byte		引导指示符，指明该分区是否是活动分区
+		0x01BF 		1Byte 		开始磁头
+		0x01C0 		6Bit 		开始扇区，占用6位
+		0x01C1 		10Bit 		开始柱面，占用10位，最大值1023
+		0x01C2 		1Byte 		分区类型，NTFS位0x07
+		0x01C3 		1Byte 		结束磁头
+		0x01C4 		6Bit 		结束扇区，占用6位
+		0x01C5 		10Bit 		介乎柱面，占用10位，最大值1023
+		0x01C6 		4Byte 		相对扇区数，从此扇区到该分区的开始的扇区偏移量，以扇区为单位
+		0x01CA 		4Byte 		该分区的总扇区数
+		字节位移0x01BE：引导指示符，只能是0和0x80，0代表是非活动分区，0x80代表是活动分区。活动分区里包含着操作系统的入口扇区。
+		字节位移0x01BF~0x01C1:指明了该分区位于磁盘的物理位置。具体搜索C/H/S与LBA地址的对应关系
+		字节位移0x01C2：文件系统格式
+	  5.3 结束标志
+	  最后的"55 AA"即为结束标志，或者称魔数，占扇区最后2字节。每次执行系统引导代码时都会检查MBR主引导扇区最后2字节是否是"55 AA"，
+	  若是，则继续执行后续的程序，否则，则认为这是一个无效的MBR引导扇区，停止引导系统。
+	6, 拓展分区
+	由MBR中拓展分区信息，找到拓展分区表所在扇区，该扇区处又有像MBR类似的分区表信息，规则与MBR规则一样，只是此处分区表的分区类型不同，我们叫做逻辑分区。
+	7, 疑问：按照上面每个分区的范围，MBR后面为什么保留了0x40个扇区？扩展分区扇区到逻辑分区扇区也保留了0x40个扇区？
+
+###GPT:
+	http://en.wikipedia.org/wiki/GUID_Partition_Table
+	GPT:GUID Partition Table
+	1, 保护MBR:
+		只包含一个类型值为0xEE的分区项,它的作用是阻止不能识别GPT分区的磁盘工具试图对其进行分区或格式化等操作，所以该扇区被称为“保护MBR”;
+		保护MBR位于GPT磁盘的第一(LBA0)扇区，也就是0号扇区，有磁盘签名，MBR磁盘分区表和结束标志组成，没有引导代码。
+		而且分区表内只有一个分区表项，这个表项GPT根本不用，只是为了让系统认为这个磁盘是合法的。
+	2, EFI部分:
+	 EFI信息区位于磁盘的1号扇区(LBA1)，也称为GPT头
+	 EFI部分又可以分为4个区域：EFI信息区(GPT头)、分区表、GPT分区、备份区域。
+	  2.1, GPT头:
+		起始于磁盘的LBA1，通常也只占用这个单一扇区。其作用是定义分区表的位置和大小。
+		GPT头还包含头和分区表的校验和，这样就可以及时发现错误。
+		GPT头位于GPT磁盘的第二个(LBA1)扇区，也就是1号扇区，该扇区是在创建GPT磁盘时生成，
+		GPT头会定义分区表的起始位置，分区表的结束位置、每个分区表项的大小、分区表项的个数及分区表的校验和等信息。
+	  2.2, 分区表:
+		分区表位于GPT磁盘的LBA2～LBA33扇区，一共占用32个扇区，能够容纳128个分区表项。每个分区表项大小为128字节。
+		因为每个分区表项管理一共分区，所以Windows系统允许GPT磁盘创建128个分区。
+		每个分区表项中记录着分区的起始，结束地址，分区类型的GUID，分区的名字，分区属性和分区GUID。
+	  2.3, 分区区域
+		GPT分区区域就是用户使用的分区，也是用户进行数据存储的区域。分区区域的起始地址和结束地址由GPT头定义。
+	  2.4, GPT头备份
+		GPT头有一个备份，放在GPT磁盘的最后一个扇区，但这个GPT头备份并非完全GPT头备份，某些参数有些不一样。复制的时候根据实际情况更改一下即可。
+	  2.5, 分区表备份
+		分区区域结束后就是分区表备份，其地址在GPT头备份扇区中有描述。分区表备份是对分区表32个扇区的完整备份。
+		如果分区表被破坏，系统会自动读取分区表备份，也能够保证正常识别分区。
+
+###LBA:
+	Logic Block Address
+	我们俗称扇区
+
+###UEFI:
+	1, Unified Extensible Firmware Interface
+
+###UUID
+	UUID(Universally Unique IDentifiers)
+####UUID由来:
+	https://blog.csdn.net/smstong/article/details/46417213
+	为解决上述问题，UUID被文件系统设计者采用，使其可以持久唯一标识一个硬盘分区。
+	其实方式很简单，就是在文件系统的超级块中使用128位存放UUID。
+	这个UUID是在使用文件系统格式化分区时计算生成的，
+	例如Linux下的文件系统工具mkfs就在格式化分区的同时，
+	生成UUID并把它记录到超级块的固定区域中。
+####查看硬盘UUID
+	两种方法:
+	ls -l /dev/disk/by-uuid
+	blkid /dev/sda1
+	修改分区UUID：
+	1、修改分区的UUID
+	Ubuntu 使用 uuid命令 生成新的uuid
+	centos 使用uuidgen命令 生成新的uuid
+	Ubuntu
+	sudo uuid | xargs tune2fs /dev/sda1 -U
+	centos
+	sudo uuidgen | xargs tune2fs /dev/sda1 -U
+	2、查看/etc/fstab 将原有UUID写入分区
+	tune2fs -U 578c1ba1-d796-4a54-be90-8a011c7c2dd3 /dev/sda1
+
+###MBR中主分区/拓展分区/逻辑分区:
+	1, 主分区中不能再划分其他类型的分区,因此每个主分区都相当于一个逻辑磁盘
+	主分区是直接在硬盘上划分的,逻辑分区则必须建立于扩展分区中
+	2, 一个硬盘可以有1到3个主分区和1个扩展分区,也可以只有主分区而没有扩展分区,但主分区必须至少有1个,
+	扩展分区则最多只有1个,且主分区+扩展分区总共不能超过4个。逻辑分区可以有若干个。
+	3, 分出主分区后,其余的部分可以分成扩展分区,一般是剩下的部分全部分成扩展分区,也可以不全分,剩下的部分就浪费了。
+	4, 扩展分区不能直接使用,必须分成若干逻辑分区。所有的逻辑分区都是扩展分区的一部分。
+	硬盘的容量=主分区的容量+扩展分区的容量;   扩展分区的容量=各个逻辑分区的容量之和。
+	5, 激活的主分区会成为“引导分区”(或称为“启动分区”),引导分区会被操作系统和主板认定为第一个逻辑磁盘
+	6, DOS/Windows 中无法看到非激活的主分区和扩展分区
+	7,  硬盘分区依照功能性的不同可分为主分区( Primary )、拓展分区(Extended)及逻辑分区( Logical ) 三种。
+	硬盘最多可以分割成4个主分区或3个主分区+1个拓展分区
+
+###kernel-scan-partition-table-gpt:
+	kernel如何扫描一个块设备中的分区表信息的
+	block/partitions/efi.c
+	/**
+	 * efi_partition(struct parsed_partitions *state)
+	 * @state: disk parsed partitions
+	 *
+	 * Description: called from check.c, if the disk contains GPT
+	 * partitions, sets up partition entries in the kernel.
+	 *
+	 * If the first block on the disk is a legacy MBR,
+	 * it will get handled by msdos_partition().
+	 * If it's a Protective MBR, we'll handle it here.
+	 *
+	 * We do not create a Linux partition for GPT, but
+	 * only for the actual data partitions.
+	 * Returns:
+	 * -1 if unable to read the partition table
+	 *  0 if this isn't our partition table
+	 *  1 if successful
+	 */
+	int efi_partition(struct parsed_partitions *state)
+	{
+	    gpt_header *gpt = NULL;
+	    gpt_entry *ptes = NULL;
+	    u32 i;
+	    unsigned ssz = bdev_logical_block_size(state->bdev) / 512;
+	    if (!find_valid_gpt(state, &gpt, &ptes) || !gpt || !ptes) {
+	        kfree(gpt);
+	        kfree(ptes);
+	        return 0;
 	    }
-	    return driver;
-	}
+	    pr_debug("GUID Partition Table is valid!  Yea!\n");
 
-###tty_drivers
-	所有tty_driver都会注册到tty_drivers里面,所以tty_open的时候到这个链表找tty_driver，都可以找得到
+###partitions-view-tools:
+	df -T 只可以查看已经挂载的分区和文件系统类型。
+	sudo fdisk -l 可以显示出所有挂载和未挂载的分区，但不显示文件系统类型。
+	sudo parted -l 可以查看未挂载的文件系统类型，以及哪些分区尚未格式化。
+	sudo lsblk -f 也可以查看未挂载的文件系统类型。
+	sudo file -s /dev/sda3
+	sudo blkid
 
-###/dev/tty设备
-	1,tty 设备号5,0;打开时会用当前进程的tty
-	2,cdev_init(&tty_cdev, &tty_fops);
-	3,cdev_add(&tty_cdev, MKDEV(TTYAUX_MAJOR, 0), 1)
+##arm:arm9:armv9:cortex-a9:
+	1,且在GCC编译中，常常要用到 -march,-mcpu等
+	2,ARM（Advanced RISCMachines)
+	3,ＡＲＭ公司定义了６种主要的指令集体系结构版本。Ｖ１－Ｖ６。（所以上面提到的ＡＲＭｖ６是指指令集版本号）。即：ARM architecture
+	4, ARM公司开发了很多ARM处理器核，最新版位ARM11。ARM11：指令集ARMv6，8级流水线，1.25DMIPS/MHz
+	5, Cortex-A8：指令集ARMv7-A，13级整数流水线，超标量双发射，2.0DMIPS/MHz，标配Neon，不支持多核
+	  Scorpion：指令集ARMv7-A，高通获得指令集授权后在A8的基础上设计的。13级整数流水线，超标量双发射，部分乱序执行，2.1DMIPS/MHz，标配Neon，支持多核
+	  Cortex-A9：指令集ARMv7-A，8级整数流水线，超标量双发射，乱序执行，2.5DMIPS/MHz，可选配Neon/VFPv3，支持多核
+	  Cortex-A5：指令集ARMv7-A，8级整数流水线，1.57DMIPS/MHz，可选配Neon/VFPv3，支持多核
+	  Cortex-A15：指令集ARMv7-A，超标量，乱序执行，可选配Neon/VFPv4，支持多核
 
-###/dev/console设备
-	1,console 设备号5,1;打开时会找cmdline中console=xxx指定的tty
-	2,cdev_init(&console_cdev, &console_fops);
-	3,cdev_add(&console_cdev, MKDEV(TTYAUX_MAJOR, 1), 1)
+##IC设计/生产/封装/测试：
+###wafer/die/chip:
+	1, wafer——晶圆
+	2, die——晶粒,Wafer上的一个小块，就是一个晶片晶圆体，学名die，封装后就成为一个颗粒。
+	3, chip——芯片
+###chip package
+	1, PGA:Pin Grid Array
+	2, BGA:Ball Grid Array
+	3, DIP:Dual Inline Package,双排直立式封装,黑色长得像蜈蚣
+	4, QFP:塑料方形扁平封装
+###chip test:
+	1, WAT: Wafer Acceptance Test,是晶圆出厂前对testkey的测试
+	2, CP: Circuit Probe/chip probing，是封装前晶圆级别对芯片测试。这里就涉及到测试芯片的基本功能了。
+		通过了这两项后, 晶圆会被切割.
+	3, FT:Final test，封装完成后的测试
+	4, SLT:system level test
+	5, ATE(Auto Test Equipment) 在测试工厂完成. 大致是给芯片的输入管道施加所需的激励信号，
+		同时监测芯片的输出管脚，看其输出信号是否是预期的值。有特定的测试平台。
 
-###/dev/tty0设备
-	1,设备号4,0，打开时会找到struct tty_driver *console_driver
-	2,cdev_init(&vc0_cdev, console_fops);
-	3,cdev_add(&vc0_cdev, MKDEV(TTY_MAJOR, 0), 1)
-
-###/dev/tty1-63设备
-	1,设备号4,1-63，打开时会到tty_drivers链表里找
-
-###/dev/ttySn设备
-####/dev/ttySn设备号设定
-#####由tty_driver->major决定
-	#2  tty_register_device_attr (driver=0xee635200, index=3230862924, device=0x0, drvdata=0xee4b9000, attr_grp=0xee612c00) at drivers/tty/tty_io.c:3145
-	#3  tty_port_register_device_attr_serdev (port=<optimized out>, driver=0xee614380, index=0, device=0xee540c00, drvdata=0xee4b9000, attr_grp=<optimized out>) at drivers/tty/tty_port.c:166
-	#4  uart_add_one_port (drv=0xc0b49c14 <amba_reg>, uport=0xee635040) at drivers/tty/serial/serial_core.c:2861
-	#5  pl011_register_port (uap=0xee635040) at drivers/tty/serial/amba-pl011.c:2601
-	struct device *tty_register_device_attr(struct tty_driver *driver,
-	                   unsigned index, struct device *device,
-	                   void *drvdata,
-	                   const struct attribute_group **attr_grp)
-	{
-	...
-	dev_t devt = MKDEV(driver->major, driver->minor_start) + index;----由tty_driver->major决定
-	...
-	}
-#####tty_driver->major怎么设定
-#####由uart_driver决定
-	int uart_register_driver(struct uart_driver *drv)
-	{
-	...
-	struct tty_driver *normal;
-	normal = alloc_tty_driver(drv->nr);
-	drv->tty_driver = normal;
-	normal->driver_name = drv->driver_name;
-	normal->name        = drv->dev_name;
-	normal->major       = drv->major;---------tty_driver由uart_driver初始化
-	normal->minor_start = drv->minor;
-	normal->type        = TTY_DRIVER_TYPE_SERIAL;
-	normal->subtype     = SERIAL_TYPE_NORMAL;
-	normal->init_termios    = tty_std_termios;
-	normal->init_termios.c_cflag = B9600 | CS8 | CREAD | HUPCL | CLOCAL;
-	normal->init_termios.c_ispeed = normal->init_termios.c_ospeed = 9600;
-	normal->flags       = TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
-	normal->driver_state    = drv;
-	tty_set_operations(normal, &uart_ops);
-	...
-	}
-
-	static struct uart_driver amba_reg = {
-	    .owner          = THIS_MODULE,
-	    .driver_name        = "ttyAMA",
-	    .dev_name       = "ttyAMA",
-	    .major          = SERIAL_AMBA_MAJOR,--------uart_driver定义处
-	    .minor          = SERIAL_AMBA_MINOR,
-	    .nr         = UART_NR,
-	    .cons           = AMBA_CONSOLE,
-	};
-
-###/dev/ptmx-/dev/pts/n设备
-	1,drivers/tty/pty.c
-
-##uevent_helper
-	1, /sys/kernel/uevent_helper
-###/sys/kernel目录怎么创建的
-	kernel/ksysfs.c
-		ksysfs_init()
-			-->kernel_kobj = kobject_create_and_add("kernel", NULL);
-###/sys/kernel/uevent_helper节点怎么创建的
-	kernel/ksysfs.c:
-	static struct attribute * kernel_attrs[] = {
-	    &fscaps_attr.attr,
-	    &uevent_seqnum_attr.attr,
-	#ifdef CONFIG_UEVENT_HELPER
-	    &uevent_helper_attr.attr,------------这里定义
-	#endif
-	#ifdef CONFIG_PROFILING
-	    &profiling_attr.attr,
-	#endif
-	#ifdef CONFIG_KEXEC_CORE
-	    &kexec_loaded_attr.attr,
-	    &kexec_crash_loaded_attr.attr,
-	    &kexec_crash_size_attr.attr,
-	#endif
-	#ifdef CONFIG_CRASH_CORE
-	    &vmcoreinfo_attr.attr,
-	#endif
-	#ifndef CONFIG_TINY_RCU
-	    &rcu_expedited_attr.attr,
-	    &rcu_normal_attr.attr,
-	#endif
-	    NULL
-	};
-	static const struct attribute_group kernel_attr_group = {
-	    .attrs = kernel_attrs,
-	};
-	error = sysfs_create_group(kernel_kobj, &kernel_attr_group);
-
-##mdev
-	1,在qemu中kernel起来后，在rcS里加了mdev -s 所以/dev下会有节点
-
-##cdev:
-###cdev创建的3大步
-	1, __register_chrdev_region():主要申请设备号
-	申请设备号，并实例化一个struct char_device_struct对象，并把该对象地址加入到chrdevs[major_to_index(major)]数组中
-	2，cdev_add():真正注册设备
-	int cdev_add(struct cdev *p, dev_t dev, unsigned count)
-	{
-	    int error;
-	    p->dev = dev;
-	    p->count = count;
-	    error = kobj_map(cdev_map, dev, count, NULL,
-	             exact_match, exact_lock, p);----------映射完,chrdev_open函数就可以根据设备号找到该cdev
-	    if (error)
-	        return error;
-	    kobject_get(p->kobj.parent);
-	    return 0;
-	}
-	3,device_create(tty_class, NULL, MKDEV(TTYAUX_MAJOR, 0), NULL, "tty");
-	会在tty class下链接生成tty子目录，mdev就能够遍历到，然后自动在/dev下mknod创建设备节点
-	会调到device_add()函数里：
-	if (MAJOR(dev->devt)) {
-		error = device_create_file(dev, &dev_attr_dev);----在该设备目录下创建uevent节点
-		if (error)
-			goto DevAttrError;
-		error = device_create_sys_dev_entry(dev);---------创建/sys/dev/char/xx:xx节点
-		if (error)
-			goto SysEntryError;
-		devtmpfs_create_node(dev);
-	}
-	device_add()->device_add_class_symlinks(dev);----如果dev->class存在，就会将该设备目录链接到/sys/class/xxx/目录下一个子目录(以设备名命名的子目录)
+##开发板种类(EVB/REF):
+	1, EVB(Evaluation Board) 开发板：软件/驱动开发人员使用EVB开发板验证芯片的正确性，进行软件应用开发
+	2, REF(reference Board) 开发板：参考板
