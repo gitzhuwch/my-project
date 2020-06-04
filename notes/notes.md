@@ -381,7 +381,7 @@
 	gitolite is through .ssh/authorized_keys-->command to export git repository
 	gerrit is through ip:29418 port to process client requestion
 
-##Linux driver model:
+##linux driver model:
 ###device_add()
 	drivers/base/core.c::device_add----这里会创建设备在sys下的所有节点和链接文件，也会在devtmpfs下创建节点
 ###driver_register()
@@ -703,6 +703,7 @@
 	默认没有挂载；kernel起来后可以手动挂载
 
 ##linux memory management:
+	https://www.cnblogs.com/arnoldlu/p/8051674.html
 ###arm32内存管理调试在qemu上
 	1, 用下面的gdbinit调试
 	.gdbinit: notes/linux-memory/gdbinit_of_debug_memory.txt
@@ -733,6 +734,82 @@
 	2, PUD: page upper directory
 	3, PMD: page middle directory
 	4, PTE: page table
+###mmap
+	根据mmap是否映射到文件、是共享还是私有映射，将映射类型分成四类，使用场景如下：
+	|-------------------|-----------------------------------------------|-------------------------------------------------------|
+	|	场景			|		私有影射								|	共享映射											|
+	|-------------------|-----------------------------------------------|-------------------------------------------------------|
+	|	匿名映射		|		通常用于内存分配						|	通常用于进程间内存共享，常用于父子进程之间通信。	|
+	|					|		fd=-1，flags=MAP_ANONYMOUS|MAP_PRIVATE	|	fd=-1，flags=MAP_ANONYMOUS|MAP_SHARED				|
+	|-------------------|-----------------------------------------------|-------------------------------------------------------|
+	|	文件映射		|		通常用于加载动态库						|	通常用于内存映射IO、进程间通信、读写文件。			|
+	|					|		flags=MAP_PRIVATE						|	flags=MAP_SHARED									|
+	|-------------------|-----------------------------------------------|-------------------------------------------------------|
+###kernel地址空间PGD同步:
+	Step 1：A进程调用vmalloc分配了一段虚拟内存，首地址是x。这时候，所有进程的页表并没有建立关于x的项目，唯一完整建立x地址段的页表是init_mm的PGD。
+	Step 2：当进程A、B都访问了某个虚拟地址x，此时A、B的页表都与init_mm同步后，A和B也都建立好了关于x这个虚拟地址段的页表。
+			但是，这里需要强调的是：对于x虚拟地址段，A进程和B进程有不同的PGD，但是它们PGD中关于x地址段的entry们都是指向相同的PMD。
+			当然PMD entry指向的PTE也是相同的。换句话说，对于x地址段，所有进程还有init mm而言，它们的PMD和PTE都是共享的。
+	Step 3：进程A调用vfree函数释放了地址x，当然操作的依然是init mm的PGD以及其下级的页表们。需要说明的是：所有根是init mm PGD的那些PMD和PTE的内存不会回收，
+			因此x地址段的PMD和PTE页表本身的内存并不会释放，vfree只是将x地址段对应的页表项全部清除。
+	Step 4：进程B访问x地址段的时候，PGD entry指向了大家共享的PMD，PMD的entry指向了大家共享的PTE，但是，PTE中的具体的entry已经被清除，
+			因此产生page fault
+	各个用户进程拥有自己的PGD，内核线程没有自己的PGD，只是借用某个用户进程的PGD（借用哪一个是看缘分，上面说了，是和进程切换相关）
+	Master kernel PGD不属于任何的用户进程或者内核线程，它就是一个共用的模板而已。当申请了内核空间的虚拟地址段的时候，
+	内核只是修改了Master kernel PGD以及其child translation table的内容，也就是说仅仅是在模板上设立好了Translation table，
+	而各个进程的Translation table还都是空的，这些是在真正访问的时候，发生异常，在异常处理流程中，根据模板中的数据建立自己的页表数据。
+###进程切换之地址空间的切换:
+	所有和进程地址空间相关的内容都被封装到一个叫做mm_struct的数据结构中，被称作memory descriptor。
+	每个用户空间进程都有其对应的memory descriptor，具体位于进程task_struct的mm成员中。内核线程是否有memory descriptor呢？没有，
+	因此其进程描述符的mm成员指向了NULL。不过，对于linux而言，内核的最小调度单位是线程，因此存在内核线程和用户线程之间的切换问题，
+	每当切换的时候，需要切换进程地址空间（切换页表，进程的页表信息位于其mm_struct的pgd成员中），用户线程到用户线程的切换当然没有问题，
+	但是用户线程和内核线程之间的切换就会有问题，因为内核线程没有memory descriptor，怎么办？只能是借用了，
+	因此，在进程描述符（task_struct）中有一个active_mm的成员，表示该进程（内核线程）当前正在使用的memory descriptor（注意：“使用”并不表示“拥有”）。
+	对于普通用户进程，它拥有自己的memory descriptor，因此进程描述符的active_mm和mm成员指向同一个memory descriptor
+	（自己有memory descriptor，当然使用自己的了）。对于内核线程，它不可能”拥有“memory descriptor（mm等于NULL），
+	因此active_mm需要借用其他进程的memory descriptor，可以参考下面的代码（代码来自4.1.10）：
+	－－－－－－－－－－－－－－－－－－－－
+	static inline struct rq *
+	context_switch(struct rq *rq, struct task_struct *prev,
+	           struct task_struct *next)
+	{
+	    struct mm_struct *mm, *oldmm;
+	    prepare_task_switch(rq, prev, next);
+	    mm = next->mm;
+	    oldmm = prev->active_mm;
+	    /*
+	     * For paravirt, this is coupled with an exit in switch_to to
+	     * combine the page table reload and the switch backend into
+	     * one hypercall.
+	     */
+	    arch_start_context_switch(prev);
+	    if (!mm) {－－－－－－－－－－－－－－－－切换到一个内核线程（next的mm成员为NULL）
+	        next->active_mm = oldmm;－－－－－－－借用上一个的使用的memory descriptor
+	        atomic_inc(&oldmm->mm_count);
+	        enter_lazy_tlb(oldmm, next);
+	    } else－－－－－－－－－－－－－－－－－－－切换到普通进程
+	    switch_mm(oldmm, mm, next);-----------------切换地址空间
+	    if (!prev->mm) {
+	        prev->active_mm = NULL;－－－－－－－－－如果是从一个内核线程切换到某个其他进程，那么借用期结束
+	        rq->prev_mm = oldmm;
+	    }
+	    /*
+	     * Since the runqueue lock will be released by the next
+	     * task (which is an invalid locking op but in the case
+	     * of the scheduler it's an obvious special-case), so we
+	     * do an early lockdep release here:
+	     */
+	    spin_release(&rq->lock.dep_map, 1, _THIS_IP_);
+	    context_tracking_task_switch(prev, next);
+	    /* Here we just switch the register state and the stack. */
+	    switch_to(prev, next, prev);
+	    barrier();
+	    return finish_task_switch(prev);
+	}
+	－－－－－－－－－－－－－－－－－－－－－－－－－－
+	讲了这么多，似乎还是没有到init_mm，呵呵，那么init_mm到底是属于哪一个进程呢？其实init_mm不属于任何的进程或者内核线程。
+	当然，在启动阶段，swapper进程（idle进程，pid等于0的那个进程）曾经借用国init_mm，但是初始化完成，
+	调度器正常运作之后（至少发生了一次进程切换涉及到了idle进程），init_mm不和任何的进程相关了。
 
 ##linux process managemnet:
 ###1号进程的in/out终端怎么产生
@@ -909,17 +986,45 @@
 ###power/regulator区别:
 	1, power: sleep wakeup system
 	2, regulator: power management system
-###cpufreq:
-	1, cat /sys/devices/system/cpu/cpufreq
-	2, drivers/base/bus.c:
-		system_kset = kset_create_and_add("system", NULL, &devices_kset->kobj);-----这是在/sys/devices目录下
-	3, drivers/base/cpu.c:
+###sysfs cpu节点:
+	/sys/devices/system/cpu/
+####节点创建:
+	1, drivers/base/bus.c:
+		system_kset = kset_create_and_add("system", NULL, &devices_kset->kobj);-----这是在/sys/devices目录下创建节点
+	2, drivers/base/cpu.c:
 		subsys_system_register(&cpu_subsys, cpu_root_attr_groups)
+####cpu调频节点:
+	/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq
+####cpu开关核节点:
+	/sys/devices/system/cpu/cpu1/online
 ###gpio/pinctrl区别:
 	1, gpio:
 	2, pinctrl:
 ###arm smp多核使能:
 	1, edit smp_init
+###linux I/O model:
+    阻塞IO		(blocking IO)
+    非阻塞IO	(nonblocking IO)
+    IO复用		(select 和poll) (IO multiplexing)
+    信号驱动IO	(signal driven IO (SIGIO))
+    异步IO		(asynchronous IO (the POSIX aio_functions))
+####缓存 IO
+	缓存 IO 又被称作标准 IO，大多数文件系统的默认 IO 操作都是缓存 IO
+####阻塞/非阻塞:
+	block/ nonblock
+	针对的对象只有一个;
+####同步/异步:
+	synchronous communication/ asynchronous communication
+	针对的对象俩个;
+	与IC接口异步通信/同步通信不一样;
+####poll与block read/write区别:
+	以按键驱动为例进行说明，用阻塞的方式打开按键驱动文件/dev/buttons，应用程序使用read()函数来读取按键的键值。
+	这样做的效果是：如果有按键按下了，调用该read()函数的进程，就成功读取到数据，应用程序得到继续执行；
+	倘若没有按键按下，则要一直处于休眠状态，等待这有按键按下这样的事件发生。
+	这种功能在一些场合是适用的，但是并不能满足我们所有的需要，有时我们需要一个时间节点。
+	倘若没有按键按下，那么超过多少时间之后，也要返回超时错误信息，进程能够继续得到执行，而不是没有按键按下，就永远休眠。
+	这种例子其实还有很多，比方说两人相亲，男方等待女方给个确定相处的信，男方不可能因为女方不给信，就永远等待下去，双方需要一个时间节点。
+	这个时间节点，就是说超过这个时间之后，不能再等了，程序还要继续运行，需要采取其他的行动来解决问题。
 
 ##linux sound architecture:
 ###Advanced Linux Sound Architecture:
@@ -927,7 +1032,8 @@
 ##linux media architecture:
 ###Video4Linux:
 
-##USB(universal serial bus):
+##linux USB framework:
+	universal serial bus
 
 ##linux参数传递和管理:
 ###参数类型:
@@ -976,6 +1082,21 @@
 	        kernel_add_sysfs_param(modname, kp, name_len);
 	    }
 	}
+###/sys/module目录创建:
+	static int __init param_sysfs_init(void)
+	{
+	    module_kset = kset_create_and_add("module", &module_uevent_ops, NULL);
+	    if (!module_kset) {
+	        printk(KERN_WARNING "%s (%d): error creating kset\n",
+	            __FILE__, __LINE__);
+	        return -ENOMEM;
+	    }
+	    module_sysfs_initialized = 1;
+	    version_sysfs_builtin();
+	    param_sysfs_builtin();
+	    return 0;
+	}
+	subsys_initcall(param_sysfs_init);
 
 ##Linux accounts management:
 	1, su - username (Provide an environment similar to what the user would expect had the user logged in directly)

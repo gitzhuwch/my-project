@@ -71,3 +71,7 @@ sudo apt -y install gawk
 sudo apt -y install tree
 
 sudo apt -y install patchelf
+
+#for wifi hotspot and wifi the same time
+sudo apt -y install hostapd
+sudo apt -y install haveged
