@@ -39,17 +39,18 @@
 	1, autocmd Filetype markdown inoremap<buffer> <silent> ,xxx
 		autocmd Filetype markdown
 		会在打开文件时判断当前文件类型，如果是 markdown 就执行后面的命令
-    	inoremap 也就是映射命令map，当然它也可以添加很多前缀
-    	nore
-    	表示非递归，而递归的映射，也就是如果键a被映射成了b，c又被映射成了a，如果映射是递归的，那么c就被映射成了b
-    	n
-    	表示在普通模式下生效
-    	v
-    	表示在可视模式下生效
-    	i
-    	表示在插入模式下生效
-    	c
-    	表示在命令行模式下生效
+    	inoremap	 也就是映射命令map，当然它也可以添加很多前缀
+		----------------------------------------------------------------------------------------------------------------------------
+    	|i	  |表示在插入模式下生效                                                                                                 |
+		----------------------------------------------------------------------------------------------------------------------------
+    	|nore |表示非递归，而递归的映射，也就是如果键a被映射成了b，c又被映射成了a，如果映射是递归的，那么c就被映射成了b             |
+		----------------------------------------------------------------------------------------------------------------------------
+    	|n	  |表示在普通模式下生效                                                                                                 |
+		----------------------------------------------------------------------------------------------------------------------------
+    	|v	  |表示在可视模式下生效                                                                                                 |
+		----------------------------------------------------------------------------------------------------------------------------
+    	|c	  |表示在命令行模式下生效                                                                                               |
+		----------------------------------------------------------------------------------------------------------------------------
     	所以inoremap也就表示在插入模式下生效的非递归映射
 		<buffer> <silent> map的参数，必须放在map后面
 		<buffer> 表示仅在当前缓冲区生效，就算你一开始打开的是md文件，映射生效了，但当你在当前页面打开非md文件，该映射也只会在md文件中生效
@@ -250,10 +251,11 @@
 		git push origin --tags
 		git checkout -b version2 v2.0.0
 		git reset --hard v2.0.0
-	7,git checkout master
+	7,git checkout master的底层等效操作
 		git checkout xxx-SHA1: HEAD == xxx-SHA1 != refs/heads/master
 		git reset    xxx-SHA1: HEAD == refs/heads/master == xxx-SHA1
-	8, git clone url = mkdir repo-name + cd repo-name + git init + git remote add + git fetch + git checkout
+	8, git clone url的分解动作
+	mkdir repo-name + cd repo-name + git init + git remote add + git fetch + git checkout
 	9, git ls-remote 查看远程所有references
 
 ####error: RPC failed; curl 18 transfer closed with outstanding read data remaining
@@ -335,7 +337,54 @@
 			                        sensitive.
 			  -o -|NAME.xml, --output-file=-|NAME.xml
 			                        File to save the manifest to
-
+####repo二次镜像库搭建:
+	1, 一次repo镜像搭建(用于实时同步rockchip官方代码)
+		sudo apt install -y repo
+		mkdir mirror1
+		cd mirror1
+		repo init
+			--mirror
+			--repo-url ssh://git@www.rockchip.com.cn/repo/rk/tools/repo
+			-u ssh://git@www.rockchip.com.cn/linux/rk/platform/manifests
+			-b linux -m rk3399_linux_release.xml
+		.repo/repo/repo sync
+	2, 基于第一次下载的repo镜像再在另一台服务器上搭建一个repo镜像库(用于内部开发)
+		(1)git clone ssh://git@10.3.153.96/home/git/rk-sdk-repository-mirror/repo
+		(2)mkdir mirror2
+		(3)cd mirror2
+		(3)../repo/repo init
+			--mirror
+			--repo-url ssh://git@10.3.153.96/home/git/rk-sdk-repository-mirror/repo
+			-u ssh://git@10.3.153.96/home/git/rk-sdk-repository-mirror/rk/platform/manifests
+			-b linux -m rk3399_linux_release.xml
+		(4)cd .repo/manifests
+		(5)vim rk3399_linux_release.xml
+			将<remote fetch="ssh://git@www.rockchip.com.cn/linux/" name="rk"/>
+			改为<remote fetch="ssh://git@10.3.153.96/home/git/rk-sdk-repository-mirror/" name="rk"/> ------重点---改为第一次镜像的url
+		(6)cd -
+		(7).repo/repo/repo sync
+		(8).repo/repo/repo start iflytek ------重要---基于当前的HEAD创建开发分支,不影响主分支,这样4.5步才能切分支
+	3, 为第二次repo镜像服务器创建一个独立的manifests/repo仓库
+		(1)首先搭建一个自己用的manifests库
+			git clone ssh://git@10.3.153.96/home/git/rk-sdk-repository-mirror/rk/platform/manifests
+			cd manifests
+			git checkout -b iflytek -------新建一个自己用的分支,不影响主分支
+			vim rk3399_linux_release.xml
+			将<remote fetch="ssh://git@www.rockchip.com.cn/linux/" name="rk"/>
+			改为<remote fetch="ssh://rksdk@10.3.153.233/home/rksdk/rk-sdk-mirror-from-96-git/" name="rk"/> ------重点---改为第二次镜像的url
+			git add -A
+			git commit -m "xxx"
+		(2)搭建一个稳定统一的repo工具库
+			git clone ssh://git@10.3.153.96/home/git/rk-sdk-repository-mirror/repo
+	4, 开发人员使用第二次搭建的repo镜像服务器
+		(1)mkdir develop
+		(2)cd develop
+		(3)repo init
+			--repo-url ssh://rksdk@10.3.153.233/home/rksdk/repo ------第三步创建的repo工具库
+			-u ssh://rksdk@10.3.153.233/home/rksdk/manifests------第三步创建的manifests库
+			-b iflytek -m rk3399_linux_release.xml
+		(4)repo sync
+		(5)repo forall -c "git checkout -b iflytek refs/remotes/rk/iflytek" -------切换到2.8步创建的分支
 ###gerrit:
 	1, web browser: 10.3.153.233:8080
 	2, refs/for/master与refs/for/refs/heads/master区别:
@@ -347,29 +396,29 @@
 	1, sudo useradd -r -m -s /bin/bash gitolite
 	2, sudo passwd gitolite
 	3, su - gitolite
-	4, mkdir -p \$HOME/bin
+	4, mkdir -p $HOME/bin
 	5, git clone https://github.com/sitaramc/gitolite.git
-	6, gitolite/install -to \$HOME/bin
-	7, \$HOME/bin/gitolite setup -pk YourName.pub
+	6, gitolite/install -to $HOME/bin
+	7, $HOME/bin/gitolite setup -pk YourName.pub
 
 ####git describe failed; cannot deduce version numbe
 	  a)--depth=1 will not cover the release version so install failed
 		git clone --depth=1  https://github.com/sitaramc/gitolite.git
-		gitolite/install -to \$HOME/bin
+		gitolite/install -to $HOME/bin
 		**git describe failed; cannot deduce version numbe**
 	  b)success
 		git clone https://github.com/sitaramc/gitolite.git
-		gitolite/install -to \$HOME/bin
+		gitolite/install -to $HOME/bin
 
 ####PTY allocation request failed on channel 0 hello id_rsa, this is git@user-ThinkPad-E490 running gitolite3 v3.6.11-9-gd89c7dd on git 2.17.1
 	ssh -X git@10.3.153.96 report title error
 	cat .ssh/authorized_keys
-		\# gitolite start
+		# gitolite start
 		command="/home/git/bin/gitolite-shell id_rsa",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty
 		ssh-rsa
 		AAAAB3NzaC1yc2EAAA......T4UNW7kAwKgonTeNg3
 		user@user-ThinkPad-E490
-		\# gitolite end
+		# gitolite end
 
 ####fatal: No path specified. See 'man git-pull' for valid url syntax
 	git clone ssh://git@10.3.153.96:gitolite-admin report title error
@@ -686,7 +735,7 @@
 ####devtmpfs挂载
 	选中CONFIG_DEVTMPFS_MOUNT=y会自动挂载
 	prepare_namespace->mount_root之后调用->devtmpfs_mount
-	int \__init devtmpfs_mount(void)
+	int __init devtmpfs_mount(void)
 	{
 	    int err;
 	    if (!mount_dev)----这个变量决定是否自动挂载
@@ -704,7 +753,7 @@
 
 ##linux memory management:
 	https://www.cnblogs.com/arnoldlu/p/8051674.html
-###arm32内存管理调试在qemu上
+###arm32内存管理在qemu上调试
 	1, 用下面的gdbinit调试
 	.gdbinit: notes/linux-memory/gdbinit_of_debug_memory.txt
 	kernel boot时关键的几个函数
@@ -746,6 +795,7 @@
 	|					|		flags=MAP_PRIVATE						|	flags=MAP_SHARED									|
 	|-------------------|-----------------------------------------------|-------------------------------------------------------|
 ###kernel地址空间PGD同步:
+	http://www.wowotech.net/forum/viewtopic.php?id=27
 	Step 1：A进程调用vmalloc分配了一段虚拟内存，首地址是x。这时候，所有进程的页表并没有建立关于x的项目，唯一完整建立x地址段的页表是init_mm的PGD。
 	Step 2：当进程A、B都访问了某个虚拟地址x，此时A、B的页表都与init_mm同步后，A和B也都建立好了关于x这个虚拟地址段的页表。
 			但是，这里需要强调的是：对于x虚拟地址段，A进程和B进程有不同的PGD，但是它们PGD中关于x地址段的entry们都是指向相同的PMD。
@@ -837,7 +887,7 @@
 	}
 ####/dev/console节点怎么创建的
 #####noinitramfs的时候
-	static int \__init default_rootfs(void)
+	static int __init default_rootfs(void)
 	{
 	    int err;
 	    err = ksys_mkdir((const char __user __force *) "/dev", 0755);
@@ -858,7 +908,7 @@
 	}
 	rootfs_initcall(default_rootfs);------以initcall形式调用
 #####initramfs的时候
-	static int \__init populate_rootfs(void)
+	static int __init populate_rootfs(void)
 	{
 	    /* Load the built in initramfs */
 	    char *err = unpack_to_rootfs(__initramfs_start, __initramfs_size);-----这个段里里创建console
@@ -1140,16 +1190,27 @@
 
 ##Bootloader:
 ###Bootloader种类
-	Bootloader	Monitor		描述							x86		ARM			PowerPC
-	LILO		否			Linux磁盘引导程序				是		否			否
-	GRUB		否			GNU的LILO替代程序				是		否			否
-	Loadlin		否			从DOS引导Linux					是		否			否
-	ROLO		否			从ROM引导Linux而不需要BIOS		是		否			否
-	Etherboot	否			通过以太网卡启动Linux系统的固件	是		否			否
-	LinuxBIOS	否			完全替代BUIS的Linux引导程序		是		否			否
-	BLOB		否			LART等硬件平台的引导程序		否		是			否
-	U-boot		是			通用引导程序					是		是			是
-	RedBoot		是			基于eCos的引导程序				是		是			是
+	--------------------------------------------------------------------------------------
+	|Bootloader	|	Monitor	|	描述							|	x86	|	ARM	| PowerPC|
+	--------------------------------------------------------------------------------------
+	|LILO		|	否		|	Linux磁盘引导程序				|	是	|	否	| 否	 |
+	--------------------------------------------------------------------------------------
+	|GRUB		|	否		|	GNU的LILO替代程序				|	是	|	否	| 否	 |
+	--------------------------------------------------------------------------------------
+	|Loadlin	|	否		|	从DOS引导Linux					|	是	|	否	| 否	 |
+	--------------------------------------------------------------------------------------
+	|ROLO		|	否		|	从ROM引导Linux而不需要BIOS		|	是	|	否	| 否	 |
+	--------------------------------------------------------------------------------------
+	|Etherboot	|	否		|	通过以太网卡启动Linux系统的固件	|	是	|	否	| 否	 |
+	--------------------------------------------------------------------------------------
+	|LinuxBIOS	|	否		|	完全替代BUIS的Linux引导程序		|	是	|	否	| 否	 |
+	--------------------------------------------------------------------------------------
+	|BLOB		|	否		|	LART等硬件平台的引导程序		|	否	|	是	| 否	 |
+	--------------------------------------------------------------------------------------
+	|U-boot		|	是		|	通用引导程序					|	是	|	是	| 是	 |
+	--------------------------------------------------------------------------------------
+	|RedBoot	|	是		|	基于eCos的引导程序				|	是	|	是	| 是	 |
+	--------------------------------------------------------------------------------------
 ###grub给kernel传参修改网络设备名eth0:
 	1, 修改/boot/grub/grub.cfg,在linux参数项中加net.ifnames=0 biosdevname=0
 
@@ -1166,7 +1227,7 @@
 ##nfs的使用:
 	1, server端构建:
 		安装nfs-kernel-server并配置:
-		echo "/home/user/nfs \*(rw,sync,no_root_squash)" > /etc/exports
+		echo "/home/user/nfs *(rw,sync,no_root_squash)" > /etc/exports
 	2, client mount:
 		mount -t nfs -o nolock 10.3.153.96:/home/user/nfs /mnt/
 
@@ -1214,8 +1275,9 @@
 ##wps:shutcut of Format brush
 	双击格式刷就可以实现这个功能
 
-##url:
-	在WWW上，每一信息资源都有统一的且在网上唯一的地址，该地址就叫URL（Uniform Resource Locator,统一资源定位符），它是WWW的统一资源定位标志，就是指网络地址
+##URI/URL/URN:
+	1, uri, url, urn - uniform resource identifier (URI), including a URL or URN
+	2, 在WWW上，每一信息资源都有统一的且在网上唯一的地址，该地址就叫URL（Uniform Resource Locator,统一资源定位符），它是WWW的统一资源定位标志，就是指网络地址
 	URL由三部分组成：资源类型、存放资源的主机域名、资源文件名。
 	也可认为由4部分组成：协议、主机、端口、路径
 	URL的一般语法格式为：
@@ -1241,17 +1303,29 @@ https://www.cnblogs.com/hwli/p/8633314.html:
 	  5.2 0x1BE~0x1FD即为分区表，占扇区中间64字节。分区表是磁盘管理最重要的部分，通过分区表信息来定位各个分区，访问用户数据。
 		分区表包含4个分区项，每一个分区项通过位置偏移、分区大小来唯一确定一个主分区或者扩展分区。
 		每个分区项占16字节，包括引导标识、起始和结束位置的CHS参数、分区类型、开始扇区、分区大小等，具体描述如下表所示
-		字节位移 	占用字节数 	描述
-		0x01BE		1Byte		引导指示符，指明该分区是否是活动分区
-		0x01BF 		1Byte 		开始磁头
-		0x01C0 		6Bit 		开始扇区，占用6位
-		0x01C1 		10Bit 		开始柱面，占用10位，最大值1023
-		0x01C2 		1Byte 		分区类型，NTFS位0x07
-		0x01C3 		1Byte 		结束磁头
-		0x01C4 		6Bit 		结束扇区，占用6位
-		0x01C5 		10Bit 		介乎柱面，占用10位，最大值1023
-		0x01C6 		4Byte 		相对扇区数，从此扇区到该分区的开始的扇区偏移量，以扇区为单位
-		0x01CA 		4Byte 		该分区的总扇区数
+		---------------------------------------------------------------------------------------------
+		|字节位移 	|   占用字节数 	|	描述														|
+		---------------------------------------------------------------------------------------------
+		|0x01BE	  	|   1Byte		|	引导指示符，指明该分区是否是活动分区                        |
+		---------------------------------------------------------------------------------------------
+		|0x01BF   	|	1Byte 		|	开始磁头                                                    |
+		---------------------------------------------------------------------------------------------
+		|0x01C0   	|	6Bit 		|	开始扇区，占用6位                                           |
+		---------------------------------------------------------------------------------------------
+		|0x01C1   	|	10Bit 		|	开始柱面，占用10位，最大值1023                              |
+		---------------------------------------------------------------------------------------------
+		|0x01C2   	|	1Byte 		|	分区类型，NTFS位0x07                                        |
+		---------------------------------------------------------------------------------------------
+		|0x01C3   	|	1Byte 		|	结束磁头                                                    |
+		---------------------------------------------------------------------------------------------
+		|0x01C4   	|	6Bit 		|	结束扇区，占用6位                                           |
+		---------------------------------------------------------------------------------------------
+		|0x01C5   	|	10Bit 		|	介乎柱面，占用10位，最大值1023                              |
+		---------------------------------------------------------------------------------------------
+		|0x01C6   	|	4Byte 		|	相对扇区数，从此扇区到该分区的开始的扇区偏移量，以扇区为单位|
+		---------------------------------------------------------------------------------------------
+		|0x01CA    	|	4Byte 		|	该分区的总扇区数                                            |
+		---------------------------------------------------------------------------------------------
 		字节位移0x01BE：引导指示符，只能是0和0x80，0代表是非活动分区，0x80代表是活动分区。活动分区里包含着操作系统的入口扇区。
 		字节位移0x01BF~0x01C1:指明了该分区位于磁盘的物理位置。具体搜索C/H/S与LBA地址的对应关系
 		字节位移0x01C2：文件系统格式
@@ -1261,7 +1335,6 @@ https://www.cnblogs.com/hwli/p/8633314.html:
 	6, 拓展分区
 	由MBR中拓展分区信息，找到拓展分区表所在扇区，该扇区处又有像MBR类似的分区表信息，规则与MBR规则一样，只是此处分区表的分区类型不同，我们叫做逻辑分区。
 	7, 疑问：按照上面每个分区的范围，MBR后面为什么保留了0x40个扇区？扩展分区扇区到逻辑分区扇区也保留了0x40个扇区？
-
 ###GPT:
 	http://en.wikipedia.org/wiki/GUID_Partition_Table
 	GPT:GUID Partition Table
@@ -1279,7 +1352,7 @@ https://www.cnblogs.com/hwli/p/8633314.html:
 		GPT头会定义分区表的起始位置，分区表的结束位置、每个分区表项的大小、分区表项的个数及分区表的校验和等信息。
 	  2.2, 分区表:
 		分区表位于GPT磁盘的LBA2～LBA33扇区，一共占用32个扇区，能够容纳128个分区表项。每个分区表项大小为128字节。
-		因为每个分区表项管理一共分区，所以Windows系统允许GPT磁盘创建128个分区。
+		因为每个分区表项管理一个分区，所以Windows系统允许GPT磁盘创建128个分区。
 		每个分区表项中记录着分区的起始，结束地址，分区类型的GUID，分区的名字，分区属性和分区GUID。
 	  2.3, 分区区域
 		GPT分区区域就是用户使用的分区，也是用户进行数据存储的区域。分区区域的起始地址和结束地址由GPT头定义。
@@ -1288,14 +1361,11 @@ https://www.cnblogs.com/hwli/p/8633314.html:
 	  2.5, 分区表备份
 		分区区域结束后就是分区表备份，其地址在GPT头备份扇区中有描述。分区表备份是对分区表32个扇区的完整备份。
 		如果分区表被破坏，系统会自动读取分区表备份，也能够保证正常识别分区。
-
 ###LBA:
 	Logic Block Address
 	我们俗称扇区
-
 ###UEFI:
 	1, Unified Extensible Firmware Interface
-
 ###UUID
 	UUID(Universally Unique IDentifiers)
 ####UUID由来:
@@ -1318,8 +1388,7 @@ https://www.cnblogs.com/hwli/p/8633314.html:
 	centos
 	sudo uuidgen | xargs tune2fs /dev/sda1 -U
 	2、查看/etc/fstab 将原有UUID写入分区
-	tune2fs -U 578c1ba1-d796-4a54-be90-8a011c7c2dd3 /dev/sda1
-
+	tune2fs -U 578c1ba1-d796-4a54-be90-8a011c7c2dd3 /dev/sda1-----修改uuid
 ###MBR中主分区/拓展分区/逻辑分区:
 	1, 主分区中不能再划分其他类型的分区,因此每个主分区都相当于一个逻辑磁盘
 	主分区是直接在硬盘上划分的,逻辑分区则必须建立于扩展分区中
@@ -1332,7 +1401,6 @@ https://www.cnblogs.com/hwli/p/8633314.html:
 	6, DOS/Windows 中无法看到非激活的主分区和扩展分区
 	7,  硬盘分区依照功能性的不同可分为主分区( Primary )、拓展分区(Extended)及逻辑分区( Logical ) 三种。
 	硬盘最多可以分割成4个主分区或3个主分区+1个拓展分区
-
 ###kernel-scan-partition-table-gpt:
 	kernel如何扫描一个块设备中的分区表信息的
 	block/partitions/efi.c
@@ -1366,14 +1434,69 @@ https://www.cnblogs.com/hwli/p/8633314.html:
 	        return 0;
 	    }
 	    pr_debug("GUID Partition Table is valid!  Yea!\n");
-
 ###partitions-view-tools:
 	df -T 只可以查看已经挂载的分区和文件系统类型。
-	sudo fdisk -l 可以显示出所有挂载和未挂载的分区，但不显示文件系统类型。
+	sudo fdisk -l 可以显示出所有挂载和未挂载的分区，但不显示文件系统类型，显示分区名字
 	sudo parted -l 可以查看未挂载的文件系统类型，以及哪些分区尚未格式化。
 	sudo lsblk -f 也可以查看未挂载的文件系统类型。
 	sudo file -s /dev/sda3
 	sudo blkid
+###通过/sys节点查看分区起始块:
+	1, cat /sys/block/sda/sda1/start
+###查看Linux系统中分区的UUID和分区名
+	1, fdisk可以修改partiton name
+	:fdisk /dev/nvme0n1
+	:x
+	:m
+	:p -----该命令能够显示UUID和分区名(只有gpt分区才有)
+	:n -----该命令能修改分区名
+###GPT分区表项与FS超级块内容对比:
+####GPT分区项内容:(fdisk)
+	Device             Start        End   Sectors Type-UUID                            UUID                                 Name                         Attrs
+	/dev/nvme0n1p1      2048     616447    614400 C12A7328-F81F-11D2-BA4B-00A0C93EC93B 7D4AC1A9-0294-4469-9420-B5AA3A1847D7 EFI system partition
+	/dev/nvme0n1p2    616448     878591    262144 E3C9E316-0B5C-4DB8-817D-F92DF00215AE FF3126AF-6274-432A-828A-2510C67DB040 Microsoft reserved partition
+	/dev/nvme0n1p3    878592  315453439 314574848 EBD0A0A2-B9E5-4433-87C0-68B6B72699C7 5DE5E1F4-C2A4-49AE-B0C2-CADBC0269934 Basic data partition
+	/dev/nvme0n1p4 315453440  475453439 160000000 0FC63DAF-8483-4772-8E79-3D69D8477DE4 BC497B94-44E9-42C2-9E68-7D2007839084
+	/dev/nvme0n1p5 475453440  539453439  64000000 0657FD6D-A4AB-43C4-84E5-0933C84B4F4F AAA2F1AA-5B40-4CB0-A6B8-A5FFEFE1DF6D
+	/dev/nvme0n1p6 539453440 1000214527 460761088 0FC63DAF-8483-4772-8E79-3D69D8477DE4 CF97032F-DF97-4D53-BCD3-24BCDE3A01BD
+####FS超级块内容:(dumpe2fs)
+	Filesystem volume name:   <none>
+	Last mounted on:          /media/data
+	Filesystem UUID:          d973277c-d69f-47a5-894e-203aed24c644
+	Filesystem magic number:  0xEF53
+	Filesystem revision #:    1 (dynamic)
+	Filesystem features:      has_journal ext_attr resize_inode dir_index filetype needs_recovery extent 64bit flex_bg sparse_super large_file huge_file dir_nlink extra_isize metadata_csum
+	Filesystem flags:         signed_directory_hash
+	Default mount options:    user_xattr acl
+	...
+	Filesystem OS type:       Linux
+	Inode count:              20520000
+	Block count:              81920000
+	Reserved block count:     4095999
+	Free blocks:              50121137
+	Free inodes:              20514883
+	...
+####卷标与分区名:
+	卷标是在文件系统超级块中,可用tune2fs修改；
+	分区名是在GPT分区表中，可用fdisk修改；
+	1, e2label /dev/sda1----查看卷标
+	2, 通过xxd将一个文件系统镜像转换成十六进制和ASSIC码，证明卷标信息被写入文件系统的开头的一段内.
+	3, :sudo dumpe2fs /dev/sda3
+		dumpe2fs 1.44.1 (24-Mar-2018)
+		Filesystem volume name:   <none> --------文件系统卷标
+		Last mounted on:          /media/data
+		Filesystem UUID:          d973277c-d69f-47a5-894e-203aed24c644 --------文件系统UUID
+		Filesystem magic number:  0xEF53
+####GPT UUID与FS UUID:
+	1, 前者是在GPT中，可用fdisk修改；后者是在文件系统超级块中，可用tune2fs修改。
+###/etc/fstab:
+	LABEL=t-home2   /home      ext4    defaults,auto_da_alloc      0  2
+	The first field:
+	1，LABEL=<label> or UUID=<uuid> may be given instead of a device name.
+	This is the recommended method, as device names are often a coincidence of hardware detection order,
+	and can change when  other  disks  are  added or removed.  For example, `LABEL=Boot' or `UUID=3e6be9de-8139-11d1-9106-a43f08d823a6'.
+	2，It's also possible to use PARTUUID= and PARTLABEL=. These partitions identifiers are supported for example for GUID Partition Table (GPT).
+	MBR分区项中没有UUID，所以使用PARTUUID=xxx来mount文件系统不通用
 
 ##arm:arm9:armv9:cortex-a9:
 	1,且在GCC编译中，常常要用到 -march,-mcpu等
@@ -1408,3 +1531,30 @@ https://www.cnblogs.com/hwli/p/8633314.html:
 ##开发板种类(EVB/REF):
 	1, EVB(Evaluation Board) 开发板：软件/驱动开发人员使用EVB开发板验证芯片的正确性，进行软件应用开发
 	2, REF(reference Board) 开发板：参考板
+
+##ubuntu hotspot:
+	git clone https://github.com/oblique/create_ap
+	cd create_ap
+	sudo create_ap -w 2 wlp5s0 enp4s0 css css123456 &
+
+##vmware网络配置几种方式:
+	1, bridged(桥接模式)
+		虚拟机A1的IP地址可以设置成192.168.1.5（与主机网卡地址同网段的即可），其他的诸如网关地址，DNS，子网掩码均与主机的相同。
+	2, host-only(主机模式)
+		虚拟机A1的IP地址可以设置成192.168.80.5（与VMnet8使用相同的网段），网关是NAT路由器地址，即192.168.80.254
+	3, NAT(网络地址转换模式)
+		虚拟机A1的IP地址可以设置成192.168.10.5（与VMnet1使用相同的网段）
+
+##字节序:
+###大小端:
+	1, 大小端就是字节序，大小端的问题主要是由内存中多字节形数据类型的存在而引起的，他的研究单位是字节，
+	对于char型数据类型，就是一个字节，是不存在大小端问题的.
+	2, 字节序经常被分为两类：
+		Big-Endian（大端）：高位字节排放在内存的低地址端，低位字节排放在内存的高地址端。
+		Little-Endian（小端）：低位字节排放在内存的低地址端，高位字节排放在内存的高地址端。
+###网络字节序:
+	1, UDP/TCP/IP协议规定:把接收到的第一个字节当作高位字节看待,网络字节序是大端字节序
+
+##最高最低有效位:
+	1,	MSB（Most Significant Bit）：最高有效位，二进制中代表最高值的比特位，这一位对数值的影响最大。
+		LSB（Least Significant Bit）：最低有效位，二进制中代表最低值的比特位
