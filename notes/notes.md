@@ -255,9 +255,34 @@
 		git checkout xxx-SHA1: HEAD == xxx-SHA1 != refs/heads/master
 		git reset    xxx-SHA1: HEAD == refs/heads/master == xxx-SHA1
 	8, git clone url的分解动作
-	mkdir repo-name + cd repo-name + git init + git remote add + git fetch + git checkout
-	9, git ls-remote 查看远程所有references
-
+		mkdir repo-name + cd repo-name + git init + git remote add + git fetch + git checkout
+####git ls-remote报错
+	git ls-remote
+	fatal: No remote configured to list refs from.
+	解决方法:
+	git ls-remote remote_name 即后面加一个远程库名
+####git fetch报错:
+	git fetch origin tx:tx
+	fatal: Refusing to fetch into current branch refs/heads/tx of non-bare repository
+	fatal: The remote end hung up unexpectedly
+	原因:因为该库当前处在tx分支上，git不允许在非bare库中以这种方式抓取远程分支，可能远程的tx分支已经前进了。
+	解决方法1:
+		在本地库中新建一个远程库中没有的分支，并切换到新建分支上去，然后再执行就可以了
+	解决方法2:
+		git fetch --update-head-ok origin refs/heads/*:refs/heads/* 即fetch加--update-head-ok参数
+####git clone报id_rsa权限错误:
+	git clone ssh://git@www.rockchip.com.cn/repo/rk/tools/repo
+	Cloning into 'repo'...
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	@         WARNING: UNPROTECTED PRIVATE KEY FILE!          @
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	Permissions 0777 for '/home/git/.ssh/id_rsa' are too open.
+	It is required that your private key files are NOT accessible by others.
+	This private key will be ignored.
+	Load key "/home/git/.ssh/id_rsa": bad permissions
+	git@www.rockchip.com.cn's password:
+	解决方法:
+	chmod 600 id_rsa*
 ####error: RPC failed; curl 18 transfer closed with outstanding read data remaining
 	RPC: Remote Procedure Call
 	原因1：缓存区溢出
@@ -272,14 +297,11 @@
 	然后更新远程库到本地
 	git clone --depth=1 http://gitlab.xxx.cn/yyy/zzz.git
 	git fetch --unshallow
-
 ####no matching key exchange method found. Their offer: diffie-hellman-group1-sha1
 	这个问题主要是客户端与服务端安装的git版本不兼容
 	vi ~/.ssh/config加入以下内容
 	Host somehost.example.org(你的gerrit服务器，域名或IP) or Host *
 	KexAlgorithms +diffie-hellman-group1-sha1
-
-####git describe failed; cannot deduce version numbe?
 
 ###repo:
 	1, sudo apt -y install repo
