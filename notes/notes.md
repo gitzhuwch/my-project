@@ -258,13 +258,13 @@
 		mkdir repo-name + cd repo-name + git init + git remote add + git fetch + git checkout
 ####git ls-remote报错
 	git ls-remote
-	fatal: No remote configured to list refs from.
+		fatal: No remote configured to list refs from.
 	解决方法:
-	git ls-remote remote_name 即后面加一个远程库名
+		git ls-remote remote_name 即后面加一个远程库名
 ####git fetch报错:
 	git fetch origin tx:tx
-	fatal: Refusing to fetch into current branch refs/heads/tx of non-bare repository
-	fatal: The remote end hung up unexpectedly
+		fatal: Refusing to fetch into current branch refs/heads/tx of non-bare repository
+		fatal: The remote end hung up unexpectedly
 	原因:因为该库当前处在tx分支上，git不允许在非bare库中以这种方式抓取远程分支，可能远程的tx分支已经前进了。
 	解决方法1:
 		在本地库中新建一个远程库中没有的分支，并切换到新建分支上去，然后再执行就可以了
@@ -272,36 +272,36 @@
 		git fetch --update-head-ok origin refs/heads/*:refs/heads/* 即fetch加--update-head-ok参数
 ####git clone报id_rsa权限错误:
 	git clone ssh://git@www.rockchip.com.cn/repo/rk/tools/repo
-	Cloning into 'repo'...
-	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-	@         WARNING: UNPROTECTED PRIVATE KEY FILE!          @
-	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-	Permissions 0777 for '/home/git/.ssh/id_rsa' are too open.
-	It is required that your private key files are NOT accessible by others.
-	This private key will be ignored.
-	Load key "/home/git/.ssh/id_rsa": bad permissions
-	git@www.rockchip.com.cn's password:
+		Cloning into 'repo'...
+		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+		@         WARNING: UNPROTECTED PRIVATE KEY FILE!          @
+		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+		Permissions 0777 for '/home/git/.ssh/id_rsa' are too open.
+		It is required that your private key files are NOT accessible by others.
+		This private key will be ignored.
+		Load key "/home/git/.ssh/id_rsa": bad permissions
+		git@www.rockchip.com.cn's password:
 	解决方法:
-	chmod 600 id_rsa*
+		chmod 600 id_rsa*
 ####error: RPC failed; curl 18 transfer closed with outstanding read data remaining
 	RPC: Remote Procedure Call
 	原因1：缓存区溢出
 	解决方法：
-	1,  clone https方式换成SSH的方式，把 https:// 改为 git://
-	例：git clone https://github.com/libgit2/libgit2
-	改为：git clone git://github.com/libgit2/libgit2
-	2, 加大缓存区 治标不治本
-	git config --global http.postBuffer 500000000
-	3, 少clone一些，每个文件只取最近一次提交，不是整个历史版本
-	git clone https://github.com/flutter/flutter.git --depth 1
-	然后更新远程库到本地
-	git clone --depth=1 http://gitlab.xxx.cn/yyy/zzz.git
-	git fetch --unshallow
+		1,  clone https方式换成SSH的方式，把 https:// 改为 git://
+			例：git clone https://github.com/libgit2/libgit2
+			改为：git clone git://github.com/libgit2/libgit2
+		2, 加大缓存区 治标不治本
+			git config --global http.postBuffer 500000000
+		3, 少clone一些，每个文件只取最近一次提交，不是整个历史版本
+			git clone https://github.com/flutter/flutter.git --depth 1
+			然后更新远程库到本地
+			git clone --depth=1 http://gitlab.xxx.cn/yyy/zzz.git
+			git fetch --unshallow
 ####no matching key exchange method found. Their offer: diffie-hellman-group1-sha1
 	这个问题主要是客户端与服务端安装的git版本不兼容
 	vi ~/.ssh/config加入以下内容
-	Host somehost.example.org(你的gerrit服务器，域名或IP) or Host *
-	KexAlgorithms +diffie-hellman-group1-sha1
+		Host somehost.example.org(你的gerrit服务器，域名或IP) or Host *
+		KexAlgorithms +diffie-hellman-group1-sha1
 
 ###repo:
 	1, sudo apt -y install repo
@@ -413,6 +413,166 @@
 		a)这个不是git的规则，而是gerrit的规则
 		b)branches, remote-tracking branches, and tags等等都是对commite的引用（reference）
 		c)refs/for/mybranch需要经过code review之后才可以提交；refs/heads/mybranch不需要code review
+####java jdk或jre安装
+	sudo apt install openjdk-8-jre
+####反向代理安装
+	sudo apt install apache
+####gerrit下载地址
+	也有其他下载方式，但没有下面这个快
+		wget https://gerrit-releases.storage.googleapis.com/gerrit-2.14.6.war
+	下面这个也能访问
+		https://www.gerritcodereview.com/			//gerrit发布官网
+		里面的下载链接也是访问上面的网址下载的
+####gerrit安装命令
+	java -jar ~/gerrit-full-2.5.2.war init -d ~/gerrit_site
+####gerrit安装流程分析
+	1, gerrit用户身份认证方式
+		1.1 OpenID模式
+			默认的鉴权方式为 openid，即使用任何支持OpenID 的认证源（如 Google、Yahoo！）进行身份认证。
+			此模式支持用户自建帐号，用户通过OpenID 认证源的认证后，Gerrit 会自动从认证源获取相关属性如用户全名和邮件地址等信息创建帐号。
+			如果是开放服务的Gerrit服务，使用OpenId认证是最好的方法
+		1.2 LDAP模式
+			如果有可用的 LDAP 服务器，可以直接使用LDAP 中的已有帐号进行认证，不过此认证方式下 Gerrit 的自建帐号功能是关闭的。
+			登录时提供的用户名和口令通过LDAP服务器验证之后，Gerrit会自动从LDAP服务器中获取相应的字段属性，为用户创建帐号。
+		1.3 HTTP模式
+			此认证方式需要配置 Apache 的反向代理，并在Apache 中配置 Web 站点的口令认证，
+			通过口令认证后Gerrit 在创建帐号的过程中会询问用户的邮件地址并发送确认邮件。
+			当用户访问Gerrit网站首先需要通过Apache配置的HTTP Basic Auth认证，
+			当Gerrit发现用户已经登录后，会要求用户确认邮件地址。
+			当用户邮件地址确认后，再填写其他必须的字段完成帐号注册。
+			HTTP认证方式的缺点除了在口令文件管理上需要管理员手工维护比较麻烦之外，还有一个缺点就是用户一旦登录成功后,
+			想退出登录或者更换其他用户帐号登录变得非常麻烦，除非关闭浏览器。
+		1.4 development_become_any_account
+			任何访问者都可以使用管理账号
+	2, gerrit数据库选择
+		选择默认的H2，无须任何配置即可使用
+	3, 反向代理使能
+	4, 下载报错
+		Downloading http://www.bouncycastle.org/download/bcprov-jdk16-144.jar ... !! FAIL !!
+		Please download:
+		http://www.bouncycastle.org/download/bcprov-jdk16-144.jar
+		and save as:
+		/home/user/gerrit/site/lib/bcprov-jdk16-144.jar
+		Press enter to continue
+		安装过程中会下载失败，按照以上提示，到该网站下载该包，放到指定目录，按回车继续
+	5, 安装过程发现
+		> 可以看到Gerrit服务打开了两个端口，其中29418是默认的Gerrit SSH端口，而8080是默认的Gerrit Web端口
+		> netstat -ltpn | grep -i gerrit  用该命令可以看到gerrit所用端口号
+		> service iptables stop  用该命令可以关闭防火墙
+		> 80端口是apache代理的统一入口
+	6, 登录
+		登录的第一个用户将自动成为管理员（Account ID为1000000的就是管理员），所有后续登录的用户都是无权限用户（需要管理员指定权限）。
+		如果你选择了development_become_any_account，在页面顶端会有一个Become链接，通过它可以进入注册/登录页面。
+####gerrit工作原理
+	1, 俩个特殊引用
+		1.1 refs/for/<branch-name>
+			Gerrit 的 Git 服务器，禁止用户向   refs/heads命名空间下的引用执行推送（除非特别的授权）;
+			Gerrit 的 Git 服务器只允许用户向特殊的引用   refs/for/<branch-name>   下执行推送，其中   <branch-name>   即为开发者的工作分支;
+			向   refs/for/<branch-name>   命名空间下推送并不会在其中创建引用而是为新的提交分配一个 ID，称为 task-id ，
+			并为该 task-id 的访问建立如下格式的引用   refs/changes/nn/<task-id>/m;
+		1.2 refs/changes/nn/<task-id>/m
+			task-id 为 Gerrit 为评审任务顺序分配的全局唯一的号码。
+			nn 为 task-id 的后两位数，位数不足用零补齐。即 nn 为 task-id 除以 100 的余数。
+			m 为修订号，该 task-id 的首次提交修订号为 1，如果该修订被打回，重新提交修订号会自增。
+	2, Git 库的钩子脚本 hooks/commit-msg
+		为了保证已经提交审核的修订通过审核入库后，被别的分支 cherry-pick 后再推送至服务器时不会产生新的重复的评审任务，
+		Gerrit 设计了一套方法，即要求每个提交包含唯一的 Change-Id，这个 Change-Id 因为出现在日志中，当执行 cherry-pick 时也会保持，
+		Gerrit 一旦发现新的提交包含了已经处理过的   Change-Id   ，就不再为该修订创建新的评审任务和 task-id，而直接将提交入库。
+		为了实现 Git 提交中包含唯一的 Change-Id，Gerrit 提供了一个钩子脚本，放在开发者本地 Git 库中（hooks/commit-msg）。
+		这个钩子脚本在用户提交时自动在提交说明中创建以 "Change-Id: " 及包含   git hash-object   命令产生的哈希值的唯一标识。
+		当 Gerrit 获取到用户向refs/for/<branch-name>   推送的提交中包含 "Change-Id: I..." 的变更 ID，如果该 Change-Id 之前没有见过，
+		会创建一个新的评审任务并分配新的 task-id，并在 Gerrit 的数据库中保存 Change-Id 和 Task-Id 的关联。 如果当用户的提交因为某种原因被要求打回重做，
+		开发者修改之后重新推送到 Gerrit 时就要注意在提交说明中使用相同的 “Change-Id” （使用 --amend 提交即可保持提交说明），
+		以免创建新的评审任务，还要在推送时将当前分支推送到   refs/changes/nn/task-id/m中。其中   nn   和   task-id   和之前提交的评审任务的修订相同，
+		m 则要人工选择一个新的修订号。
+####apache配置文件
+在/etc/apache2/apache2.conf末尾添加:
+	Listen 8081				//apache监听的端口
+	<VirtualHost *:8081>
+	    ProxyRequests Off
+	    ProxyVia Off
+	    ProxyPreserveHost On
+	    <Proxy *>
+	          Order deny,allow
+	          Allow from all
+	    </Proxy>
+	    <Location "/login/">									//http认证对话框显示内容
+	        AuthType Basic
+	        AuthName "Gerrit Code Review"
+	        Require valid-user
+	        AuthBasicProvider file
+	        AuthUserFile /home/gerrit/proxy-passwd.file			//http帐户密码文件
+	    </Location>
+	    ProxyPass / http://10.3.153.96:8092/					//apache收到8081端口发来的请求后转发给这个地址+端口(即gerrit web监听端口)
+	</VirtualHost>
+####apache重启命令
+	sudo /etc/init.d/apache2 restart
+	sudo /etc/init.d/apache2 stop/start
+####gerrit配置文件
+	/home/gerrit/review3.2.2/etc/gerrit.config
+		[gerrit]
+	        basePath = ./gerrit/
+	        canonicalWebUrl = http://10.3.153.96:8081					//可以填写gerrit服务器域名
+	        serverId = 65d2a7b9-2c32-4443-b1d7-27d16f538725
+		[container]
+	        javaOptions = "-Dflogger.backend_factory=com.google.common.flogger.backend.log4j.Log4jBackendFactory#getInstance"
+	        javaOptions = "-Dflogger.logging_context=com.google.gerrit.server.logging.LoggingContext#getInstance"
+	        user = root
+	        javaHome = /usr/lib/jvm/java-8-openjdk-amd64/jre
+		[index]
+	        type = lucene
+		[auth]
+	        type = HTTP											//使用http作为认证方式
+		[receive]
+	        enableSignedPush = true
+		[sendemail]
+	        smtpServer = localhost
+		[sshd]
+	        listenAddress = *:29418
+		[httpd]
+	        listenUrl = proxy-http://*:8092/						//gerrit daemon监听端口
+		[cache]
+	        directory = cache
+####gerrit重启命令
+	sudo ./review3.2.2/bin/gerrit.sh restart
+	sudo ./review3.2.2/bin/gerrit.sh stop/start
+####查看apache/gerrit启动状态
+	sudo netstat -ltpn | grep -i gerrit
+	sudo netstat -ltpn | grep -i apache
+	或者使用ss命令
+####htpasswd命令
+	htpasswd -c -b ~/proxy-passwd.file admin 123123		//-c 表示创建新文件; -b 表示密码由命令行提供
+	http认证后，将用户名传给gerrit，gerrit以此创建gerrit帐户
+	第一个gerrit用户有超级权限
+####gerrit ssh命令行使用
+	ssh -p 29418 admin@10.3.153.96 gerrit + 子命令
+	ssh -p 29418 admin@10.3.153.96 gerrit + 子命令 + --help		//查看gerrit所有子命令
+	ssh -p 29418 admin@10.3.153.96 gerrit + 子命令 + --help		//查看子命令帮助信息
+####~/.ssh/config配置
+	host gerrit-server
+	user admin
+	hostname 10.3.153.96
+	port 29418
+	identityfile ~/.ssh/id_rsa.pub
+	这样就可以使用“ssh gerrit-server gerrit + 子命令”与gerrit daemon交互了
+####gerrit用户注册与http认证
+	1，gerrit用户与http认证中的帐户是独立的
+####gerrit用户属性配置
+	1, ssh命令行配置用户时，只有管理员才有权限；
+	2，UI配置时，能登录就能配
+#####邮箱配置
+######命令行配置
+	ssh -p 29418 admin@10.3.153.96 gerrit set-account --add-email wczhu2@iflytek.com
+######在UI界面配置
+	gerrit3.2.2 UI上配置邮箱必须要验证，只能用命令行配置邮箱
+#####ssh-key配置
+######命令行配置
+	cat ~/.ssh/id_rsa.pub | ssh -p 29418 admin@10.3.153.96 gerrit set-account --add-ssh-key -
+######在UI上配置
+	只有配置完邮箱才能在UI上配置ssh-key
+####学会看gerrit后台日志:
+	review3.2.2/logs/error_log		//http服务或者sshd服务在和前台交互时的错误log
+	review3.2.2/logs/sshd_log		//sshd与ssh -p 29418 ip gerrit sub-cmd交互过程的log
 
 ###gitolite:
 	1, sudo useradd -r -m -s /bin/bash gitolite
@@ -1183,17 +1343,34 @@
 		或者：
 		cat /etc/passwd | cut -f 1 -d:
 	5, users/w/who command principe: read登录记录文件(/var/run/utmp)
+###useradd与adduser
+	1, useradd is a low level utility for adding users. On Debian, administrators should usually use adduser(8) instead
+	2, file /usr/sbin/adduser
+		/usr/sbin/adduser: Perl script text executable
+	3, file /usr/sbin/useradd
+		/usr/sbin/useradd: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked
 ###Linux用户类型:
 	Linux用户类型分为 3 类：超级用户、系统用户和普通用户。
-    超级用户：用户名为 root 或 USER ID(UID)为0的账号，具有一切权限，可以操作系统中的所有资源。root可以进行基础的文件操作以及特殊的文件管理，另外还可以进行网络管理，可以修改系统中的任何文件。日常工作中应避免使用此类账号，只有在必要的时候才使用root登录系统。
-    系统用户：正常运行系统时使用的账户。每个进程运行在系统里都有一个相应的属主，比如某个进程以何种身份运行，这些身份就是系统里对应的用户账号。注意系统账户是不能用来登录的，比如 bin、daemon、mail等。
-    普通用户：普通使用者，能使用Linux的大部分资源，一些特定的权限受到控制。用户只对自己的目录有写权限，读写权限受到一定的限制，从而有效保证了Linux的系统安全，大部分用户属于此类。
-###Linux用户创建:
-	6, sudo useradd username
-	7, usermod:modify a user account
-		-d, --home HOME_DIR
+    超级用户：用户名为 root 或 USER ID(UID)为0的账号，具有一切权限，可以操作系统中的所有资源。root可以进行基础的文件操作以及特殊的文件管理，
+			  另外还可以进行网络管理，可以修改系统中的任何文件。日常工作中应避免使用此类账号，只有在必要的时候才使用root登录系统。
+    系统用户：正常运行系统时使用的账户。每个进程运行在系统里都有一个相应的属主，比如某个进程以何种身份运行，
+			  这些身份就是系统里对应的用户账号。注意系统账户是不能用来登录的，比如 bin、daemon、mail等。
+    普通用户：普通使用者，能使用Linux的大部分资源，一些特定的权限受到控制。用户只对自己的目录有写权限，读写权限受到一定的限制，
+			  从而有效保证了Linux的系统安全，大部分用户属于此类, 普通用户可用来登录。
+###Linux用户帐户创建:
+	1, sudo useradd -r 创建系统级用户，不能登录
+				 -m 生成家目录
+				 -s /bin/bash 指定用户交互程序
+				 gitolite 用户名
+	2, sudo adduser gitolite 这个命令是useradd的封装，自动做了一些事
+###usermod修改用户帐户
+	usermod:modify a user account
+		-d, --home HOME_DIR  --->修改用户家目录
         The user's new login directory.
-###登录或切换:sudo/su/login
+	修改gerrit用户添加到sudo组中，这样gerrit用户能使用sudo，俩中方法如下:
+	> sudo usermod gerrit gerrit,sudo
+	> sudo usermod -a -G sudo gerrit //-a表示追加用户组, sudo代表要追加的组，gerrit代表用户名
+###帐户登录或切换:sudo/su/login
 	1, -E, --preserve-env  preserve user environment when running command
 		sudo -E ./t7gdb vmlinux
 			gdb:edit start_kernel	(success)
@@ -1204,11 +1381,22 @@
 	3,	sudo:	execute a command as another user
 		su:		The su command is used to become another user during a login session.
 		login:	The login program is used to establish a new session with the system.
-	4, sudo report:使用sudo时报一下错误
+	4, 使用sudo时报错误
 		test is not in the sudoers file.  This incident will be reported.
 		resolve mathods:解决方法
 			a) modify /etc/sudoers
 			b) modify user group to sudo group
+##ssh原理及相关工具使用
+###ssh
+####ssh报错
+	现象:ssh Unable to negotiate with ip port 22: no matching cipher found. Their offer: aes128-cbc
+	解决方法:
+		vim /etc/ssh/ssh_config
+		将Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-cbc,3des-cbc这一行解注掉
+###ssh-keygen
+###ssh-agent
+###ssh-copy-id
+###scp
 
 ##Bootloader:
 ###Bootloader种类
@@ -1281,12 +1469,77 @@
 		available = yes
 		writable = yes
 
-##apt使用介绍:
+##apt(Advanced Packaging Tool)原理介绍
+	1, 如果有需要，编辑/etc/apt/sources.list，选择源服务器；
+	2, 执行apt update，由所有源服务器提供的软件包资源，生成本地软件包索引；
+	3, 执行apt install或upgrade，真正下载并安装软件包。
+tips:
 	1, man:apt-get(8), apt-cache(8), sources.list(5), apt.conf(5), apt-config(8)
 	2, apt-get install安装目录是包的维护者确定的，不是用户
 		可以预配置的时候通过./configure --help看一下–prefix的默认值是什么，
 		就知道默认安装位置了，或者直接指定安装目录。
 		apt-config dump | grep  -i "dir::cache" show the apt download directory
+	3, redhat主要是rpm和更高级的yum，debian主要是dpkg和更高级的apt。
+###apt与dpkg
+	1, dpkg：是一个底层的工具。上层的工具，如APT，被用于从远程获取软件包以及处理复杂的软件包关系。
+	2, dpkg绕过2113apt包管理数据库对软件5261包4102进行操作，所以你用dpkg安装过的软件包用apt可以再安装一遍，
+	系统不知道之前安装过了，将会覆盖之前dpkg的安装。
+	3, dpkg是用来安装.deb文件,但不会解决模块的依赖关系,且不会关心ubuntu的软件仓库内的软件,可以用于安装本地的deb文件。
+	4, apt会解决和安装模块的依赖问题,并会咨询软件仓库, 但不会安装本地的deb文件, apt是建立在dpkg之上的软件管理工具。
+###apt图形化工具
+	1, software-properties-gtk--->择源，更新，升级等功能
+	2, gnome-software--->搜索安装软件
+###apt相关的文件或目录
+	1, /var/lib/dpkg/available
+	文件的内容是软件包的描述信息, 该软件包括当前系统所使用的 Debian 安装源中的所有软件包,其中包括当前系统中已安装的和未安装的软件包.
+	2, /var/cache/apt/archives
+	目录是在用 apt-get install 安装软件时，软件包的临时存放路径
+	3, /etc/apt/sources.list
+	存放的是软件源站点, 当你执行 sudo apt-get install xxx 时，Ubuntu 就去这些站点下载软件包到本地并执行安装
+	4, /var/lib/apt/lists
+	使用apt-get update命令会从/etc/apt/sources.list中下载软件列表，并保存到该目录
+###update与upgrade与dist-upgrade区别
+	1, update
+		1.1 访问服务器，更新可获取软件及其版本信息，但仅仅给出一个可更新的list，具体更新需要通过apt-get upgrade。
+		1.2 会访问/etc/apt/sources.list源列表里的每个网址，并读取软件列表，然后保存在本地电脑。
+		我们在软件包管理器里看到的软件列表，都是通过update命令更新的。
+		1.3 update是下载源里面的metadata的. 包括这个源有什么包, 每个包什么版本之类的.
+	2, upgrade
+		2.1 apt-get upgrade可将软件进行更新，但是有文章指出不建议一次性全部更新，因为最新的不一定是最好的，有可能出现版本不兼容的情况。
+		2.2 upgrade是根据update命令下载的metadata决定要更新什么包(同时获取每个包的位置).
+	3, dist-upgrade
+		dist-upgrade in addition to performing the function of upgrade
+	总而言之，update是更新软件列表，upgrade是更新软件。
+	安装软件之前, 可以不upgrade, 但是要update. 因为旧的信息指向了旧版本的包, 但是源的服务器更新了之后旧的包可能被新的替代了, 于是你会遇到404...
+###刷新软件源-建立资源索引
+	无论用户使用哪些手段配置APT软件源，只是修改了配置文件——/etc/apt/sources.list，目的只是告知软件源镜像站点的地址。
+	但那些所指向的镜像站点所具有的软件资源并不清楚，需要将这些资源列个清单，以便本地主机知晓可以申请哪些资源。
+	用户可以使用“apt-get update”命令刷新软件源，建立更新软件包列表。在Ubuntu Linux中，“apt-get update”命令会扫描每一个软件源服务器，
+	并为该服务器所具有软件包资源建立索引文件，存放在本地的/var/lib/apt/lists/目录中。
+	使用apt-get执行安装、更新操作时，都将依据这些索引文件，向软件源服务器申请资源。
+	因此，在计算机设备空闲时，经常使用“apt-get update”命令刷新软件源，是一个好的习惯。
+###安装软件包
+	1, 扫描本地存放的软件包更新列表（由“apt-get update”命令刷新更新列表），找到最新版本的软件包；
+	2, 进行软件包依赖关系检查，找到支持该软件正常运行的所有软件包；
+	3, 从软件源所指 的镜像站点中，下载相关软件包, 将下载的包文件存放在本地缓存目录(/var/cache/apt/archives)中；
+	4, 解压软件包，并自动完成应用程序的安装和配置。
+###重新安装
+	apt-get --reinstall install 命令进行软件包的重新安装，将重新获得最新版本。
+	这里有个小的技巧，使用“apt-get install”也可以卸载软件包，只需在要卸载的软件包后标识“-”即可。
+	卸载软件包的过程同后面讲到的“apt-get remove”执行结果是完全相同的。
+	如:sudo apt-get install xchat-
+###更新软件包
+	将系统中的所有软件包一次性升级到最新版本，这个命令就是“apt-get upgrade”，它可以很方便的完成在相同版本号的发行版中更新软件包。
+###添加与删除PPA
+	PPA: Personal Package Archives
+	1, 添加PPA源
+		sudo add-apt-repository ppa:user/ppa-name
+		sudo apt update
+	3, 删除PPA源
+		sudo add-apt-repository -r ppa:user/ppa-name
+		sudo apt update
+	4, 也可以通过软件与更新的其他软件选项可视化操作删除与添加PPA源的过程
+		sudo software-properties-gtk &
 
 ##xdg-open:
 	xdg-open: opens a file or URL in the user's preferred application
@@ -1307,8 +1560,6 @@
 	protocol :// hostname[:port] / path / [;parameters][?query]#fragment
 
 ##service/systemd/systemctl?
-
-##ssh/ssh-agent/ssh-copy-id?
 
 ##disk分区相关:
 ###MBR:
@@ -1520,7 +1771,27 @@ https://www.cnblogs.com/hwli/p/8633314.html:
 	2，It's also possible to use PARTUUID= and PARTLABEL=. These partitions identifiers are supported for example for GUID Partition Table (GPT).
 	MBR分区项中没有UUID，所以使用PARTUUID=xxx来mount文件系统不通用
 
-##arm:arm9:armv9:cortex-a9:
+##computer计算机顶层设计中的一些概念
+###计算机体系结构与组成原理与微机原理
+	1，计算机体系结构:	指软、硬件的系统结构，研究计算机由哪些功能组成
+	2, 计算机组成原理:	各个功能的实现:运算器的工作原理,定点浮点，总线结构，存储器结构与原理，
+		指令编码，指令执行过程(指令集的实现，指令的实现和执行过程)
+	3，微机原理:	汇编程序设计，微机接口技术(指令集的使用,用指令编写程序)
+###计算机结构与cpu指令集
+	1, 计算机的结构包括:冯诺依曼结构和哈佛结构(定义计算机是由运算器，控制器，存储器，输入输出构成)
+	2, 冯诺依曼结构是计算机器的一种顶层设计，对应的可计算性的顶层设计是图灵机（和等价的邱奇lambda演算，对应LISP机）。
+		然后才落地到各种具体的指令集流水线执行机构等等物理内容。
+	3, 哈佛只是冯诺依曼的一种改进，最主要改进是把数据和代码分开。哈佛本身就是一个加强的冯 诺依曼，因为这些计算机器的顶层设计没有变化。
+	4, 指令集是在某种计算机结构上的具体物理实现
+	5, computer结构定义了计算机由哪些结构组成，RISC/CISC描述了计算机的部分结构的属性。
+###arm architecture
+	ARM architecture，是指ARM公司开发的、基于精简指令集架构（RISC, Reduced Instruction Set Computing architecture）
+	的指令集架构（Instruction set architecture）
+###arm内核(core)
+	ARM core是基于ARM architecture开发出来的IP core
+###arm cpu
+	基于ARM公司发布的Core，开发自己的ARM处理器，这称作ARM CPU（也可称为MCU)
+###arm:arm9:armv9:cortex-a9:
 	1,且在GCC编译中，常常要用到 -march,-mcpu等
 	2,ARM（Advanced RISCMachines)
 	3,ＡＲＭ公司定义了６种主要的指令集体系结构版本。Ｖ１－Ｖ６。（所以上面提到的ＡＲＭｖ６是指指令集版本号）。即：ARM architecture

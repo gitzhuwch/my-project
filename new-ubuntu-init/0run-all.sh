@@ -1,4 +1,6 @@
-#update-manager-> ubuntu software-> download from-> main server
+#below tow mathods all can modify the download server, should prefer first mathod!
+#software-properties-gtk-> ubuntu software-> download from-> main server
+#update-manager-> Settings & Livepath...-> ubuntu software-> download from-> main server
 mkdir ~/work
 mkdir ~/bin
 mkdir ~/notes
