@@ -408,24 +408,53 @@
 		(4)repo sync
 		(5)repo forall -c "git checkout -b iflytek refs/remotes/rk/iflytek" -------切换到2.8步创建的分支
 ###gerrit:
-	1, web browser: 10.3.153.233:8080
-	2, refs/for/master与refs/for/refs/heads/master区别:
-		a)这个不是git的规则，而是gerrit的规则
-		b)branches, remote-tracking branches, and tags等等都是对commite的引用（reference）
-		c)refs/for/mybranch需要经过code review之后才可以提交；refs/heads/mybranch不需要code review
 ####java jdk或jre安装
 	sudo apt install openjdk-8-jre
-####反向代理安装
+####apache安装
 	sudo apt install apache
-####gerrit下载地址
+####apache模块软链接
+	cd /etc/apache2/mods-enabled/
+	确保一下软链接存在:
+		proxy_balancer.conf -> ../mods-available/proxy_balancer.conf
+		proxy_balancer.load -> ../mods-available/proxy_balancer.load
+		proxy.conf -> ../mods-available/proxy.conf
+		proxy_http.load -> ../mods-available/proxy_http.load
+		proxy.load -> ../mods-available/proxy.load
+#####apache配置
+	在/etc/apache2/apache2.conf末尾添加:
+	Listen 8081				//apache监听的端口
+	<VirtualHost *:8081>
+	    ProxyRequests Off
+	    ProxyVia Off
+	    ProxyPreserveHost On
+	    <Proxy *>
+	          Order deny,allow
+	          Allow from all
+	    </Proxy>
+	    <Location "/login/">									//http认证对话框显示内容
+	        AuthType Basic
+	        AuthName "Gerrit Code Review"
+	        Require valid-user
+	        AuthBasicProvider file
+	        AuthUserFile /home/gerrit/proxy-passwd.file			//http帐户密码文件
+	    </Location>
+	    ProxyPass / http://10.3.153.96:8092/					//apache收到8081端口发来的请求后转发给这个地址+端口(即gerrit web监听端口)
+	</VirtualHost>
+#####apache重启
+	sudo /etc/init.d/apache2 restart
+	sudo /etc/init.d/apache2 stop/start
+#####查看apache启动状态
+	sudo netstat -ltpn | grep -i apache
+	或者使用ss命令
+####gerrit下载
 	也有其他下载方式，但没有下面这个快
 		wget https://gerrit-releases.storage.googleapis.com/gerrit-2.14.6.war
 	下面这个也能访问
 		https://www.gerritcodereview.com/			//gerrit发布官网
 		里面的下载链接也是访问上面的网址下载的
-####gerrit安装命令
+#####gerrit安装
 	java -jar ~/gerrit-full-2.5.2.war init -d ~/gerrit_site
-####gerrit安装流程分析
+#####gerrit安装流程分析
 	1, gerrit用户身份认证方式
 		1.1 OpenID模式
 			默认的鉴权方式为 openid，即使用任何支持OpenID 的认证源（如 Google、Yahoo！）进行身份认证。
@@ -463,52 +492,7 @@
 	6, 登录
 		登录的第一个用户将自动成为管理员（Account ID为1000000的就是管理员），所有后续登录的用户都是无权限用户（需要管理员指定权限）。
 		如果你选择了development_become_any_account，在页面顶端会有一个Become链接，通过它可以进入注册/登录页面。
-####gerrit工作原理
-	1, 俩个特殊引用
-		1.1 refs/for/<branch-name>
-			Gerrit 的 Git 服务器，禁止用户向   refs/heads命名空间下的引用执行推送（除非特别的授权）;
-			Gerrit 的 Git 服务器只允许用户向特殊的引用   refs/for/<branch-name>   下执行推送，其中   <branch-name>   即为开发者的工作分支;
-			向   refs/for/<branch-name>   命名空间下推送并不会在其中创建引用而是为新的提交分配一个 ID，称为 task-id ，
-			并为该 task-id 的访问建立如下格式的引用   refs/changes/nn/<task-id>/m;
-		1.2 refs/changes/nn/<task-id>/m
-			task-id 为 Gerrit 为评审任务顺序分配的全局唯一的号码。
-			nn 为 task-id 的后两位数，位数不足用零补齐。即 nn 为 task-id 除以 100 的余数。
-			m 为修订号，该 task-id 的首次提交修订号为 1，如果该修订被打回，重新提交修订号会自增。
-	2, Git 库的钩子脚本 hooks/commit-msg
-		为了保证已经提交审核的修订通过审核入库后，被别的分支 cherry-pick 后再推送至服务器时不会产生新的重复的评审任务，
-		Gerrit 设计了一套方法，即要求每个提交包含唯一的 Change-Id，这个 Change-Id 因为出现在日志中，当执行 cherry-pick 时也会保持，
-		Gerrit 一旦发现新的提交包含了已经处理过的   Change-Id   ，就不再为该修订创建新的评审任务和 task-id，而直接将提交入库。
-		为了实现 Git 提交中包含唯一的 Change-Id，Gerrit 提供了一个钩子脚本，放在开发者本地 Git 库中（hooks/commit-msg）。
-		这个钩子脚本在用户提交时自动在提交说明中创建以 "Change-Id: " 及包含   git hash-object   命令产生的哈希值的唯一标识。
-		当 Gerrit 获取到用户向refs/for/<branch-name>   推送的提交中包含 "Change-Id: I..." 的变更 ID，如果该 Change-Id 之前没有见过，
-		会创建一个新的评审任务并分配新的 task-id，并在 Gerrit 的数据库中保存 Change-Id 和 Task-Id 的关联。 如果当用户的提交因为某种原因被要求打回重做，
-		开发者修改之后重新推送到 Gerrit 时就要注意在提交说明中使用相同的 “Change-Id” （使用 --amend 提交即可保持提交说明），
-		以免创建新的评审任务，还要在推送时将当前分支推送到   refs/changes/nn/task-id/m中。其中   nn   和   task-id   和之前提交的评审任务的修订相同，
-		m 则要人工选择一个新的修订号。
-####apache配置文件
-在/etc/apache2/apache2.conf末尾添加:
-	Listen 8081				//apache监听的端口
-	<VirtualHost *:8081>
-	    ProxyRequests Off
-	    ProxyVia Off
-	    ProxyPreserveHost On
-	    <Proxy *>
-	          Order deny,allow
-	          Allow from all
-	    </Proxy>
-	    <Location "/login/">									//http认证对话框显示内容
-	        AuthType Basic
-	        AuthName "Gerrit Code Review"
-	        Require valid-user
-	        AuthBasicProvider file
-	        AuthUserFile /home/gerrit/proxy-passwd.file			//http帐户密码文件
-	    </Location>
-	    ProxyPass / http://10.3.153.96:8092/					//apache收到8081端口发来的请求后转发给这个地址+端口(即gerrit web监听端口)
-	</VirtualHost>
-####apache重启命令
-	sudo /etc/init.d/apache2 restart
-	sudo /etc/init.d/apache2 stop/start
-####gerrit配置文件
+#####gerrit配置
 	/home/gerrit/review3.2.2/etc/gerrit.config
 		[gerrit]
 	        basePath = ./gerrit/
@@ -533,12 +517,11 @@
 	        listenUrl = proxy-http://*:8092/						//gerrit daemon监听端口
 		[cache]
 	        directory = cache
-####gerrit重启命令
+#####gerrit重启
 	sudo ./review3.2.2/bin/gerrit.sh restart
 	sudo ./review3.2.2/bin/gerrit.sh stop/start
-####查看apache/gerrit启动状态
+#####查看gerrit启动状态
 	sudo netstat -ltpn | grep -i gerrit
-	sudo netstat -ltpn | grep -i apache
 	或者使用ss命令
 ####htpasswd命令
 	htpasswd -c -b ~/proxy-passwd.file admin 123123		//-c 表示创建新文件; -b 表示密码由命令行提供
@@ -561,18 +544,96 @@
 	1, ssh命令行配置用户时，只有管理员才有权限；
 	2，UI配置时，能登录就能配
 #####邮箱配置
-######命令行配置
+######邮箱由命令行配置
 	ssh -p 29418 admin@10.3.153.96 gerrit set-account --add-email wczhu2@iflytek.com
+	命令行配置邮箱不需要发确认邮件
 ######在UI界面配置
-	gerrit3.2.2 UI上配置邮箱必须要验证，只能用命令行配置邮箱
+	gerrit3.2.2 UI上配置邮箱必须要发确认邮件，才能生效
 #####ssh-key配置
-######命令行配置
+######ssh-key由命令行配置
 	cat ~/.ssh/id_rsa.pub | ssh -p 29418 admin@10.3.153.96 gerrit set-account --add-ssh-key -
 ######在UI上配置
 	只有配置完邮箱才能在UI上配置ssh-key
+####gerrit帐户配置的实现原理
+	1，gerrit2.14之后的版本使用git仓库存储帐户信息
+	以gerrit3.0.0为例:
+		cd /home/gerrit/review3.0.0/git/All-Users.git
+		tree refs/
+			refs/
+			├── groups
+			│   ├── 17
+			│   └── 87
+			│       └── 87f662f11d59506d3b08553e2baf52507d53e208
+			├── heads
+			├── meta
+			│   └── config
+			├── sequences
+			│   ├── accounts
+			│   └── groups
+			├── tags
+			└── users
+			    ├── 00
+			    │   └── 1000000				//这是创建的管理员帐户
+			    └── 01
+			        └── 1000001				//这是创建的普通用户
+		git log refs/users/00/1000000
+			commit e62868bbea3e53547bf8a6e1be86aaf6462ef6b1 (refs/users/00/1000000)
+			Author: zhuwanchao <admini@10.3.153.96>
+			Date:   Tue Jul 28 17:01:16 2020 +0800
+
+			    Updated SSH keys
+
+			commit b16f3be614e5f0b96bb0c2393900c54d66517908
+			Author: Gerrit Code Review <gerrit@user-ThinkPad-E490>
+			Date:   Tue Jul 28 17:00:18 2020 +0800
+
+			    Set Full Name via API
+
+			commit 8b1f332a7de652eb45bbafaca566056414cdea36
+			Author: Gerrit Code Review <gerrit@user-ThinkPad-E490>
+			Date:   Tue Jul 28 16:59:54 2020 +0800
+
+			    Create Account on First Login
+			管理员帐户有三次提交记录: 创建时提交; 修改full name时提交; 修改ssh keys时提交.
+		git log refs/users/01/1000001
+			commit 9d9ab42582495013ee816b23b378ae4c0f77fbe6 (refs/users/01/1000001)
+			Author: user11 <user11@10.3.153.96>
+			Date:   Tue Jul 28 17:12:48 2020 +0800
+
+			    Updated SSH keys
+
+			commit 6986a24e8ddeecb13e1f3f6955c0af76ed07e4ac
+			Author: Gerrit Code Review <gerrit@user-ThinkPad-E490>
+			Date:   Tue Jul 28 17:12:15 2020 +0800
+
+			    Create Account on First Login
+			该用户暂时有两次修改记录
+	使用git cat-file -p + sha1IDke可以查看帐户的所有信息; 也可以将该git库clone出去，git checkout 相应的refs，来查看帐户信息
 ####学会看gerrit后台日志:
 	review3.2.2/logs/error_log		//http服务或者sshd服务在和前台交互时的错误log
 	review3.2.2/logs/sshd_log		//sshd与ssh -p 29418 ip gerrit sub-cmd交互过程的log
+####gerrit工作原理
+	1, 俩个特殊引用
+		1.1 refs/for/<branch-name>
+			Gerrit 的 Git 服务器，禁止用户向   refs/heads命名空间下的引用执行推送（除非特别的授权）;
+			Gerrit 的 Git 服务器只允许用户向特殊的引用   refs/for/<branch-name>   下执行推送，其中   <branch-name>   即为开发者的工作分支;
+			向   refs/for/<branch-name>   命名空间下推送并不会在其中创建引用而是为新的提交分配一个 ID，称为 task-id ，
+			并为该 task-id 的访问建立如下格式的引用   refs/changes/nn/<task-id>/m;
+		1.2 refs/changes/nn/<task-id>/m
+			task-id 为 Gerrit 为评审任务顺序分配的全局唯一的号码。
+			nn 为 task-id 的后两位数，位数不足用零补齐。即 nn 为 task-id 除以 100 的余数。
+			m 为修订号，该 task-id 的首次提交修订号为 1，如果该修订被打回，重新提交修订号会自增。
+	2, Git 库的钩子脚本 hooks/commit-msg
+		为了保证已经提交审核的修订通过审核入库后，被别的分支 cherry-pick 后再推送至服务器时不会产生新的重复的评审任务，
+		Gerrit 设计了一套方法，即要求每个提交包含唯一的 Change-Id，这个 Change-Id 因为出现在日志中，当执行 cherry-pick 时也会保持，
+		Gerrit 一旦发现新的提交包含了已经处理过的   Change-Id   ，就不再为该修订创建新的评审任务和 task-id，而直接将提交入库。
+		为了实现 Git 提交中包含唯一的 Change-Id，Gerrit 提供了一个钩子脚本，放在开发者本地 Git 库中（hooks/commit-msg）。
+		这个钩子脚本在用户提交时自动在提交说明中创建以 "Change-Id: " 及包含   git hash-object   命令产生的哈希值的唯一标识。
+		当 Gerrit 获取到用户向refs/for/<branch-name>   推送的提交中包含 "Change-Id: I..." 的变更 ID，如果该 Change-Id 之前没有见过，
+		会创建一个新的评审任务并分配新的 task-id，并在 Gerrit 的数据库中保存 Change-Id 和 Task-Id 的关联。 如果当用户的提交因为某种原因被要求打回重做，
+		开发者修改之后重新推送到 Gerrit 时就要注意在提交说明中使用相同的 “Change-Id” （使用 --amend 提交即可保持提交说明），
+		以免创建新的评审任务，还要在推送时将当前分支推送到   refs/changes/nn/task-id/m中。其中   nn   和   task-id   和之前提交的评审任务的修订相同，
+		m 则要人工选择一个新的修订号。
 
 ###gitolite:
 	1, sudo useradd -r -m -s /bin/bash gitolite
