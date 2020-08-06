@@ -11,7 +11,7 @@
 #				-->click "+"
 #					-->add an input source
 #						-->select "chinese"
-#							-->select "chinese(intelligent pinyin)"
+#							-->select "chinese(intelligent pinyin)" //这一步的前提条件:可能需要重启或者更新语言包才行
 #-------------------------------------------------------------
 #the brightness will reset Max when setup every time:
 #	sudo vim /etc/rc.local
@@ -29,13 +29,13 @@
 #	backgroud color
 #-------------------------------------------------------------
 #git config:
-#	git config --global alias.st status
-#	git config --global alias.br branch
-#	git config --global diff.tool meld
-#	git config --global core.editor vim
-#	git config --global color.diff.whitespace "red reverse"
-#	git config --global diff.wsErrorHighlight all
-#	git config --global difftool.prompt no
+	git config --global alias.st status
+	git config --global alias.br branch
+	git config --global diff.tool meld
+	git config --global core.editor vim
+	git config --global color.diff.whitespace "red reverse"
+	git config --global diff.wsErrorHighlight all
+	git config --global difftool.prompt no
 #	git diff --ws-error-highlight=all
 #-------------------------------------------------------------
 #evince config:
@@ -70,7 +70,7 @@
 #	----
 #-------------------------------------------------------------
 #nfs-kernel-server config:
-#	echo "/home/user/nfs *(rw,sync,no_root_squash)" > /etc/exports
+	echo "~/nfs *(rw,sync,no_root_squash)" >> /etc/exports
 #-------------------------------------------------------------
 #samba config:
 #	sudo useradd user

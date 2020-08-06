@@ -1495,40 +1495,71 @@
 	4, transfer size：就是数据宽度，比如8位、32位，一般跟外设的FIFO相同。
 	5, burst size：就是一次传几个 transfer size.
 
-##nfs的使用:
-	1, server端构建:
-		安装nfs-kernel-server并配置:
-		echo "/home/user/nfs *(rw,sync,no_root_squash)" > /etc/exports
-	2, client mount:
-		mount -t nfs -o nolock 10.3.153.96:/home/user/nfs /mnt/
-
-##smb:samba:ubuntu/windows share folder:
- For ubuntu mount windows:
-	1, Windows共享文件夹使用的协议是SMB/CIFS
-		sudo apt install cifs-utils
-		sudo mount.cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw]
-		sudo mount -t cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw]
-		sudo mount.cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw],uid=[UID]
-		sudo mount.cifs //[address]/[folder] [mount point] -o domain=[domain_name],user=[username],passwd=[pw],uid=[UID]
-	2, 直接在文件浏览器中挂载或打开,input smb://10.3.153.95/e/ in ubuntu files browser
-	3,
+##Folder Sharing:
+###linux/linux share folder:
+	使用NFS:
+		1, server端构建:
+			安装nfs-kernel-server并配置:
+			echo "/home/user/nfs *(rw,sync,no_root_squash)" > /etc/exports
+		2, client端使用:
+			mount -t nfs -o nolock 10.3.153.96:/home/user/nfs /mnt/
+	使用SAMBA:
+		1, server端构建:
+			ubuntu中文件夹右击->属性->共享
+		2, client端使用:
+			在文件浏览器中"挂载"或打开
+###linux/windows share folder:
+	windows作为server，ubuntu作为client:
+		1, server端构建:
+			在windows中选择要共享的文件夹，在文件夹属性中共享即可.
+		2, client端使用:
+			方法一:(这种方法渐渐淘汰)
+				sudo apt install cifs-utils
+				sudo mount.cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw]
+				sudo mount -t cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw]
+				sudo mount.cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw],uid=[UID]
+				sudo mount.cifs //[address]/[folder] [mount point] -o domain=[domain_name],user=[username],passwd=[pw],uid=[UID]
+			方法二:(ubuntu文件浏览器默认支持)
+				在文件浏览器中"挂载":
+					-->other locations-->connect to server-->输入smb://10.3.153.95/e/
+				在文件浏览器中打开:
+					-->Ctrl + L -->输入smb://10.3.153.95/e/
+	ubuntu作为server，windows作为client:
+		1, server端构建:
+			sudo smbpasswd -a user
+			sudo vim /etc/samba/smb.conf
+			[user]
+			comment = share folder
+			browseable=yes
+			path = /home/user
+			create mask = 0700
+			directory mask = 0700
+			valid users = user
+			force user = user
+			force group = user
+			public = yes
+			available = yes
+			writable = yes
+			注:ubuntu中可以直接右击文件夹-属性中共享，自动安装SAMBA server并配置.
+		2, client端使用:
+			在windows文件浏览器中添加网络驱动器即可.
+###windows/windows share folder:
+		1, server端构建:
+			windows文件夹共享打开即可
+		2, client端使用:
+			在windows文件浏览器中添加网络驱动器即可.
+###SMB/CIFS/SAMBA/NFS:
+	都是协议级别的概念
+	1, Server Message Block - SMB，即服务(器)消息块，是 IBM 公司在 80 年代中期发明的一种文件共享协议。它只是系统之间通信的一种方式（协议），并不是一款特殊的软件。
+	2, Common Internet File System - CIFS，即通用因特网文件系统。CIFS 是 SMB 协议的衍生品，即 CIFS 是 SMB 协议的一种特殊实现，由美国微软公司开发。
+		由于 CIFS 是 SMB 的另一中实现，那么 CIFS 和 SMB 的客户端之间可以互访就不足为奇。
+		二者都是协议级别的概念，名字不同自然存在实现方式和性能优化方面的差别，如文件锁、LAN/WAN 网络性能和文件批量修改等。
+	4, Samba 也是 SMB 协议的实现，与 CIFS 类似，它允许 Windows 客户访问 Linux 系统上的目录、打印机和文件
+	5, Network File System - NFS，即网络文件系统。由 Sun 公司面向 SMB 相同的功能（通过本地网络访问文件系统）而开发，但它与 CIFS/SMB 完全不兼容。
+	   也就是说 NFS 客户端是无法直接与 SMB 服务器交互的。NFS 用于 Linux 系统和客户端之间的连接。而 Windows 和 Linux 客户端混合使用时，就应该使用 Samba。
+	Windows共享文件夹使用的协议是SMB/CIFS
 		SMB:	Server Message Block
 		CIFS:	Common Internet File System
- For windows mount ubuntu:
-	4, sudo smbpasswd -a user
-		sudo vim /etc/samba/smb.conf
-		[user]
-		comment = share folder
-		browseable=yes
-		path = /home/user
-		create mask = 0700
-		directory mask = 0700
-		valid users = user
-		force user = user
-		force group = user
-		public = yes
-		available = yes
-		writable = yes
 
 ##apt(Advanced Packaging Tool)原理介绍
 	1, 如果有需要，编辑/etc/apt/sources.list，选择源服务器；
