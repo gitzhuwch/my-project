@@ -217,6 +217,11 @@
 
 ##code version control:
 ###git:
+####git远程协议
+	1，ssh/http/git协议都是CS架构;
+	2, 使用ssh协议时，git向server的22端口发请求；
+	3，ssh协议需要认证，http/git就不太清楚了？
+####git简单命令介绍
 	1, delete local branch
 		git branch -d branchname
 	2, delete remote branch
@@ -1485,7 +1490,7 @@
 ###grub给kernel传参修改网络设备名eth0:
 	1, 修改/boot/grub/grub.cfg,在linux参数项中加net.ifnames=0 biosdevname=0
 
-##IC related:
+##IC design related:
 ###DMA burst:
 	1, burst传输就是占用多个总线周期，完成一次块传输，此间cpu不能访问总线; DMA占用的周期个数叫做burst length.
 	2, Burst操作还是要通过CPU的参与的，与单独的一次读写操作相比，burst只需要提供一个其实地址就行了，
@@ -1632,26 +1637,8 @@ tips:
 		sudo apt update
 	4, 也可以通过软件与更新的其他软件选项可视化操作删除与添加PPA源的过程
 		sudo software-properties-gtk &
-
-##xdg-open:
-	xdg-open: opens a file or URL in the user's preferred application
-
-##ffplay-using
-	ffplay -f rawvideo -pixel_format nv12 -video_size 640x480 cap.yuv
-
-##wps:shutcut of Format brush
-	双击格式刷就可以实现这个功能
-
-##URI/URL/URN:
-	1, uri, url, urn - uniform resource identifier (URI), including a URL or URN
-	2, 在WWW上，每一信息资源都有统一的且在网上唯一的地址，该地址就叫URL（Uniform Resource Locator,统一资源定位符），它是WWW的统一资源定位标志，就是指网络地址
-	URL由三部分组成：资源类型、存放资源的主机域名、资源文件名。
-	也可认为由4部分组成：协议、主机、端口、路径
-	URL的一般语法格式为：
-	(带方括号[]的为可选项)：
-	protocol :// hostname[:port] / path / [;parameters][?query]#fragment
-
-##service/systemd/systemctl?
+###apt search
+	apt search -f/--full -n/--names-only nautilus //只搜索包名中含有nautilus的条目，并显示详细信息
 
 ##disk分区相关:
 ###MBR:
@@ -1912,23 +1899,10 @@ https://www.cnblogs.com/hwli/p/8633314.html:
 	4, SLT:system level test
 	5, ATE(Auto Test Equipment) 在测试工厂完成. 大致是给芯片的输入管道施加所需的激励信号，
 		同时监测芯片的输出管脚，看其输出信号是否是预期的值。有特定的测试平台。
-
-##开发板种类(EVB/REF):
+###开发板种类(EVB/REF):
 	1, EVB(Evaluation Board) 开发板：软件/驱动开发人员使用EVB开发板验证芯片的正确性，进行软件应用开发
 	2, REF(reference Board) 开发板：参考板
 
-##ubuntu hotspot:
-	git clone https://github.com/oblique/create_ap
-	cd create_ap
-	sudo create_ap -w 2 wlp5s0 enp4s0 css css123456 &
-
-##vmware网络配置几种方式:
-	1, bridged(桥接模式)
-		虚拟机A1的IP地址可以设置成192.168.1.5（与主机网卡地址同网段的即可），其他的诸如网关地址，DNS，子网掩码均与主机的相同。
-	2, host-only(主机模式)
-		虚拟机A1的IP地址可以设置成192.168.80.5（与VMnet8使用相同的网段），网关是NAT路由器地址，即192.168.80.254
-	3, NAT(网络地址转换模式)
-		虚拟机A1的IP地址可以设置成192.168.10.5（与VMnet1使用相同的网段）
 
 ##字节序:
 ###大小端:
@@ -1939,7 +1913,49 @@ https://www.cnblogs.com/hwli/p/8633314.html:
 		Little-Endian（小端）：低位字节排放在内存的低地址端，高位字节排放在内存的高地址端。
 ###网络字节序:
 	1, UDP/TCP/IP协议规定:把接收到的第一个字节当作高位字节看待,网络字节序是大端字节序
-
-##最高最低有效位:
+###最高最低有效位:
 	1,	MSB（Most Significant Bit）：最高有效位，二进制中代表最高值的比特位，这一位对数值的影响最大。
 		LSB（Least Significant Bit）：最低有效位，二进制中代表最低值的比特位
+
+##misk
+###xdg-open:
+	xdg-open: opens a file or URL in the user's preferred application
+###ffplay-using
+	ffplay -f rawvideo -pixel_format nv12 -video_size 640x480 cap.yuv
+###wps:shutcut of Format brush
+	双击格式刷就可以实现这个功能
+###URI/URL/URN:
+	1, uri, url, urn - uniform resource identifier (URI), including a URL or URN
+	2, 在WWW上，每一信息资源都有统一的且在网上唯一的地址，该地址就叫URL（Uniform Resource Locator,统一资源定位符），它是WWW的统一资源定位标志，就是指网络地址
+	URL由三部分组成：资源类型、存放资源的主机域名、资源文件名。
+	也可认为由4部分组成：协议、主机、端口、路径
+	URL的一般语法格式为：
+	(带方括号[]的为可选项)：
+	protocol :// hostname[:port] / path / [;parameters][?query]#fragment
+###service/systemd/systemctl?
+###ubuntu hotspot:
+	git clone https://github.com/oblique/create_ap
+	cd create_ap
+	sudo create_ap -w 2 wlp5s0 enp4s0 css css123456 &
+###vmware网络配置几种方式:
+	1, bridged(桥接模式)
+		虚拟机A1的IP地址可以设置成192.168.1.5（与主机网卡地址同网段的即可），其他的诸如网关地址，DNS，子网掩码均与主机的相同。
+	2, host-only(主机模式)
+		虚拟机A1的IP地址可以设置成192.168.80.5（与VMnet8使用相同的网段），网关是NAT路由器地址，即192.168.80.254
+	3, NAT(网络地址转换模式)
+		虚拟机A1的IP地址可以设置成192.168.10.5（与VMnet1使用相同的网段）
+###nautilus
+	a file manager for GNOME
+####local-network-share
+	sudo apt -y insatll nautilus-share
+####add-bookmark
+	sudo apt -y install python-nautilus
+####gvfs-backends
+	sudo apt install gvfs-backends
+	This package contains the afc, afp, archive, cdda, dav, dnssd, ftp,
+	gphoto2, http, mtp, network, sftp, smb and smb-browse backends.
+	smb-browse的后端
+###vmware/ubuntu共享剪切板
+	1）sudo apt-get install open-vm-tools
+	2）sudo apt-get install open-vm-tools-desktop
+	3）#restart the guest operating system

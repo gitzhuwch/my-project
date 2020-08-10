@@ -8,8 +8,10 @@ mkdir ~/bin
 mkdir ~/notes
 mkdir ~/temp
 mkdir ~/nfs
+mkdir ~/.vim
 ./1tools-install.sh
-sudo ./2configs.sh
+#tips: do not use "sudo ./2configs.sh" this will config in /root/ directory
+./2configs.sh
 cat ./bashrc >> ~/.bashrc
 cp -f ./vimrc ~/.vimrc
 cp -f ./gdbinit ~/.gdbinit

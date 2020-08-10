@@ -70,7 +70,7 @@
 #	----
 #-------------------------------------------------------------
 #nfs-kernel-server config:
-	echo "~/nfs *(rw,sync,no_root_squash)" >> /etc/exports
+	echo "~/nfs *(rw,sync,no_root_squash)" | sudo tee -a /etc/exports
 #-------------------------------------------------------------
 #samba config:
 #	sudo useradd user
