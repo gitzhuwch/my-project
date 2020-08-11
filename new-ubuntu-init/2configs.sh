@@ -1,4 +1,10 @@
 #-------------------------------------------------------------
+#bash config
+grep "export PS1=" ~/.bashrc -q
+if [ $? != 0 ]; then
+	cat ./bashrc >> ~/.bashrc
+fi
+#-------------------------------------------------------------
 #input sources config:
 #	gnome-control-center
 #		-->region & language
@@ -66,6 +72,7 @@ git config --global difftool.prompt no
 if [ ! -d ~/.vim/bundle ]; then
 	tar -xf ./bundle.tar -C ~/.vim/
 fi
+cp -f ./vimrc ~/.vimrc
 vim -c PluginInstall -c qa!
 
 #-------------------------------------------------------------
@@ -113,4 +120,7 @@ fi
 #ctrl-a o->
 #	screen and keyboard->
 #		R line wrap Yes
+#-------------------------------------------------------------
+#gdb config
+cp -f ./gdbinit ~/.gdbinit
 #-------------------------------------------------------------

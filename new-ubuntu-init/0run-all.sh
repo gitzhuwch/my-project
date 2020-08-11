@@ -28,12 +28,6 @@ mkdir ~/.vim
 fi
 
 ./1tools-install.sh
+
 #tips: do not use "sudo ./2configs.sh" this will config in /root/ directory
 ./2configs.sh
-
-grep "export PS1=" ~/.bashrc -q
-if [ $? != 0 ]; then
-	cat ./bashrc >> ~/.bashrc
-fi
-cp -f ./vimrc ~/.vimrc
-cp -f ./gdbinit ~/.gdbinit
