@@ -1849,6 +1849,13 @@ https://www.cnblogs.com/hwli/p/8633314.html:
 	and can change when  other  disks  are  added or removed.  For example, `LABEL=Boot' or `UUID=3e6be9de-8139-11d1-9106-a43f08d823a6'.
 	2，It's also possible to use PARTUUID= and PARTLABEL=. These partitions identifiers are supported for example for GUID Partition Table (GPT).
 	MBR分区项中没有UUID，所以使用PARTUUID=xxx来mount文件系统不通用
+###vmware拓展磁盘空间:
+	1,	vmware中配置虚拟机->磁盘空间拓展
+	2,	启动虚拟机
+	3，	修改分区大小(实质是修改MBR/GPT分区表中的分区大小参数)
+		使用parted/resizepart命令修改，若被改分区是逻辑分区，应先修改拓展分区大小
+	4， 修改该分区文件系统大小
+		使用resize2fs命令
 
 ##computer计算机顶层设计中的一些概念
 ###计算机体系结构与组成原理与微机原理

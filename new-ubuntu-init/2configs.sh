@@ -29,13 +29,13 @@
 #	backgroud color
 #-------------------------------------------------------------
 #git config:
-	git config --global alias.st status
-	git config --global alias.br branch
-	git config --global diff.tool meld
-	git config --global core.editor vim
-	git config --global color.diff.whitespace "red reverse"
-	git config --global diff.wsErrorHighlight all
-	git config --global difftool.prompt no
+git config --global alias.st status
+git config --global alias.br branch
+git config --global diff.tool meld
+git config --global core.editor vim
+git config --global color.diff.whitespace "red reverse"
+git config --global diff.wsErrorHighlight all
+git config --global difftool.prompt no
 #	git diff --ws-error-highlight=all
 #-------------------------------------------------------------
 #evince config:
@@ -56,9 +56,18 @@
 #	vim
 #	:PluginInstall
 #	wait vim plugin Install Done
-#	vim ~/.vim/bundle/Vundle.vim/ftplugin/markdown.vim  // resize table of contents window
+#	vim ~/.vim/bundle/vim-markdown/ftplugin/markdown.vim  // resize table of contents window
 #-            execute 'vertical resize ' . (&columns/2)
 #+            execute 'vertical resize ' . (&columns/6)
+#sudo rm ~/.viminfo #~/.viminfo pession may be cause vim can not record the position
+#will create ~/.vim/bundle/Vundle.vim directory and git clone into it
+#git clone --depth=1 https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+#use vim plugin fixed for me
+if [ ! -d ~/.vim/bundle ]; then
+	tar -xf ./bundle.tar -C ~/.vim/
+fi
+vim -c PluginInstall -c qa!
+
 #-------------------------------------------------------------
 #gnome-control-center config:
 #	----
@@ -70,7 +79,10 @@
 #	----
 #-------------------------------------------------------------
 #nfs-kernel-server config:
+grep "~/nfs" /etc/exports -q
+if [ $? != 0 ]; then
 	echo "~/nfs *(rw,sync,no_root_squash)" | sudo tee -a /etc/exports
+fi
 #-------------------------------------------------------------
 #samba config:
 #	sudo useradd user

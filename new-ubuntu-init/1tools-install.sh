@@ -1,12 +1,6 @@
 sudo apt update
 
 sudo apt -y install vim
-#sudo rm ~/.viminfo #~/.viminfo pession may be cause vim can not record the position
-#will create ~/.vim/bundle/Vundle.vim directory and git clone into it
-#git clone --depth=1 https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
-#use vim plugin fixed for me
-tar -xf ./bundle.tar -C ~/.vim/
-
 sudo apt -y install net-tools #ifconfig tools
 sudo apt -y install meld
 sudo apt -y install ctags
@@ -37,7 +31,7 @@ sudo apt -y install lib32z1
 sudo apt -y install ccache #for fast compiler code
 
 #install vim plugins
-sudo apt -y install vim-scripts
+#sudo apt -y install vim-scripts #installing in ~/.vimrc
 
 sudo apt -y install cmake
 sudo apt -y install gnome-tweaks #hide mounted disk icon on desktop

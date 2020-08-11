@@ -69,7 +69,8 @@ filetype off
 set rtp+=~/.vim/bundle/Vundle.vim/
 call vundle#begin()
 "如果你的插件来自github，写在下方，只要作者名/项目名就行了
-Plugin 'VundleVim/Vundle.vim'
+Plugin 'VundleVim/Vundle.vim' "网上说必须加上这句,亲测可以不加,但是这样的语句,不仅安装插件时使用,而且在vim启动时起到加载和初始化插件的作用,所以最好加上
+"比如,将下面的Plugin 'taglist.vim'注释掉,那么即使下载了这个插件,也不会加载,vim起来后也不能使用
 Plugin 'godlygeek/tabular'
 Plugin 'plasticboy/vim-markdown'
 "Plugin 'suan/vim-instant-markdown'
