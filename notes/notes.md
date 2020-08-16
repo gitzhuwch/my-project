@@ -20,6 +20,9 @@
 	6,	A buffer is the in-memory text of a file.
 		A window is a viewport on a buffer.
 		A tab page is a collection of windows.
+###vim中显示变量值
+	echo &var //显示vim自定义变量值
+	echo $var //显示系统环境变量值
 
 ###vim-plugin:
 	1, #如果你的插件来自github，写在下方，只要作者名/项目名就行了
@@ -256,7 +259,7 @@
 		git push origin --tags
 		git checkout -b version2 v2.0.0
 		git reset --hard v2.0.0
-	7,git checkout master的底层等效操作
+	7, git checkout master的底层等效操作
 		git checkout xxx-SHA1: HEAD == xxx-SHA1 != refs/heads/master
 		git reset    xxx-SHA1: HEAD == refs/heads/master == xxx-SHA1
 	8, git clone url的分解动作

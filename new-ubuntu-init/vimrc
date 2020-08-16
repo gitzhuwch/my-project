@@ -28,6 +28,7 @@ set cindent
 set cinoptions={0,1s,t0,n-2,p2s,(03s,=.5s,>1s,=1s,:1s
 set ruler
 set backspace=2
+set clipboard=unnamed,unnamedplus "*号和+号reg都和系统剪切板关联
 "set cscopetag
 "set cursorline
 "set cursorcolumn
@@ -50,7 +51,7 @@ if has("autocmd")
 endif
 
 map <C-]> g]
-map qq :qa!<CR>
+nmap <leader>q :qa!<CR> "不加leader,会和原始的q命令冲突
 map tt :TlistToggle<CR>
 map <C-Left> <C-w>h
 map <C-Right> <C-w>l
