@@ -51,8 +51,9 @@ if has("autocmd")
 endif
 
 map <C-]> g]
-nmap <leader>q :qa!<CR> "不加leader,会和原始的q命令冲突
-map tt :TlistToggle<CR>
+map Q <Nop>
+map q <Nop> "避免与下面qq快捷键冲突
+map qq :qa!<CR>
 map <C-Left> <C-w>h
 map <C-Right> <C-w>l
 map ss :%s/\s\+$//g<CR>
@@ -60,11 +61,6 @@ nnoremap <Leader>l <C-W>l
 nnoremap <Leader>h <C-W>h
 nnoremap <Leader>k <C-W>k
 nnoremap <Leader>j <C-W>j
-
-let Tlist_Ctags_Cmd = '/usr/bin/ctags' "告知系统生成tag的程序的位置
-let Tlist_Show_One_File = 1 "不同时显示多个文件的tag，只显示当前文件的
-let Tlist_Exit_OnlyWindow = 1 "如果taglist窗口是最后一个窗口，则退出vim
-let Tlist_Use_Right_Window = 1 "在左侧窗口中显示taglist窗口
 
 filetype off
 set rtp+=~/.vim/bundle/Vundle.vim/
@@ -83,6 +79,7 @@ Plugin 'scrooloose/nerdcommenter'
 "如果插件来自 vim-scripts，你直接写插件名就行了
 Plugin 'taglist.vim'
 Plugin 'minibufexpl.vim'
+Plugin 'DoxygenToolkit.vim'
 call vundle#end()
 filetype plugin indent on
 " Brief help
@@ -92,6 +89,11 @@ filetype plugin indent on
 " :PluginClean      - confirms removal of unused plugins; append `!` to auto-approve removal
 " see :h vundle for more details or wiki for FAQ
 " Put your non-Plugin stuff after this line
+
+let Tlist_Ctags_Cmd = '/usr/bin/ctags' "告知系统生成tag的程序的位置
+let Tlist_Show_One_File = 1 "不同时显示多个文件的tag，只显示当前文件的
+let Tlist_Exit_OnlyWindow = 1 "如果taglist窗口是最后一个窗口，则退出vim
+let Tlist_Use_Right_Window = 1 "在左侧窗口中显示taglist窗口
 
 "let g:vim_markdown_toc_autofit = 1
 let g:vim_markdown_math = 1
@@ -116,7 +118,13 @@ autocmd FileType markdown nmap <Leader>tt :Toc<CR>
 autocmd FileType markdown set syntax=off
 "autocmd Filetype markdown inoremap <buffer> <silent> ,3 ###<Space><Enter><++><Esc>kA
 
-""""""""""""""""""""""""""""""""""
+"添加函数原型说明
+nmap <Leader>f :Dox<CR>
+
+"显示函数列表
+nmap tt :TlistToggle<CR>
+
+"""""""""""""""""""""""""""""""""""""""""在此分割线以上添加""""""""""""""""""""""""""""""""""""""""
 "Plugin 'bogado/file-line'
 " Avoid installing twice or when in unsupported Vim version.
 if exists('g:loaded_file_line') || (v:version < 701)

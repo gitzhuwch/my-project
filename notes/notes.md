@@ -23,7 +23,8 @@
 ###vim中显示变量值
 	echo &var //显示vim自定义变量值
 	echo $var //显示系统环境变量值
-
+###vim取消快捷键映射
+	map q <Nop>	//取消烦人的q(recording)功能快捷键,然后就可map qq :qa!<CR>了
 ###vim-plugin:
 	1, #如果你的插件来自github，写在下方，只要作者名/项目名就行了
 		 Bundle 'tpope/vim-fugitive' #如这里就安装了vim-fugitive这个插件
@@ -37,7 +38,6 @@
 		(1)编辑.vimrc文件移除的你要移除的插件行
 		(2)保存退出当前的vim
 		(3)重打开vim，在命令模式下输入命名PluginClean。
-
 ###vimrc grammar:
 	1, autocmd Filetype markdown inoremap<buffer> <silent> ,xxx
 		autocmd Filetype markdown
@@ -310,6 +310,11 @@
 	vi ~/.ssh/config加入以下内容
 		Host somehost.example.org(你的gerrit服务器，域名或IP) or Host *
 		KexAlgorithms +diffie-hellman-group1-sha1
+####git pull::warning: redirecting to https://xxxx
+	This is typical of a Git repo URL starting with git:// or http://,
+	but which is redirected at the server level to https:// (which is more secure, and allows for authentication)
+	解决方法:
+		git remote set-url origin https://github.com/wanchao-zhu/my-project
 
 ###repo:
 	1, sudo apt -y install repo
