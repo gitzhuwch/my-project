@@ -51,9 +51,17 @@ if has("autocmd")
 endif
 
 map <C-]> g]
+map q <Nop>
 map Q <Nop>
-map q <Nop> "避免与下面qq快捷键冲突
+map w <Nop>
+map W <Nop>
+"取消w/q定义,避免与下面部分快捷键冲突,CTRL-s:block window and CTRL-q:going on
 map qq :qa!<CR>
+map <Leader>q :q!<CR>
+map ww :wa<CR>
+map <Leader>w :w<CR>
+map b :bn<CR>
+map B :bp<CR>
 map <C-Left> <C-w>h
 map <C-Right> <C-w>l
 map ss :%s/\s\+$//g<CR>
@@ -105,7 +113,6 @@ let g:vim_markdown_autowrite = 1
 let g:vim_markdown_auto_extension_ext = 'txt'
 
 "使用 NERDTree 插件查看工程文件。设置快捷键，速记：file list
-nmap <Leader>fl :NERDTreeToggle<CR>
 nmap ff :NERDTreeToggle<CR>
 let NERDTreeWinSize=22 "设置 NERDTree 子窗口宽度
 let NERDTreeWinPos="left" "设置 NERDTree 子窗口位置
