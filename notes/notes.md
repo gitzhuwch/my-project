@@ -26,13 +26,18 @@
 ###vim取消快捷键映射
 	map q <Nop>	//取消烦人的q(recording)功能快捷键,然后就可map qq :qa!<CR>了
 ###vim-plugin:
-	1, #如果你的插件来自github，写在下方，只要作者名/项目名就行了
+	vim插件是通过git clone下载的；
+	下载源有三种:
+		git clone https://github.com/vim-scripts/项目名     //github中vim-scripts的项目
+		git clone https://github.com/用户名/项目名          //github中私有用户的项目
+		git clone URL                                       //私有项目
+	1, #如果你的插件是来自github中私有用户的，写在下方，只要用户名/项目名就行了
 		 Bundle 'tpope/vim-fugitive' #如这里就安装了vim-fugitive这个插件
 		 Bundle 'bogado/file-line'
-	2, #如果插件来自 vim-scripts，你直接写插件名就行了
+	2, #如果插件来自 vim-scripts，你直接写项目名就行了
 		 Bundle 'L9'
 		 Bundle 'file-line.vim'
-	3, #如使用自己的git库的插件，像下面这样做
+	3, #如使用其它的git库的插件，像下面这样做
 		 Bundle 'git://git.wincent.com/command-t.git'
 	4, 如何移除插件
 		(1)编辑.vimrc文件移除的你要移除的插件行
@@ -315,6 +320,10 @@
 	but which is redirected at the server level to https:// (which is more secure, and allows for authentication)
 	解决方法:
 		git remote set-url origin https://github.com/wanchao-zhu/my-project
+####github下载慢
+	解决方法:
+		1, 使用gitee.com网站,目前免费,速度1~3MB/s
+		2, 使用gitclone.com,是github的缓存服务器,命令:git clone https://gitclone.com/github.com/gitzhuwch/my-project
 
 ###repo:
 	1, sudo apt -y install repo
