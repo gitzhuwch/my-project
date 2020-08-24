@@ -51,7 +51,8 @@ git config --global difftool.prompt no
 #firefox browser config:
 #	add-ons:search zoom->set default font size
 #	add-ons:search flash->
-#	add-ons:Dark Background and Light Text
+#	add-ons:Dark Background and Light Text //这个插件不好,加载网页时总是刷新,恶心
+#	搜索zoom/dark时,选择星数最高的安装
 #-------------------------------------------------------------
 #vim-scripts config:
 #	cp -rf /usr/share/vim-scripts/ ~/.vim/
