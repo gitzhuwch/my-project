@@ -158,6 +158,9 @@
 	read /proc/kmsg		#real time log
 
 ##GNU binary utilities:
+###bfd:
+	Binary File Descriptor library;
+	多数binutils程序使用BFD(Binary File Descriptor库)实现底层操作,多数也使用opcodes库来汇编及反汇编机器指令.
 ###gdb:
 	1, -E, --preserve-env  preserve user environment when running command
 		sudo -E ./t7gdb vmlinux
@@ -219,9 +222,11 @@
 		libgcc.a
 ####gcc enable openmp?
 ###objcopy:
-	1,要将一个二进制的文件，如图片作为一个目标文件的段:
-	objcopy -I binary -O elf32-i386 -B i386 Dark.jpg image.o
-	gcc -o test_elf main.c image.o
+	1, 要将一个二进制的文件，如图片作为一个目标文件的段:
+		objcopy -I binary -O elf32-i386 -B i386 Dark.jpg image.o
+		gcc -o test_elf main.c image.o
+	2, objcopy --info List object formats and architectures supported
+		objcopy -O ihex/verilog  //能够生成ihex,verilog文件
 
 ##code version control:
 ###git:
@@ -1941,7 +1946,7 @@ https://www.cnblogs.com/hwli/p/8633314.html:
 	1,	MSB（Most Significant Bit）：最高有效位，二进制中代表最高值的比特位，这一位对数值的影响最大。
 		LSB（Least Significant Bit）：最低有效位，二进制中代表最低值的比特位
 
-##misk
+##miscellaneous
 ###xdg-open:
 	xdg-open: opens a file or URL in the user's preferred application
 ###ffplay-using
