@@ -158,7 +158,7 @@
 	read /proc/kmsg		#real time log
 
 ##GNU binary utilities:
-###bfd:
+###BFDL:
 	Binary File Descriptor library;
 	多数binutils程序使用BFD(Binary File Descriptor库)实现底层操作,多数也使用opcodes库来汇编及反汇编机器指令.
 ###gdb:
@@ -167,6 +167,16 @@
 			gdb:edit start_kernel	(success)
 		sudo ./t7gdb vmlinux
 			gdb:edit start_kernel	(failed)
+####DWARF/COFF
+	COFF(Common Object File Format)
+	DWARF(Debugging With Attributed Record Formats)
+	DWARF 调试信息简单的来说就是在机器码和对应的源代码之间建立一座桥梁
+	但从我们平时使用的调试器提供给我们更多的信息:
+		当前程序执行指令对应于源码的文件及行号
+		当前程序栈帧(stack frame|activation record) 下的局部变量
+	调试器如何从一些十分基础的信息，例如 IP(指令地址), 呈现给我们如此丰富的调试信息呢?
+	那便我们为什么需要 DWARF, 其提供了程序运行时信息(Runtime)到源码信息的映射(Source File)
+
 ####gdbinit:
 	1,
 	define dump_current
@@ -1931,7 +1941,25 @@ https://www.cnblogs.com/hwli/p/8633314.html:
 ###开发板种类(EVB/REF):
 	1, EVB(Evaluation Board) 开发板：软件/驱动开发人员使用EVB开发板验证芯片的正确性，进行软件应用开发
 	2, REF(reference Board) 开发板：参考板
-
+###JTAG:
+https://blog.csdn.net/beingaz/article/details/7440507
+####JTAG访问ARM通用寄存器
+	下面演示的读取寄存器R0的例子，模拟的ARM指令为STR R0, [R0]，即把R0的值存储到R0为地址的内存，
+	使用这条指令的目的是让R0的值出现在数据总线上。这条指令的执行需要两个执行周期，一是执行地址计算，二是把R0的值放在数据总线上。
+	 1）将INTEST指令写指令寄存器
+	 2） 插入指令STR R0, [R0] & BREAKPT = 0，在Update-DR阶段作用到管脚上，相当
+		于ARM的取指令流水阶段
+	 3） 插入指令MOV R0, R0 & BREAKPT = 0，ARM的指令译码流水阶段
+	 4） 插入指令MOV R0, R0 & BREAKPT = 0，ARM的地址计算
+	 5） 通过扫描链1读出出现在数据总线上的数据，即R0的值，ARM的数据输出阶段
+	 起始访问通用寄存器的基本方法就是使用INTEST指令，插入特定的指令，然后在指令的指定执行阶段读取数据总线(或把数据放置到数据总线),
+	 即可事先对通用寄存器的读写。
+####JTAG访问外部内存
+	访问外部内存，需要MCLK（因为内存是在MCLK的驱动下工作的），通过设置扫描链1的BREAKPT位为1可实现。
+	 1） 把要访问的内存地址写入到R0 （通过2.1的方法）
+	 2） 插入指令LDR R1, [R0]
+	 3） 执行完毕后，读入R1的内容
+	 写内存的方法为先将地址写入R0，值写入R1，然后插入指令STR R1, [R0]
 
 ##字节序:
 ###大小端:
