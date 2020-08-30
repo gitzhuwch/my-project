@@ -167,6 +167,10 @@
 			gdb:edit start_kernel	(success)
 		sudo ./t7gdb vmlinux
 			gdb:edit start_kernel	(failed)
+####断点
+	插入断点是为了让CPU产生exception.
+	软件断点:在要调试的指令地址处,插入特殊指令,CPU执行到该地址的指令后时产生异常
+	硬件断点:往CPU断点寄存器中写入要调试的指令地址,CPU执行到该地址时产生异常
 ####DWARF/COFF
 	COFF(Common Object File Format)
 	DWARF(Debugging With Attributed Record Formats)
@@ -1947,8 +1951,7 @@ https://blog.csdn.net/beingaz/article/details/7440507
 	下面演示的读取寄存器R0的例子，模拟的ARM指令为STR R0, [R0]，即把R0的值存储到R0为地址的内存，
 	使用这条指令的目的是让R0的值出现在数据总线上。这条指令的执行需要两个执行周期，一是执行地址计算，二是把R0的值放在数据总线上。
 	 1）将INTEST指令写指令寄存器
-	 2） 插入指令STR R0, [R0] & BREAKPT = 0，在Update-DR阶段作用到管脚上，相当
-		于ARM的取指令流水阶段
+	 2） 插入指令STR R0, [R0] & BREAKPT = 0，在Update-DR阶段作用到管脚上，相当于ARM的取指令流水阶段
 	 3） 插入指令MOV R0, R0 & BREAKPT = 0，ARM的指令译码流水阶段
 	 4） 插入指令MOV R0, R0 & BREAKPT = 0，ARM的地址计算
 	 5） 通过扫描链1读出出现在数据总线上的数据，即R0的值，ARM的数据输出阶段
