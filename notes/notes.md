@@ -157,17 +157,30 @@
 	read /dev/kmsg		#accumulation log
 	read /proc/kmsg		#real time log
 
-##GNU binary utilities:
-###BFDL:
+##ToolChains:
+###GNU binary utilities:
+####BFDL:
 	Binary File Descriptor library;
 	多数binutils程序使用BFD(Binary File Descriptor库)实现底层操作,多数也使用opcodes库来汇编及反汇编机器指令.
+####objcopy:
+	1, 要将一个二进制的文件，如图片作为一个目标文件的段:
+		objcopy -I binary -O elf32-i386 -B i386 Dark.jpg image.o
+		gcc -o test_elf main.c image.o
+	2, objcopy --info List object formats and architectures supported
+		objcopy -O ihex/verilog  //能够生成ihex,verilog文件
+####ld:
+	1, linkscript/Command Language
+		https://www.math.utah.edu/docs/info/ld_3.html:
+		https://ftp.gnu.org/old-gnu/Manuals/ld-2.9.1/html_chapter/ld_3.html:
+			The command language provides explicit control over the link process,
+			allowing complete specification of the mapping between the linker's input files and its output.
 ###gdb:
 	1, -E, --preserve-env  preserve user environment when running command
 		sudo -E ./t7gdb vmlinux
 			gdb:edit start_kernel	(success)
 		sudo ./t7gdb vmlinux
 			gdb:edit start_kernel	(failed)
-####断点
+####断点种类
 	插入断点是为了让CPU产生exception.
 	软件断点:在要调试的指令地址处,插入特殊指令,CPU执行到该地址的指令后时产生异常
 	硬件断点:往CPU断点寄存器中写入要调试的指令地址,CPU执行到该地址时产生异常
@@ -180,7 +193,6 @@
 		当前程序栈帧(stack frame|activation record) 下的局部变量
 	调试器如何从一些十分基础的信息，例如 IP(指令地址), 呈现给我们如此丰富的调试信息呢?
 	那便我们为什么需要 DWARF, 其提供了程序运行时信息(Runtime)到源码信息的映射(Source File)
-
 ####gdbinit:
 	1,
 	define dump_current
@@ -216,7 +228,16 @@
     printf "pid:%d; comm:%s\n", $task_struct.pid, $task_struct.comm
 	end
 
-###gcc:
+###GCC:
+	GNU Compiler Collection
+####gcc specifications file
+	gcc -dumpspecs //Display all of the built in spec strings.
+	cc 是一个驱动式的程序. 它调用其它程序来依次进行编译, 汇编和链接.
+	GCC 分析命令行参数,	然后决定该调用哪一个子程序, 哪些参数应该传递给子程序.
+	所有这些行为都是由 SPEC 字符串(spec strings)来控制的.
+	通常情况下, 每一个 GCC 可以调用的子程序都对应着一个 SPEC 字符串, 不过有少数的子程序需要多个 SPEC 字符串来控制他们的行为.
+	编译到 GCC 中的 SPEC 字符串可以被覆盖, 方法是使用 -specs= 命令行参数来指定一个 SPEC 文件(spec file).
+	Spec 文件(Spec files) 就是用来配置 SPEC 字符串的. 它包含了一系列用空行分隔的指令. 指令的类型由一行的第一个非空格字符决定,
 ####gcc option -O0:
 	#pragma GCC push_options
 	#pragma GCC optimize ("O0")
@@ -235,14 +256,8 @@
 	result:
 		libgcc.a
 ####gcc enable openmp?
-###objcopy:
-	1, 要将一个二进制的文件，如图片作为一个目标文件的段:
-		objcopy -I binary -O elf32-i386 -B i386 Dark.jpg image.o
-		gcc -o test_elf main.c image.o
-	2, objcopy --info List object formats and architectures supported
-		objcopy -O ihex/verilog  //能够生成ihex,verilog文件
 
-##code version control:
+##CODE VERSION CONTROL:
 ###git:
 ####git远程协议
 	1，ssh/http/git协议都是CS架构;
