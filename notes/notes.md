@@ -303,6 +303,12 @@
 		git reset    xxx-SHA1: HEAD == refs/heads/master == xxx-SHA1
 	8, git clone url的分解动作
 		mkdir repo-name + cd repo-name + git init + git remote add + git fetch + git checkout
+####git diff/apply
+	1, git diff - Show changes between commits, commit and working tree
+	2, git apply - Apply a patch to files and/or to the index
+####git format-patch/am
+	1, git-format-patch - Prepare patches for e-mail submission
+	2, git-am - Apply a series of patches from a mailbox
 ####git ls-remote报错
 	git ls-remote
 		fatal: No remote configured to list refs from.
@@ -1447,74 +1453,6 @@
 	}
 	subsys_initcall(param_sysfs_init);
 
-##Linux accounts management:
-	1, su - username (Provide an environment similar to what the user would expect had the user logged in directly)
-	2, users: print the user names of users currently logged in to the current host
-	3, w: Show who is logged on and what they are doing
-	4, 查看当前登录
-		w
-		who
-		users
-	   查看系统中所有用户：
-		grep bash /etc/passwd
-		或者：
-		cat /etc/passwd | cut -f 1 -d:
-	5, users/w/who command principe: read登录记录文件(/var/run/utmp)
-###useradd与adduser
-	1, useradd is a low level utility for adding users. On Debian, administrators should usually use adduser(8) instead
-	2, file /usr/sbin/adduser
-		/usr/sbin/adduser: Perl script text executable
-	3, file /usr/sbin/useradd
-		/usr/sbin/useradd: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked
-###Linux用户类型:
-	Linux用户类型分为 3 类：超级用户、系统用户和普通用户。
-    超级用户：用户名为 root 或 USER ID(UID)为0的账号，具有一切权限，可以操作系统中的所有资源。root可以进行基础的文件操作以及特殊的文件管理，
-			  另外还可以进行网络管理，可以修改系统中的任何文件。日常工作中应避免使用此类账号，只有在必要的时候才使用root登录系统。
-    系统用户：正常运行系统时使用的账户。每个进程运行在系统里都有一个相应的属主，比如某个进程以何种身份运行，
-			  这些身份就是系统里对应的用户账号。注意系统账户是不能用来登录的，比如 bin、daemon、mail等。
-    普通用户：普通使用者，能使用Linux的大部分资源，一些特定的权限受到控制。用户只对自己的目录有写权限，读写权限受到一定的限制，
-			  从而有效保证了Linux的系统安全，大部分用户属于此类, 普通用户可用来登录。
-###Linux用户帐户创建:
-	1, sudo useradd -r 创建系统级用户，不能登录
-				 -m 生成家目录
-				 -s /bin/bash 指定用户交互程序
-				 gitolite 用户名
-	2, sudo adduser gitolite 这个命令是useradd的封装，自动做了一些事
-###usermod修改用户帐户
-	usermod:modify a user account
-		-d, --home HOME_DIR  --->修改用户家目录
-        The user's new login directory.
-	修改gerrit用户添加到sudo组中，这样gerrit用户能使用sudo，俩中方法如下:
-	> sudo usermod gerrit gerrit,sudo
-	> sudo usermod -a -G sudo gerrit //-a表示追加用户组, sudo代表要追加的组，gerrit代表用户名
-###帐户登录或切换:sudo/su/login
-	1, -E, --preserve-env  preserve user environment when running command
-		sudo -E ./t7gdb vmlinux
-			gdb:edit start_kernel	(success)
-		sudo ./t7gdb vmlinux
-			gdb:edit start_kernel	(failed)
-	2,	su -l username
-		su - username //login as username
-	3,	sudo:	execute a command as another user
-		su:		The su command is used to become another user during a login session.
-		login:	The login program is used to establish a new session with the system.
-	4, 使用sudo时报错误
-		test is not in the sudoers file.  This incident will be reported.
-		resolve mathods:解决方法
-			a) modify /etc/sudoers
-			b) modify user group to sudo group
-##ssh原理及相关工具使用
-###ssh
-####ssh报错
-	现象:ssh Unable to negotiate with ip port 22: no matching cipher found. Their offer: aes128-cbc
-	解决方法:
-		vim /etc/ssh/ssh_config
-		将Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-cbc,3des-cbc这一行解注掉
-###ssh-keygen
-###ssh-agent
-###ssh-copy-id
-###scp
-
 ##Bootloader:
 ###Bootloader种类
 	--------------------------------------------------------------------------------------
@@ -1541,8 +1479,40 @@
 ###grub给kernel传参修改网络设备名eth0:
 	1, 修改/boot/grub/grub.cfg,在linux参数项中加net.ifnames=0 biosdevname=0
 
-##IC design related:
-###DMA burst:
+##计算机顶层设计中的一些概念
+###计算机体系结构与组成原理与微机原理
+	1，计算机体系结构:	指软、硬件的系统结构，研究计算机由哪些功能组成
+	2, 计算机组成原理:	各个功能的实现:运算器的工作原理,定点浮点，总线结构，存储器结构与原理，
+		指令编码，指令执行过程(指令集的实现，指令的实现和执行过程)
+	3，微机原理:	汇编程序设计，微机接口技术(指令集的使用,用指令编写程序)
+###计算机结构与cpu指令集
+	1, 计算机的结构包括:冯诺依曼结构和哈佛结构(定义计算机是由运算器，控制器，存储器，输入输出构成)
+	2, 冯诺依曼结构是计算机器的一种顶层设计，对应的可计算性的顶层设计是图灵机（和等价的邱奇lambda演算，对应LISP机）。
+		然后才落地到各种具体的指令集流水线执行机构等等物理内容。
+	3, 哈佛只是冯诺依曼的一种改进，最主要改进是把数据和代码分开。哈佛本身就是一个加强的冯 诺依曼，因为这些计算机器的顶层设计没有变化。
+	4, 指令集是在某种计算机结构上的具体物理实现
+	5, computer结构定义了计算机由哪些结构组成，RISC/CISC描述了计算机的部分结构的属性。
+###arm architecture
+	ARM architecture，是指ARM公司开发的、基于精简指令集架构（RISC, Reduced Instruction Set Computing architecture）
+	的指令集架构（Instruction set architecture）
+###arm内核(core)
+	ARM core是基于ARM architecture开发出来的IP core
+###arm cpu
+	基于ARM公司发布的Core，开发自己的ARM处理器，这称作ARM CPU（也可称为MCU)
+###arm:arm9:armv9:cortex-a9:
+	1,且在GCC编译中，常常要用到 -march,-mcpu等
+	2,ARM（Advanced RISCMachines)
+	3,ＡＲＭ公司定义了６种主要的指令集体系结构版本。Ｖ１－Ｖ６。（所以上面提到的ＡＲＭｖ６是指指令集版本号）。即：ARM architecture
+	4, ARM公司开发了很多ARM处理器核，最新版位ARM11。ARM11：指令集ARMv6，8级流水线，1.25DMIPS/MHz
+	5, Cortex-A8：指令集ARMv7-A，13级整数流水线，超标量双发射，2.0DMIPS/MHz，标配Neon，不支持多核
+	  Scorpion：指令集ARMv7-A，高通获得指令集授权后在A8的基础上设计的。13级整数流水线，超标量双发射，部分乱序执行，2.1DMIPS/MHz，标配Neon，支持多核
+	  Cortex-A9：指令集ARMv7-A，8级整数流水线，超标量双发射，乱序执行，2.5DMIPS/MHz，可选配Neon/VFPv3，支持多核
+	  Cortex-A5：指令集ARMv7-A，8级整数流水线，1.57DMIPS/MHz，可选配Neon/VFPv3，支持多核
+	  Cortex-A15：指令集ARMv7-A，超标量，乱序执行，可选配Neon/VFPv4，支持多核
+
+##IC设计/生产/封装/测试：
+###IC design related:
+####DMA burst:
 	1, burst传输就是占用多个总线周期，完成一次块传输，此间cpu不能访问总线; DMA占用的周期个数叫做burst length.
 	2, Burst操作还是要通过CPU的参与的，与单独的一次读写操作相比，burst只需要提供一个其实地址就行了，
 	以后的地址依次加1，而非burst操作每次都要给出地址，以及需要中间的一些应答、等待状态等等。
@@ -1550,146 +1520,57 @@
 	3, DMA controler支持链表的，美其名曰“scatter”，内核有struct scatter可以参考
 	4, transfer size：就是数据宽度，比如8位、32位，一般跟外设的FIFO相同。
 	5, burst size：就是一次传几个 transfer size.
+####JTAG:
+	https://blog.csdn.net/beingaz/article/details/7440507
+#####JTAG访问ARM通用寄存器
+	下面演示的读取寄存器R0的例子，模拟的ARM指令为STR R0, [R0]，即把R0的值存储到R0为地址的内存，
+	使用这条指令的目的是让R0的值出现在数据总线上。这条指令的执行需要两个执行周期，一是执行地址计算，二是把R0的值放在数据总线上。
+	 1）将INTEST指令写指令寄存器
+	 2） 插入指令STR R0, [R0] & BREAKPT = 0，在Update-DR阶段作用到管脚上，相当于ARM的取指令流水阶段
+	 3） 插入指令MOV R0, R0 & BREAKPT = 0，ARM的指令译码流水阶段
+	 4） 插入指令MOV R0, R0 & BREAKPT = 0，ARM的地址计算
+	 5） 通过扫描链1读出出现在数据总线上的数据，即R0的值，ARM的数据输出阶段
+	 起始访问通用寄存器的基本方法就是使用INTEST指令，插入特定的指令，然后在指令的指定执行阶段读取数据总线(或把数据放置到数据总线),
+	 即可事先对通用寄存器的读写。
+#####JTAG访问外部内存
+	访问外部内存，需要MCLK（因为内存是在MCLK的驱动下工作的），通过设置扫描链1的BREAKPT位为1可实现。
+	 1） 把要访问的内存地址写入到R0 （通过2.1的方法）
+	 2） 插入指令LDR R1, [R0]
+	 3） 执行完毕后，读入R1的内容
+	 写内存的方法为先将地址写入R0，值写入R1，然后插入指令STR R1, [R0]
+###wafer/die/chip:
+	1, wafer——晶圆
+	2, die——晶粒,Wafer上的一个小块，就是一个晶片晶圆体，学名die，封装后就成为一个颗粒。
+	3, chip——芯片
+###chip package
+	1, PGA:Pin Grid Array
+	2, BGA:Ball Grid Array
+	3, DIP:Dual Inline Package,双排直立式封装,黑色长得像蜈蚣
+	4, QFP:塑料方形扁平封装
+###chip test:
+	1, WAT: Wafer Acceptance Test,是晶圆出厂前对testkey的测试
+	2, CP: Circuit Probe/chip probing，是封装前晶圆级别对芯片测试。这里就涉及到测试芯片的基本功能了。
+		通过了这两项后, 晶圆会被切割.
+	3, FT:Final test，封装完成后的测试
+	4, SLT:system level test
+	5, ATE(Auto Test Equipment) 在测试工厂完成. 大致是给芯片的输入管道施加所需的激励信号，
+		同时监测芯片的输出管脚，看其输出信号是否是预期的值。有特定的测试平台。
+###开发板种类(EVB/REF):
+	1, EVB(Evaluation Board) 开发板：软件/驱动开发人员使用EVB开发板验证芯片的正确性，进行软件应用开发
+	2, REF(reference Board) 开发板：参考板
 
-##Folder Sharing:
-###linux/linux share folder:
-	使用NFS:
-		1, server端构建:
-			安装nfs-kernel-server并配置:
-			echo "/home/user/nfs *(rw,sync,no_root_squash)" > /etc/exports
-		2, client端使用:
-			mount -t nfs -o nolock 10.3.153.96:/home/user/nfs /mnt/
-	使用SAMBA:
-		1, server端构建:
-			ubuntu中文件夹右击->属性->共享
-		2, client端使用:
-			在文件浏览器中"挂载"或打开
-###linux/windows share folder:
-	windows作为server，ubuntu作为client:
-		1, server端构建:
-			在windows中选择要共享的文件夹，在文件夹属性中共享即可.
-		2, client端使用:
-			方法一:(这种方法渐渐淘汰)
-				sudo apt install cifs-utils
-				sudo mount.cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw]
-				sudo mount -t cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw]
-				sudo mount.cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw],uid=[UID]
-				sudo mount.cifs //[address]/[folder] [mount point] -o domain=[domain_name],user=[username],passwd=[pw],uid=[UID]
-			方法二:(ubuntu文件浏览器默认支持)
-				在文件浏览器中"挂载":
-					-->other locations-->connect to server-->输入smb://10.3.153.95/e/
-				在文件浏览器中打开:
-					-->Ctrl + L -->输入smb://10.3.153.95/e/
-	ubuntu作为server，windows作为client:
-		1, server端构建:
-			sudo smbpasswd -a user
-			sudo vim /etc/samba/smb.conf
-			[user]
-			comment = share folder
-			browseable=yes
-			path = /home/user
-			create mask = 0700
-			directory mask = 0700
-			valid users = user
-			force user = user
-			force group = user
-			public = yes
-			available = yes
-			writable = yes
-			注:ubuntu中可以直接右击文件夹-属性中共享，自动安装SAMBA server并配置.
-		2, client端使用:
-			在windows文件浏览器中添加网络驱动器即可.
-###windows/windows share folder:
-		1, server端构建:
-			windows文件夹共享打开即可
-		2, client端使用:
-			在windows文件浏览器中添加网络驱动器即可.
-###SMB/CIFS/SAMBA/NFS:
-	都是协议级别的概念
-	1, Server Message Block - SMB，即服务(器)消息块，是 IBM 公司在 80 年代中期发明的一种文件共享协议。它只是系统之间通信的一种方式（协议），并不是一款特殊的软件。
-	2, Common Internet File System - CIFS，即通用因特网文件系统。CIFS 是 SMB 协议的衍生品，即 CIFS 是 SMB 协议的一种特殊实现，由美国微软公司开发。
-		由于 CIFS 是 SMB 的另一中实现，那么 CIFS 和 SMB 的客户端之间可以互访就不足为奇。
-		二者都是协议级别的概念，名字不同自然存在实现方式和性能优化方面的差别，如文件锁、LAN/WAN 网络性能和文件批量修改等。
-	4, Samba 也是 SMB 协议的实现，与 CIFS 类似，它允许 Windows 客户访问 Linux 系统上的目录、打印机和文件
-	5, Network File System - NFS，即网络文件系统。由 Sun 公司面向 SMB 相同的功能（通过本地网络访问文件系统）而开发，但它与 CIFS/SMB 完全不兼容。
-	   也就是说 NFS 客户端是无法直接与 SMB 服务器交互的。NFS 用于 Linux 系统和客户端之间的连接。而 Windows 和 Linux 客户端混合使用时，就应该使用 Samba。
-	Windows共享文件夹使用的协议是SMB/CIFS
-		SMB:	Server Message Block
-		CIFS:	Common Internet File System
-
-##apt(Advanced Packaging Tool)原理介绍
-	1, 如果有需要，编辑/etc/apt/sources.list，选择源服务器；
-	2, 执行apt update，由所有源服务器提供的软件包资源，生成本地软件包索引；
-	3, 执行apt install或upgrade，真正下载并安装软件包。
-tips:
-	1, man:apt-get(8), apt-cache(8), sources.list(5), apt.conf(5), apt-config(8)
-	2, apt-get install安装目录是包的维护者确定的，不是用户
-		可以预配置的时候通过./configure --help看一下–prefix的默认值是什么，
-		就知道默认安装位置了，或者直接指定安装目录。
-		apt-config dump | grep  -i "dir::cache" show the apt download directory
-	3, redhat主要是rpm和更高级的yum，debian主要是dpkg和更高级的apt。
-###apt与dpkg
-	1, dpkg：是一个底层的工具。上层的工具，如APT，被用于从远程获取软件包以及处理复杂的软件包关系。
-	2, dpkg绕过2113apt包管理数据库对软件5261包4102进行操作，所以你用dpkg安装过的软件包用apt可以再安装一遍，
-	系统不知道之前安装过了，将会覆盖之前dpkg的安装。
-	3, dpkg是用来安装.deb文件,但不会解决模块的依赖关系,且不会关心ubuntu的软件仓库内的软件,可以用于安装本地的deb文件。
-	4, apt会解决和安装模块的依赖问题,并会咨询软件仓库, 但不会安装本地的deb文件, apt是建立在dpkg之上的软件管理工具。
-###apt图形化工具
-	1, software-properties-gtk--->择源，更新，升级等功能
-	2, gnome-software--->搜索安装软件
-###apt相关的文件或目录
-	1, /var/lib/dpkg/available
-	文件的内容是软件包的描述信息, 该软件包括当前系统所使用的 Debian 安装源中的所有软件包,其中包括当前系统中已安装的和未安装的软件包.
-	2, /var/cache/apt/archives
-	目录是在用 apt-get install 安装软件时，软件包的临时存放路径
-	3, /etc/apt/sources.list
-	存放的是软件源站点, 当你执行 sudo apt-get install xxx 时，Ubuntu 就去这些站点下载软件包到本地并执行安装
-	4, /var/lib/apt/lists
-	使用apt-get update命令会从/etc/apt/sources.list中下载软件列表，并保存到该目录
-###update与upgrade与dist-upgrade区别
-	1, update
-		1.1 访问服务器，更新可获取软件及其版本信息，但仅仅给出一个可更新的list，具体更新需要通过apt-get upgrade。
-		1.2 会访问/etc/apt/sources.list源列表里的每个网址，并读取软件列表，然后保存在本地电脑。
-		我们在软件包管理器里看到的软件列表，都是通过update命令更新的。
-		1.3 update是下载源里面的metadata的. 包括这个源有什么包, 每个包什么版本之类的.
-	2, upgrade
-		2.1 apt-get upgrade可将软件进行更新，但是有文章指出不建议一次性全部更新，因为最新的不一定是最好的，有可能出现版本不兼容的情况。
-		2.2 upgrade是根据update命令下载的metadata决定要更新什么包(同时获取每个包的位置).
-	3, dist-upgrade
-		dist-upgrade in addition to performing the function of upgrade
-	总而言之，update是更新软件列表，upgrade是更新软件。
-	安装软件之前, 可以不upgrade, 但是要update. 因为旧的信息指向了旧版本的包, 但是源的服务器更新了之后旧的包可能被新的替代了, 于是你会遇到404...
-###刷新软件源-建立资源索引
-	无论用户使用哪些手段配置APT软件源，只是修改了配置文件——/etc/apt/sources.list，目的只是告知软件源镜像站点的地址。
-	但那些所指向的镜像站点所具有的软件资源并不清楚，需要将这些资源列个清单，以便本地主机知晓可以申请哪些资源。
-	用户可以使用“apt-get update”命令刷新软件源，建立更新软件包列表。在Ubuntu Linux中，“apt-get update”命令会扫描每一个软件源服务器，
-	并为该服务器所具有软件包资源建立索引文件，存放在本地的/var/lib/apt/lists/目录中。
-	使用apt-get执行安装、更新操作时，都将依据这些索引文件，向软件源服务器申请资源。
-	因此，在计算机设备空闲时，经常使用“apt-get update”命令刷新软件源，是一个好的习惯。
-###安装软件包
-	1, 扫描本地存放的软件包更新列表（由“apt-get update”命令刷新更新列表），找到最新版本的软件包；
-	2, 进行软件包依赖关系检查，找到支持该软件正常运行的所有软件包；
-	3, 从软件源所指 的镜像站点中，下载相关软件包, 将下载的包文件存放在本地缓存目录(/var/cache/apt/archives)中；
-	4, 解压软件包，并自动完成应用程序的安装和配置。
-###重新安装
-	apt-get --reinstall install 命令进行软件包的重新安装，将重新获得最新版本。
-	这里有个小的技巧，使用“apt-get install”也可以卸载软件包，只需在要卸载的软件包后标识“-”即可。
-	卸载软件包的过程同后面讲到的“apt-get remove”执行结果是完全相同的。
-	如:sudo apt-get install xchat-
-###更新软件包
-	将系统中的所有软件包一次性升级到最新版本，这个命令就是“apt-get upgrade”，它可以很方便的完成在相同版本号的发行版中更新软件包。
-###添加与删除PPA
-	PPA: Personal Package Archives
-	1, 添加PPA源
-		sudo add-apt-repository ppa:user/ppa-name
-		sudo apt update
-	3, 删除PPA源
-		sudo add-apt-repository -r ppa:user/ppa-name
-		sudo apt update
-	4, 也可以通过软件与更新的其他软件选项可视化操作删除与添加PPA源的过程
-		sudo software-properties-gtk &
-###apt search
-	apt search -f/--full -n/--names-only nautilus //只搜索包名中含有nautilus的条目，并显示详细信息
+##字节序:
+###大小端:
+	1, 大小端就是字节序，大小端的问题主要是由内存中多字节形数据类型的存在而引起的，他的研究单位是字节，
+	对于char型数据类型，就是一个字节，是不存在大小端问题的.
+	2, 字节序经常被分为两类：
+		Big-Endian（大端）：高位字节排放在内存的低地址端，低位字节排放在内存的高地址端。
+		Little-Endian（小端）：低位字节排放在内存的低地址端，高位字节排放在内存的高地址端。
+###网络字节序:
+	1, UDP/TCP/IP协议规定:把接收到的第一个字节当作高位字节看待,网络字节序是大端字节序
+###最高最低有效位:
+	1,	MSB（Most Significant Bit）：最高有效位，二进制中代表最高值的比特位，这一位对数值的影响最大。
+		LSB（Least Significant Bit）：最低有效位，二进制中代表最低值的比特位
 
 ##disk分区相关:
 ###MBR:
@@ -1908,89 +1789,214 @@ https://www.cnblogs.com/hwli/p/8633314.html:
 	4， 修改该分区文件系统大小
 		使用resize2fs命令
 
-##computer计算机顶层设计中的一些概念
-###计算机体系结构与组成原理与微机原理
-	1，计算机体系结构:	指软、硬件的系统结构，研究计算机由哪些功能组成
-	2, 计算机组成原理:	各个功能的实现:运算器的工作原理,定点浮点，总线结构，存储器结构与原理，
-		指令编码，指令执行过程(指令集的实现，指令的实现和执行过程)
-	3，微机原理:	汇编程序设计，微机接口技术(指令集的使用,用指令编写程序)
-###计算机结构与cpu指令集
-	1, 计算机的结构包括:冯诺依曼结构和哈佛结构(定义计算机是由运算器，控制器，存储器，输入输出构成)
-	2, 冯诺依曼结构是计算机器的一种顶层设计，对应的可计算性的顶层设计是图灵机（和等价的邱奇lambda演算，对应LISP机）。
-		然后才落地到各种具体的指令集流水线执行机构等等物理内容。
-	3, 哈佛只是冯诺依曼的一种改进，最主要改进是把数据和代码分开。哈佛本身就是一个加强的冯 诺依曼，因为这些计算机器的顶层设计没有变化。
-	4, 指令集是在某种计算机结构上的具体物理实现
-	5, computer结构定义了计算机由哪些结构组成，RISC/CISC描述了计算机的部分结构的属性。
-###arm architecture
-	ARM architecture，是指ARM公司开发的、基于精简指令集架构（RISC, Reduced Instruction Set Computing architecture）
-	的指令集架构（Instruction set architecture）
-###arm内核(core)
-	ARM core是基于ARM architecture开发出来的IP core
-###arm cpu
-	基于ARM公司发布的Core，开发自己的ARM处理器，这称作ARM CPU（也可称为MCU)
-###arm:arm9:armv9:cortex-a9:
-	1,且在GCC编译中，常常要用到 -march,-mcpu等
-	2,ARM（Advanced RISCMachines)
-	3,ＡＲＭ公司定义了６种主要的指令集体系结构版本。Ｖ１－Ｖ６。（所以上面提到的ＡＲＭｖ６是指指令集版本号）。即：ARM architecture
-	4, ARM公司开发了很多ARM处理器核，最新版位ARM11。ARM11：指令集ARMv6，8级流水线，1.25DMIPS/MHz
-	5, Cortex-A8：指令集ARMv7-A，13级整数流水线，超标量双发射，2.0DMIPS/MHz，标配Neon，不支持多核
-	  Scorpion：指令集ARMv7-A，高通获得指令集授权后在A8的基础上设计的。13级整数流水线，超标量双发射，部分乱序执行，2.1DMIPS/MHz，标配Neon，支持多核
-	  Cortex-A9：指令集ARMv7-A，8级整数流水线，超标量双发射，乱序执行，2.5DMIPS/MHz，可选配Neon/VFPv3，支持多核
-	  Cortex-A5：指令集ARMv7-A，8级整数流水线，1.57DMIPS/MHz，可选配Neon/VFPv3，支持多核
-	  Cortex-A15：指令集ARMv7-A，超标量，乱序执行，可选配Neon/VFPv4，支持多核
+##Linux accounts management:
+	1, su - username (Provide an environment similar to what the user would expect had the user logged in directly)
+	2, users: print the user names of users currently logged in to the current host
+	3, w: Show who is logged on and what they are doing
+	4, 查看当前登录
+		w
+		who
+		users
+	   查看系统中所有用户：
+		grep bash /etc/passwd
+		或者：
+		cat /etc/passwd | cut -f 1 -d:
+	5, users/w/who command principe: read登录记录文件(/var/run/utmp)
+###useradd与adduser
+	1, useradd is a low level utility for adding users. On Debian, administrators should usually use adduser(8) instead
+	2, file /usr/sbin/adduser
+		/usr/sbin/adduser: Perl script text executable
+	3, file /usr/sbin/useradd
+		/usr/sbin/useradd: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked
+###Linux用户类型:
+	Linux用户类型分为 3 类：超级用户、系统用户和普通用户。
+    超级用户：用户名为 root 或 USER ID(UID)为0的账号，具有一切权限，可以操作系统中的所有资源。root可以进行基础的文件操作以及特殊的文件管理，
+			  另外还可以进行网络管理，可以修改系统中的任何文件。日常工作中应避免使用此类账号，只有在必要的时候才使用root登录系统。
+    系统用户：正常运行系统时使用的账户。每个进程运行在系统里都有一个相应的属主，比如某个进程以何种身份运行，
+			  这些身份就是系统里对应的用户账号。注意系统账户是不能用来登录的，比如 bin、daemon、mail等。
+    普通用户：普通使用者，能使用Linux的大部分资源，一些特定的权限受到控制。用户只对自己的目录有写权限，读写权限受到一定的限制，
+			  从而有效保证了Linux的系统安全，大部分用户属于此类, 普通用户可用来登录。
+###Linux用户帐户创建:
+	1, sudo useradd -r 创建系统级用户，不能登录
+				 -m 生成家目录
+				 -s /bin/bash 指定用户交互程序
+				 gitolite 用户名
+	2, sudo adduser gitolite 这个命令是useradd的封装，自动做了一些事
+###usermod修改用户帐户
+	usermod:modify a user account
+		-d, --home HOME_DIR  --->修改用户家目录
+        The user's new login directory.
+	修改gerrit用户添加到sudo组中，这样gerrit用户能使用sudo，俩中方法如下:
+	> sudo usermod gerrit gerrit,sudo
+	> sudo usermod -a -G sudo gerrit //-a表示追加用户组, sudo代表要追加的组，gerrit代表用户名
+###帐户登录或切换:sudo/su/login
+	1, -E, --preserve-env  preserve user environment when running command
+		sudo -E ./t7gdb vmlinux
+			gdb:edit start_kernel	(success)
+		sudo ./t7gdb vmlinux
+			gdb:edit start_kernel	(failed)
+	2,	su -l username
+		su - username //login as username
+	3,	sudo:	execute a command as another user
+		su:		The su command is used to become another user during a login session.
+		login:	The login program is used to establish a new session with the system.
+	4, 使用sudo时报错误
+		test is not in the sudoers file.  This incident will be reported.
+		resolve mathods:解决方法
+			a) modify /etc/sudoers
+			b) modify user group to sudo group
 
-##IC设计/生产/封装/测试：
-###wafer/die/chip:
-	1, wafer——晶圆
-	2, die——晶粒,Wafer上的一个小块，就是一个晶片晶圆体，学名die，封装后就成为一个颗粒。
-	3, chip——芯片
-###chip package
-	1, PGA:Pin Grid Array
-	2, BGA:Ball Grid Array
-	3, DIP:Dual Inline Package,双排直立式封装,黑色长得像蜈蚣
-	4, QFP:塑料方形扁平封装
-###chip test:
-	1, WAT: Wafer Acceptance Test,是晶圆出厂前对testkey的测试
-	2, CP: Circuit Probe/chip probing，是封装前晶圆级别对芯片测试。这里就涉及到测试芯片的基本功能了。
-		通过了这两项后, 晶圆会被切割.
-	3, FT:Final test，封装完成后的测试
-	4, SLT:system level test
-	5, ATE(Auto Test Equipment) 在测试工厂完成. 大致是给芯片的输入管道施加所需的激励信号，
-		同时监测芯片的输出管脚，看其输出信号是否是预期的值。有特定的测试平台。
-###开发板种类(EVB/REF):
-	1, EVB(Evaluation Board) 开发板：软件/驱动开发人员使用EVB开发板验证芯片的正确性，进行软件应用开发
-	2, REF(reference Board) 开发板：参考板
-###JTAG:
-https://blog.csdn.net/beingaz/article/details/7440507
-####JTAG访问ARM通用寄存器
-	下面演示的读取寄存器R0的例子，模拟的ARM指令为STR R0, [R0]，即把R0的值存储到R0为地址的内存，
-	使用这条指令的目的是让R0的值出现在数据总线上。这条指令的执行需要两个执行周期，一是执行地址计算，二是把R0的值放在数据总线上。
-	 1）将INTEST指令写指令寄存器
-	 2） 插入指令STR R0, [R0] & BREAKPT = 0，在Update-DR阶段作用到管脚上，相当于ARM的取指令流水阶段
-	 3） 插入指令MOV R0, R0 & BREAKPT = 0，ARM的指令译码流水阶段
-	 4） 插入指令MOV R0, R0 & BREAKPT = 0，ARM的地址计算
-	 5） 通过扫描链1读出出现在数据总线上的数据，即R0的值，ARM的数据输出阶段
-	 起始访问通用寄存器的基本方法就是使用INTEST指令，插入特定的指令，然后在指令的指定执行阶段读取数据总线(或把数据放置到数据总线),
-	 即可事先对通用寄存器的读写。
-####JTAG访问外部内存
-	访问外部内存，需要MCLK（因为内存是在MCLK的驱动下工作的），通过设置扫描链1的BREAKPT位为1可实现。
-	 1） 把要访问的内存地址写入到R0 （通过2.1的方法）
-	 2） 插入指令LDR R1, [R0]
-	 3） 执行完毕后，读入R1的内容
-	 写内存的方法为先将地址写入R0，值写入R1，然后插入指令STR R1, [R0]
+##ssh原理及相关工具使用
+###ssh
+####ssh报错
+	现象:ssh Unable to negotiate with ip port 22: no matching cipher found. Their offer: aes128-cbc
+	解决方法:
+		vim /etc/ssh/ssh_config
+		将Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-cbc,3des-cbc这一行解注掉
+###ssh-keygen
+###ssh-agent
+###ssh-copy-id
+###scp
 
-##字节序:
-###大小端:
-	1, 大小端就是字节序，大小端的问题主要是由内存中多字节形数据类型的存在而引起的，他的研究单位是字节，
-	对于char型数据类型，就是一个字节，是不存在大小端问题的.
-	2, 字节序经常被分为两类：
-		Big-Endian（大端）：高位字节排放在内存的低地址端，低位字节排放在内存的高地址端。
-		Little-Endian（小端）：低位字节排放在内存的低地址端，高位字节排放在内存的高地址端。
-###网络字节序:
-	1, UDP/TCP/IP协议规定:把接收到的第一个字节当作高位字节看待,网络字节序是大端字节序
-###最高最低有效位:
-	1,	MSB（Most Significant Bit）：最高有效位，二进制中代表最高值的比特位，这一位对数值的影响最大。
-		LSB（Least Significant Bit）：最低有效位，二进制中代表最低值的比特位
+##Folder Sharing:
+###linux/linux share folder:
+	使用NFS:
+		1, server端构建:
+			安装nfs-kernel-server并配置:
+			echo "/home/user/nfs *(rw,sync,no_root_squash)" > /etc/exports
+		2, client端使用:
+			mount -t nfs -o nolock 10.3.153.96:/home/user/nfs /mnt/
+	使用SAMBA:
+		1, server端构建:
+			ubuntu中文件夹右击->属性->共享
+		2, client端使用:
+			在文件浏览器中"挂载"或打开
+###linux/windows share folder:
+	windows作为server，ubuntu作为client:
+		1, server端构建:
+			在windows中选择要共享的文件夹，在文件夹属性中共享即可.
+		2, client端使用:
+			方法一:(这种方法渐渐淘汰)
+				sudo apt install cifs-utils
+				sudo mount.cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw]
+				sudo mount -t cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw]
+				sudo mount.cifs //[address]/[folder] [mount point] -o user=[username],passwd=[pw],uid=[UID]
+				sudo mount.cifs //[address]/[folder] [mount point] -o domain=[domain_name],user=[username],passwd=[pw],uid=[UID]
+			方法二:(ubuntu文件浏览器默认支持)
+				在文件浏览器中"挂载":
+					-->other locations-->connect to server-->输入smb://10.3.153.95/e/
+				在文件浏览器中打开:
+					-->Ctrl + L -->输入smb://10.3.153.95/e/
+	ubuntu作为server，windows作为client:
+		1, server端构建:
+			sudo smbpasswd -a user
+			sudo vim /etc/samba/smb.conf
+			[user]
+			comment = share folder
+			browseable=yes
+			path = /home/user
+			create mask = 0700
+			directory mask = 0700
+			valid users = user
+			force user = user
+			force group = user
+			public = yes
+			available = yes
+			writable = yes
+			注:ubuntu中可以直接右击文件夹-属性中共享，自动安装SAMBA server并配置.
+		2, client端使用:
+			在windows文件浏览器中添加网络驱动器即可.
+###windows/windows share folder:
+		1, server端构建:
+			windows文件夹共享打开即可
+		2, client端使用:
+			在windows文件浏览器中添加网络驱动器即可.
+###SMB/CIFS/SAMBA/NFS:
+	都是协议级别的概念
+	1, Server Message Block - SMB，即服务(器)消息块，是 IBM 公司在 80 年代中期发明的一种文件共享协议。它只是系统之间通信的一种方式（协议），并不是一款特殊的软件。
+	2, Common Internet File System - CIFS，即通用因特网文件系统。CIFS 是 SMB 协议的衍生品，即 CIFS 是 SMB 协议的一种特殊实现，由美国微软公司开发。
+		由于 CIFS 是 SMB 的另一中实现，那么 CIFS 和 SMB 的客户端之间可以互访就不足为奇。
+		二者都是协议级别的概念，名字不同自然存在实现方式和性能优化方面的差别，如文件锁、LAN/WAN 网络性能和文件批量修改等。
+	4, Samba 也是 SMB 协议的实现，与 CIFS 类似，它允许 Windows 客户访问 Linux 系统上的目录、打印机和文件
+	5, Network File System - NFS，即网络文件系统。由 Sun 公司面向 SMB 相同的功能（通过本地网络访问文件系统）而开发，但它与 CIFS/SMB 完全不兼容。
+	   也就是说 NFS 客户端是无法直接与 SMB 服务器交互的。NFS 用于 Linux 系统和客户端之间的连接。而 Windows 和 Linux 客户端混合使用时，就应该使用 Samba。
+	Windows共享文件夹使用的协议是SMB/CIFS
+		SMB:	Server Message Block
+		CIFS:	Common Internet File System
+
+##apt(Advanced Packaging Tool)原理介绍
+	1, 如果有需要，编辑/etc/apt/sources.list，选择源服务器；
+	2, 执行apt update，由所有源服务器提供的软件包资源，生成本地软件包索引；
+	3, 执行apt install或upgrade，真正下载并安装软件包。
+tips:
+	1, man:apt-get(8), apt-cache(8), sources.list(5), apt.conf(5), apt-config(8)
+	2, apt-get install安装目录是包的维护者确定的，不是用户
+		可以预配置的时候通过./configure --help看一下–prefix的默认值是什么，
+		就知道默认安装位置了，或者直接指定安装目录。
+		apt-config dump | grep  -i "dir::cache" show the apt download directory
+	3, redhat主要是rpm和更高级的yum，debian主要是dpkg和更高级的apt。
+###apt与dpkg
+	1, dpkg：是一个底层的工具。上层的工具，如APT，被用于从远程获取软件包以及处理复杂的软件包关系。
+	2, dpkg绕过2113apt包管理数据库对软件5261包4102进行操作，所以你用dpkg安装过的软件包用apt可以再安装一遍，
+	系统不知道之前安装过了，将会覆盖之前dpkg的安装。
+	3, dpkg是用来安装.deb文件,但不会解决模块的依赖关系,且不会关心ubuntu的软件仓库内的软件,可以用于安装本地的deb文件。
+	4, apt会解决和安装模块的依赖问题,并会咨询软件仓库, 但不会安装本地的deb文件, apt是建立在dpkg之上的软件管理工具。
+###apt图形化工具
+	1, software-properties-gtk--->择源，更新，升级等功能
+	2, gnome-software--->搜索安装软件
+###apt相关的文件或目录
+	1, /var/lib/dpkg/available
+	文件的内容是软件包的描述信息, 该软件包括当前系统所使用的 Debian 安装源中的所有软件包,其中包括当前系统中已安装的和未安装的软件包.
+	2, /var/cache/apt/archives
+	目录是在用 apt-get install 安装软件时，软件包的临时存放路径
+	3, /etc/apt/sources.list
+	存放的是软件源站点, 当你执行 sudo apt-get install xxx 时，Ubuntu 就去这些站点下载软件包到本地并执行安装
+	4, /var/lib/apt/lists
+	使用apt-get update命令会从/etc/apt/sources.list中下载软件列表，并保存到该目录
+###update与upgrade与dist-upgrade区别
+	1, update
+		1.1 访问服务器，更新可获取软件及其版本信息，但仅仅给出一个可更新的list，具体更新需要通过apt-get upgrade。
+		1.2 会访问/etc/apt/sources.list源列表里的每个网址，并读取软件列表，然后保存在本地电脑。
+		我们在软件包管理器里看到的软件列表，都是通过update命令更新的。
+		1.3 update是下载源里面的metadata的. 包括这个源有什么包, 每个包什么版本之类的.
+	2, upgrade
+		2.1 apt-get upgrade可将软件进行更新，但是有文章指出不建议一次性全部更新，因为最新的不一定是最好的，有可能出现版本不兼容的情况。
+		2.2 upgrade是根据update命令下载的metadata决定要更新什么包(同时获取每个包的位置).
+	3, dist-upgrade
+		dist-upgrade in addition to performing the function of upgrade
+	总而言之，update是更新软件列表，upgrade是更新软件。
+	安装软件之前, 可以不upgrade, 但是要update. 因为旧的信息指向了旧版本的包, 但是源的服务器更新了之后旧的包可能被新的替代了, 于是你会遇到404...
+###刷新软件源-建立资源索引
+	无论用户使用哪些手段配置APT软件源，只是修改了配置文件——/etc/apt/sources.list，目的只是告知软件源镜像站点的地址。
+	但那些所指向的镜像站点所具有的软件资源并不清楚，需要将这些资源列个清单，以便本地主机知晓可以申请哪些资源。
+	用户可以使用“apt-get update”命令刷新软件源，建立更新软件包列表。在Ubuntu Linux中，“apt-get update”命令会扫描每一个软件源服务器，
+	并为该服务器所具有软件包资源建立索引文件，存放在本地的/var/lib/apt/lists/目录中。
+	使用apt-get执行安装、更新操作时，都将依据这些索引文件，向软件源服务器申请资源。
+	因此，在计算机设备空闲时，经常使用“apt-get update”命令刷新软件源，是一个好的习惯。
+###安装软件包
+	1, 扫描本地存放的软件包更新列表（由“apt-get update”命令刷新更新列表），找到最新版本的软件包；
+	2, 进行软件包依赖关系检查，找到支持该软件正常运行的所有软件包；
+	3, 从软件源所指 的镜像站点中，下载相关软件包, 将下载的包文件存放在本地缓存目录(/var/cache/apt/archives)中；
+	4, 解压软件包，并自动完成应用程序的安装和配置。
+###重新安装
+	apt-get --reinstall install 命令进行软件包的重新安装，将重新获得最新版本。
+	这里有个小的技巧，使用“apt-get install”也可以卸载软件包，只需在要卸载的软件包后标识“-”即可。
+	卸载软件包的过程同后面讲到的“apt-get remove”执行结果是完全相同的。
+	如:sudo apt-get install xchat-
+###更新软件包
+	将系统中的所有软件包一次性升级到最新版本，这个命令就是“apt-get upgrade”，它可以很方便的完成在相同版本号的发行版中更新软件包。
+###添加与删除PPA
+	PPA: Personal Package Archives
+	1, 添加PPA源
+		sudo add-apt-repository ppa:user/ppa-name
+		sudo apt update
+	3, 删除PPA源
+		sudo add-apt-repository -r ppa:user/ppa-name
+		sudo apt update
+	4, 也可以通过软件与更新的其他软件选项可视化操作删除与添加PPA源的过程
+		sudo software-properties-gtk &
+###apt search
+	apt search -f/--full -n/--names-only nautilus //只搜索包名中含有nautilus的条目，并显示详细信息
 
 ##miscellaneous
 ###xdg-open:
@@ -2034,3 +2040,6 @@ https://blog.csdn.net/beingaz/article/details/7440507
 	1）sudo apt-get install open-vm-tools
 	2）sudo apt-get install open-vm-tools-desktop
 	3）#restart the guest operating system
+###终端查看ASCII命令
+	1, man ascii.7
+	2, sudo apt install ascii; ascii
