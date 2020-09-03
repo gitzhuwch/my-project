@@ -26,11 +26,12 @@
 ###vim取消快捷键映射
 	map q <Nop>	//取消烦人的q(recording)功能快捷键,然后就可map qq :qa!<CR>了
 ###vim-plugin:
-	vim插件是通过git clone下载的；
-	下载源有三种:
+	Vundle插件管理器是通过git clone下载插件的；
+	有三种下载源:
 		git clone https://github.com/vim-scripts/项目名     //github中vim-scripts的项目
 		git clone https://github.com/用户名/项目名          //github中私有用户的项目
 		git clone URL                                       //私有项目
+	所以先在github上搜索插件,再添加到vimrc中.
 	1, #如果你的插件是来自github中私有用户的，写在下方，只要用户名/项目名就行了
 		 Bundle 'tpope/vim-fugitive' #如这里就安装了vim-fugitive这个插件
 		 Bundle 'bogado/file-line'

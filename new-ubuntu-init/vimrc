@@ -215,6 +215,7 @@ function! s:startup()
 	if argc() > 0
 		let argidx=argidx()
 		silent call s:handle_arg()
+		"下面一句会触发一个error:当打开的文件存在.swp文件时,会报Error detected while processing function <SNR>7_startup:
 		exec (argidx+1).'argument'
 		" Manually call Syntax autocommands, ignored by `:argdo`.
 		doautocmd Syntax
