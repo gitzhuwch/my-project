@@ -944,8 +944,13 @@
 	1,drivers/tty/pty.c
 ####改变终端标题方法和原理:
 	1,方法:
-		echo -e "\e]0;title-name\a"
-		PS1="\e]0;title-name\a"
+		1)使用PROMPT_COMMAND和PS1俩个变量来实现
+			export PROMPT_COMMAND='echo -ne "\033]0;${USER}@${HOSTNAME}:${PWD}\007"'  //PWD前面的HOME部分不能用~号缩写
+			export PS1="\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$\n\[\033[00m\]->"
+		2)使用PS1一个变量来实现(优先使用此方法)
+			export PS1="\[\e]0;\u@\h:\w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$\n\[\033[00m\]->"
+		3)执行echo命令实现
+			echo -ne "\033]0;${USER}@${HOSTNAME}:${PWD}\007" //只刷新一次,如果想在标题中显示实时目录,这种方法不可取
 	2,原理:
 		1)	https://www.cnblogs.com/fanweisheng/p/11076987.html
 			ESC ] 0 ; txt BEL 	将图标名和窗口标题设为文本.
@@ -954,7 +959,7 @@
 			ESC ] 4 6 ; name BEL 	改变日志文件名(一般由编译时选项禁止)
 			ESC ] 5 0 ; fn BEL 	字体设置为 fn.
 		2)	kernel源码:drivers/tty/vt/vt.c:do_con_trol()
-	3,man文档
+	3,man手册
 		man console_codes //Linux console escape and control sequences
 ###uevent subsystem:
 ####uevent_helper

@@ -1,23 +1,4 @@
-# Set terminal title
-# @param string $1  Tab/window title
-# @param string $2  (optional) Separate window title
-# The latest version of this software can be obtained here:
-# http://fvue.nl/wiki/NameTerminal
-function nameTerminal() {
-	[ "${TERM:0:5}" = "xterm" ]   && local ansiNrTab=0
-	[ "$TERM"       = "rxvt" ]    && local ansiNrTab=61
-	[ "$TERM"       = "konsole" ] && local ansiNrTab=30 ansiNrWindow=0
-	# Change tab title
-	[ $ansiNrTab ] && echo -n $'\e'"]$ansiNrTab;$1"$'\a'
-	# If terminal support separate window title, change window title as well
-	[ $ansiNrWindow -a "$2" ] && echo -n $'\e'"]$ansiNrWindow;$2"$'\a'
-} # nameTerminal()
-
-function stn() {
-	local ORIG=$PS1
-	local TITLE="\e]0;$@\a"
-	PS1=${ORIG}${TITLE}
-}
+#-----------------------------------------------------------------
 alias tags='ctags -R *'
 alias gcf='git cat-file'
 alias gcfp='git cat-file -p'
@@ -25,4 +6,13 @@ PATH=~/bin/:$PATH
 export EDITOR=/usr/bin/vim
 #export PS4='+${BASH_SOURCE}:${LINENO}:${FUNCNAME[0]}: '
 #export PS1="\[\033[36m\]\[\u@\h \w]$\n\[\033[00m\]->"
-export PS1="\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$\n\[\033[00m\]->"
+export PS1="\[\e]0;\u@\h:\w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$\n\[\033[00m\]->"
+#export PROMPT_COMMAND='echo -ne "\033]0;${USER}@${HOSTNAME}:${PWD}\007"'
+function rstn() {
+	local ORIG="\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$\n\[\033[00m\]->"
+	local TITLE="\e]0;\u@\h:<<$@>>\a"
+	export PS1=${TITLE}${ORIG}
+}
+function bstn() {
+	export PS1="\[\e]0;\u@\h:\w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$\n\[\033[00m\]->"
+}
