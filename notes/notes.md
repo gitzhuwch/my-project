@@ -83,6 +83,7 @@
 			then:    sudo apt -y install gdb-multiarch
 		}
 	4, git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+		//也可以从gitee下载,速度更快:git clone https://gitee.com/mirrors/linux.git
 		cd linux
 		vim Makefile
 			CROSS_COMPILE := arm-linux-gnueabi-
@@ -941,7 +942,20 @@
 
 ####/dev/ptmx-/dev/pts/n设备
 	1,drivers/tty/pty.c
-
+####改变终端标题方法和原理:
+	1,方法:
+		echo -e "\e]0;title-name\a"
+		PS1="\e]0;title-name\a"
+	2,原理:
+		1)	https://www.cnblogs.com/fanweisheng/p/11076987.html
+			ESC ] 0 ; txt BEL 	将图标名和窗口标题设为文本.
+			ESC ] 1 ; txt BEL 	将图标名设为文本.
+			ESC ] 2 ; txt BEL 	将窗口名设为文本.
+			ESC ] 4 6 ; name BEL 	改变日志文件名(一般由编译时选项禁止)
+			ESC ] 5 0 ; fn BEL 	字体设置为 fn.
+		2)	kernel源码:drivers/tty/vt/vt.c:do_con_trol()
+	3,man文档
+		man console_codes //Linux console escape and control sequences
 ###uevent subsystem:
 ####uevent_helper
 	1, /sys/kernel/uevent_helper
