@@ -88,23 +88,23 @@
 		vim Makefile
 			CROSS_COMPILE := arm-linux-gnueabi-
 			ARCH ?= arm
-		####do not modify gcc -O0 that will compiling error!! gcc -O can work, but need add local #pragma GCC optimize(O2) for gpu driver code.
+		//do not modify gcc -O0 that will compiling error!! gcc -O can work, but need add local #pragma GCC optimize(O2) for gpu driver code.
 		make vexpress_defconfig
 		make zImage -j2
 	5, git clone --depth=1 git://busybox.net/busybox.git
-		####也可设置为nfs的挂载目录，直接通过网络文件系统进行挂载，便于开发。
+		//也可设置为nfs的挂载目录，直接通过网络文件系统进行挂载，便于开发。
 		cd busybox
 		vim Makefile
-		ARCH ?= arm ###maybe not must
+		ARCH ?= arm //maybe not must
 		CROSS_COMPILE ?= arm-linux-gnueabi-
 		make menuconfig
-			Busybox Settings—>
-				Build Options—>[*] Build Busybox as a static binary(no shared libs)
+			Busybox Settings->
+				Build Options->[*] Build Busybox as a static binary(no shared libs)
 			Installtion Options
 				在busybox instantlltionprefix一栏中，输入你想要创建rootfs的目录,比如我的是/opt/FriendlyARM/mini2440/rootfs。
-			去掉Coreutils—>sync选项；
-			去掉Linux System Utilities—>nsenter选项；
-		make -j4 install  ##busybox会自动将rootfs根文件系统安装到之前设置的目录下
+			去掉Coreutils->sync选项；
+			去掉Linux System Utilities->nsenter选项；
+		make -j4 install  //busybox会自动将rootfs根文件系统安装到之前设置的目录下
 		上述的make install命令完成后，在rootfs目录下仅仅只是创建一个根文件系统的框架，很多系统运行所必须的文件尚未建立成功，必须手动复制进去。
 	    1、复制busybox-1.26.2/examples/bootfloppy/etc整个目录下的全部文件，到rootfs/etc目录下。
 	    2、手动在文件系统中建立如下设备文件：
@@ -118,7 +118,7 @@
 		最后:
 		find . | cpio -o -H newc > rootfs.cpio
 		gzip -c rootfs.cpio > rootfs.cpio.gz
-	6, #qemu-system-arm -kernel ./arch/arm64/boot/Image -append "console=ttyAMA0" -m 2048M -smp 4 -M virt -cpu cortex-a57 -nographic
+	6,	#qemu-system-arm -kernel ./arch/arm64/boot/Image -append "console=ttyAMA0" -m 2048M -smp 4 -M virt -cpu cortex-a57 -nographic
 		#qemu-system-arm -M vexpress-a9 -m 128M -kernel ./arch/arm/boot/zImage -dtb ./arch/arm/boot/dts/vexpress-v2p-ca9.dtb -nographic -append "console=ttyAMA0"
 		qemu-system-arm -M vexpress-a9 -smp 4 -m 1024M -kernel ./arch/arm/boot/zImage -initrd rootfs.cpio.gz -append "rdinit=/linuxrc console=ttyAMA0 loglevel=8" -dtb arch/arm/boot/dts/vexpress-v2p-ca9.dtb -nographic -s -S
 		#must be zImage, Image and vmlinux can't bootup
@@ -1534,7 +1534,7 @@
 ###IC design related:
 ####DMA burst:
 	1, burst传输就是占用多个总线周期，完成一次块传输，此间cpu不能访问总线; DMA占用的周期个数叫做burst length.
-	2, Burst操作还是要通过CPU的参与的，与单独的一次读写操作相比，burst只需要提供一个其实地址就行了，
+	2, Burst操作还是要通过CPU的参与的，与单独的一次读写操作相比，burst只需要提供一个起始地址就行了，
 	以后的地址依次加1，而非burst操作每次都要给出地址，以及需要中间的一些应答、等待状态等等。
 	如果是对地址连续的读取，burst效率高得多，但如果地址是跳跃的，则无法采用burst操作
 	3, DMA controler支持链表的，美其名曰“scatter”，内核有struct scatter可以参考
