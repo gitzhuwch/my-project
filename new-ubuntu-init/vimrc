@@ -50,25 +50,36 @@ if has("autocmd")
   autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
 endif
 
+"Like CTRL-], but use :tselect instead of :tag
 map <C-]> g]
+"取消w/q定义,避免与下面部分快捷键冲突,CTRL-s:block window and CTRL-q:going on
 map q <Nop>
 map Q <Nop>
 map w <Nop>
 map W <Nop>
-"取消w/q定义,避免与下面部分快捷键冲突,CTRL-s:block window and CTRL-q:going on
+"保存/退出
 map qq :qa!<CR>
 map <Leader>q :q!<CR>
 map ww :wa<CR>
 map <Leader>w :w<CR>
 map b :bn<CR>
 map B :bp<CR>
+"切换窗口
 map <C-Left> <C-w>h
 map <C-Right> <C-w>l
-map ss :%s/\s\+$//g<CR>
+map <C-Up> <C-w>k
+map <C-Down> <C-w>j
 nnoremap <Leader>l <C-W>l
 nnoremap <Leader>h <C-W>h
 nnoremap <Leader>k <C-W>k
 nnoremap <Leader>j <C-W>j
+"改变窗口高度/宽度
+map <S-Left> <C-w><
+map <S-Right> <C-w>>
+map <S-Up> <C-w>+
+map <S-Down> <C-w>-
+"删除空格
+map ss :%s/\s\+$//g<CR>
 
 filetype off
 set rtp+=~/.vim/bundle/Vundle.vim/
