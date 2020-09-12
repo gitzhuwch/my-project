@@ -79,7 +79,7 @@ map <S-Right> <C-w>>
 map <S-Up> <C-w>+
 map <S-Down> <C-w>-
 "删除空格
-map ss :%s/\s\+$//g<CR>
+map <Leader>s :%s/\s\+$//g<CR>
 
 filetype off
 set rtp+=~/.vim/bundle/Vundle.vim/
@@ -99,6 +99,7 @@ Plugin 'scrooloose/nerdcommenter'
 Plugin 'taglist.vim'
 Plugin 'minibufexpl.vim'
 Plugin 'DoxygenToolkit.vim'
+Plugin 'auto-pairs'
 call vundle#end()
 filetype plugin indent on
 " Brief help
@@ -142,6 +143,9 @@ nmap <Leader>f :Dox<CR>
 "显示函数列表
 nmap tt :TlistToggle<CR>
 
+"buffers list preview
+nmap mm :TMiniBufExplorer<CR>
+let g:miniBufExplorerMoreThanOne=0
 """""""""""""""""""""""""""""""""""""""""在此分割线以上添加""""""""""""""""""""""""""""""""""""""""
 "Plugin 'bogado/file-line'
 " Avoid installing twice or when in unsupported Vim version.
