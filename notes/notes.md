@@ -229,6 +229,10 @@
     set var $task_struct =(struct task_struct *)($threadinfo->task)
     printf "pid:%d; comm:%s\n", $task_struct.pid, $task_struct.comm
 	end
+####monitor
+	Send a command to the remote monitor (remote targets only).
+	:monitor reset halt
+	:monitor exit
 
 ###GCC:
 	GNU Compiler Collection
@@ -1558,6 +1562,10 @@
 	 2） 插入指令LDR R1, [R0]
 	 3） 执行完毕后，读入R1的内容
 	 写内存的方法为先将地址写入R0，值写入R1，然后插入指令STR R1, [R0]
+#####JLink/Trace32配置文件
+	JLink:xx.svd
+	Trace32:xx.comm
+
 ###wafer/die/chip:
 	1, wafer——晶圆
 	2, die——晶粒,Wafer上的一个小块，就是一个晶片晶圆体，学名die，封装后就成为一个颗粒。
@@ -2063,3 +2071,7 @@ tips:
 ###终端查看ASCII命令
 	1, man ascii.7
 	2, sudo apt install ascii; ascii
+###printf打印编译时间
+	1, printf(__DATE__);
+	2, printf(__TIME__);
+	minicom也可以看log时间
