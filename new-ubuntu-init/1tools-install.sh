@@ -14,6 +14,7 @@ sudo apt -y install openssh-server #sshd
 sudo apt -y install minicom
 sudo apt -y install tree
 sudo apt -y install nfs-kernel-server
+sudo apt -y install tmux
 
 ###下面用到时再装
 ##for linux 5.5 building
