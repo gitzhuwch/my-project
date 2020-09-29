@@ -69,6 +69,28 @@
 		because prefix 'n'
 		nnoremap nw <C-W><C-W>
 
+##tmux:
+###概念
+	1,server/session/window/pane:
+	tmux是基于C/S架构的
+	一个tmux server上可创建多个session,
+	一个session可创建多个window,
+	一个window可分割成多个pane.
+	每一个pane都对应一个虚拟终端:/dev/ps/xx
+###不要会话嵌套
+	sessions should be nested with care, unset $TMUX to force
+###tpm插件管理
+	tpm (Tmux Plugin Manager)
+	git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+	<Ctrl>-b + <Shift>-i //安装插件
+	<Ctrl>-b + <Shift>-u //更新插件
+	<Ctrl>-b + <Alt>-u   //删除插件
+####resurrect
+	恢复窗口布局插件
+	prefix + <Ctrl>-s手动备份，用prefix + <Ctrl>-r手动恢复
+####continuum
+	每隔15分钟备份一次布局
+
 ##kernel debug methods:
 ###qemu32-arm:
 	1, sudo apt -y install qemu-system-arm
@@ -229,10 +251,13 @@
     set var $task_struct =(struct task_struct *)($threadinfo->task)
     printf "pid:%d; comm:%s\n", $task_struct.pid, $task_struct.comm
 	end
-####monitor
+####cmd:monitor
 	Send a command to the remote monitor (remote targets only).
 	:monitor reset halt
 	:monitor exit
+####cmd:file&load
+	file -- Use FILE as program to be debugged
+	load -- Dynamically load FILE into the running program.
 
 ###GCC:
 	GNU Compiler Collection

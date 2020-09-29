@@ -77,6 +77,14 @@ cp -f ./vimrc ~/.vimrc
 vim -c PluginInstall -c qa!
 
 #-------------------------------------------------------------
+#tmux config:
+if [ ! -d ~/.tmux/plugins/tpm ]; then
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+fi
+cp -f ./tmux.conf ~/.tmux.conf
+#-------------------------------------------------------------
+
+#-------------------------------------------------------------
 #gnome-control-center config:
 #	----
 #-------------------------------------------------------------

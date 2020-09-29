@@ -27,6 +27,10 @@ if [ ! -d ~/.vim ]; then
 mkdir ~/.vim
 fi
 
+if [ ! -d ~/.tmux ]; then
+mkdir ~/.tmux
+fi
+
 ./1tools-install.sh
 
 #tips: do not use "sudo ./2configs.sh" this will config in /root/ directory
