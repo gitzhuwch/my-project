@@ -68,6 +68,28 @@
 	2, below setting will cause vim search speed slowdown!!
 		because prefix 'n'
 		nnoremap nw <C-W><C-W>
+###左中右对齐
+	:17,57 left
+	:17,57 center
+	:17,57 right
+###数字自增/自减
+	1, ctrl + a：数字自动增加1
+	2, number + ctrl + a：数字自动增加number
+	3, ctrl + x：数字自动减小1
+	4, number + ctrl + x：数字自动减小number
+	5, :let i=1
+	   :g/^/ s//\=i . ' '/ |let i=i+1
+	6, :s/^/\=range(5, 100)
+	   :s/^/\=range(5, 100, 2) //步进为2的数字序列
+###十进制转十六进制
+	:%s/\d\+/\=printf("%X", submatch(0))/g
+	%s            在整个文件中替换 (:help :s )
+	\d\+            匹配一个或多个数字 (:help /\d  :help /\+ )
+	\=           使用表达式的结果进行替换 (:help /\w )
+	printf        按指定格式输出 (:help printf() )
+	submatch()    返回:s命令中的指定匹配字符串 (:help submatch() )
+	g           替换行内所有出现的匹配 (:help :s_flags)
+	看来，替换命令的巧妙使用可以完成很多意想不到的功能！
 
 ##tmux:
 ###概念
