@@ -280,6 +280,8 @@
 ####cmd:file&load
 	file -- Use FILE as program to be debugged
 	load -- Dynamically load FILE into the running program.
+####set confirm off
+	关闭gdb命令的确认交互
 
 ###GCC:
 	GNU Compiler Collection
