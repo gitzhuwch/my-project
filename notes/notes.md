@@ -23,6 +23,9 @@
 ###vim中显示变量值
 	echo &var //显示vim自定义变量值
 	echo $var //显示系统环境变量值
+	:se[t] Show all options that differ from their default value
+	:set encoding?
+	:set expandtab //当使用tab键时会替换成相应数目的空格
 ###vim取消快捷键映射
 	map q <Nop>	//取消烦人的q(recording)功能快捷键,然后就可map qq :qa!<CR>了
 ###vim-plugin:
@@ -90,6 +93,27 @@
 	submatch()    返回:s命令中的指定匹配字符串 (:help submatch() )
 	g           替换行内所有出现的匹配 (:help :s_flags)
 	看来，替换命令的巧妙使用可以完成很多意想不到的功能！
+###vim删除空行的4种技巧
+	1, :g/^\s*$/d
+	   使用 global 命令删除Vim空白行
+	2, :v/./d
+	   使用 vglobal 命令删除Vim文件空行,vglobal用于执行与 global 命令完全相反的操作
+	   . 用于匹配除换行符 \n 外的任何单字符
+	3, :%!grep -v '^\s*$'
+	   执行 shell 命令删除Vim文件空行,cat -s test.txt 可将 test.txt 文件中的连续空白行替换为一个空白行
+	   而 grep -v '^\s*$' test.txt 命令可用于过滤 test.txt 文件中的所有空白行
+	   符号 % 代表当前文件的完整路径
+	4, :%s/^\s*$\n//g
+	   使用替换命令substitute删除Vim文件空白行
+	   :substitute 命令 (缩写形式 :s) 可以将指定的字符替换成其他目标字符
+###显示不可见字符
+	cat -A file可以把文件中的所有可见的和不可见的字符都显示出来
+	可以这样:%!cat -A在Vim中调用cat转换显示,这样的做法不便于编辑
+	:set invlist即可以将不可见的字符显示出来，例如，会以^I表示一个tab符，$表示一个回车符等.
+	或者，你还可以自己定义不可见字符的显示方式：
+	set listchars=eol:$,tab:>-,trail:~,extends:>,precedes:<
+	set list
+	最后，:set nolist可以回到正常的模式
 
 ##tmux:
 ###概念
@@ -2014,7 +2038,7 @@ tips:
 	3, redhat主要是rpm和更高级的yum，debian主要是dpkg和更高级的apt。
 ###apt与dpkg
 	1, dpkg：是一个底层的工具。上层的工具，如APT，被用于从远程获取软件包以及处理复杂的软件包关系。
-	2, dpkg绕过2113apt包管理数据库对软件5261包4102进行操作，所以你用dpkg安装过的软件包用apt可以再安装一遍，
+	2, dpkg绕过apt包管理数据库对软件包进行操作，所以你用dpkg安装过的软件包用apt可以再安装一遍，
 	系统不知道之前安装过了，将会覆盖之前dpkg的安装。
 	3, dpkg是用来安装.deb文件,但不会解决模块的依赖关系,且不会关心ubuntu的软件仓库内的软件,可以用于安装本地的deb文件。
 	4, apt会解决和安装模块的依赖问题,并会咨询软件仓库, 但不会安装本地的deb文件, apt是建立在dpkg之上的软件管理工具。
@@ -2124,3 +2148,12 @@ tips:
 	1, printf(__DATE__);
 	2, printf(__TIME__);
 	minicom也可以看log时间
+###C语言中续行符“\”
+	1, 根据定义，一条预处理指示只能由一个逻辑代码行组成,
+	   所以，把一个预处理指示写成多行要用“\”续行.
+	2, 而把C代码写成多行则不必使用续行符，因为换行在C代码中只不过是一种空白字符,
+	   在做语法解析时所有空白字符都被丢弃了
+	3, 在Linux的shell命令中亦可使用该换行符，在击回车键之前输入“\”，即可实现多行命令输入。
+	4, 注意：这种续行的写法要求“\”后面紧跟换行符，中间不能有任何其他的字符。
+	5, 宏定义规定，宏定义必须在一行里完成。所以用#define定义宏定义时，有时为了阅读方便，
+	   就加续行符"\"来换行。在普通代码行后面加不加都一样
