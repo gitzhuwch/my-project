@@ -1,5 +1,46 @@
 #all my notes below:
 ##vim:
+###principle
+	:help window -->/usr/share/vim/vim81/doc/windows.txt
+	Summary:
+	A buffer is the in-memory text of a file.
+	A window is a viewport on a buffer.
+	A tab page is a collection of windows.
+	:help tabpage -->/usr/share/vim/vim81/doc/tabpage.txt
+	A tab page holds one or more windows.
+###tabline
+	When nonempty, this option determines the content of the tab pages
+	line at the top of the Vim window.  When empty Vim will use a default
+	tab pages line.  See setting-tabline for more info.
+
+	The tab pages line only appears as specified with the 'showtabline'
+	option and only when there is no GUI tab line.  When 'e' is in
+	'guioptions' and the GUI supports a tab line 'guitablabel' is used
+	instead.  Note that the two tab pages lines are very different.
+
+	The value is evaluated like with 'statusline'.  You can use
+	tabpagenr(), tabpagewinnr() and tabpagebuflist() to figure out
+	the text to be displayed.  Use "%1T" for the first label, "%2T" for
+	the second one, etc.  Use "%X" items for closing labels.
+###statusline
+	When nonempty, this option determines the content of the status line.
+	Also see status-line.
+
+	The option consists of printf style '%' items interspersed with
+	normal text.  Each status line item is of the form:
+	  %-0{minwid}.{maxwid}{item}
+	All fields except the {item} are optional.  A single percent sign can
+	be given as "%%".  Up to 80 items can be specified.  E541
+
+	When the option starts with "%!" then it is used as an expression,
+	evaluated and the result is used as the option value.  Example:
+	        :set statusline=%!MyStatusLine()
+	The g:statusline_winid variable will be set to the window-ID of the
+	window that the status line belongs to.
+
+###minibufexplr/airline区别
+	前者是基于window原理实现的(新建窗口来显示buffer name)，后者是基于tabpage原理实现的(修改tabline)
+	大多插件是新建window来实现的，缺点是窗口显示易出问题.
 ###vim:
 	sudo apt -y install vim
 	1, 查看系统已有键盘映射命令： :map

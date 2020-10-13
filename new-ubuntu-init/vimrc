@@ -23,6 +23,8 @@ set mouse=a
 set tabstop=4
 set softtabstop=4
 set shiftwidth=4
+"set expandtab "replace tab with space
+"set encoding=utf-8
 set autoindent
 set cindent
 set cinoptions={0,1s,t0,n-2,p2s,(03s,=.5s,>1s,=1s,:1s
@@ -97,9 +99,15 @@ Plugin 'scrooloose/nerdcommenter'
 "Plugin 'bogado/file-line' "static add at end of this file
 "如果插件来自 vim-scripts，你直接写插件名就行了
 Plugin 'taglist.vim'
-Plugin 'minibufexpl.vim'
+"Plugin 'minibufexpl.vim' "窗口显示易出问题,用airline.vim替代
 Plugin 'DoxygenToolkit.vim'
 Plugin 'auto-pairs'
+
+"Plugin 'vim-airline/vim-airline'
+Plugin 'vim-airline'
+Plugin 'vim-airline/vim-airline-themes'
+"Plugin 'Molokai'
+
 call vundle#end()
 filetype plugin indent on
 " Brief help
@@ -110,11 +118,15 @@ filetype plugin indent on
 " see :h vundle for more details or wiki for FAQ
 " Put your non-Plugin stuff after this line
 
+"TAGLIST CONFIG......
 let Tlist_Ctags_Cmd = '/usr/bin/ctags' "告知系统生成tag的程序的位置
 let Tlist_Show_One_File = 1 "不同时显示多个文件的tag，只显示当前文件的
 let Tlist_Exit_OnlyWindow = 1 "如果taglist窗口是最后一个窗口，则退出vim
 let Tlist_Use_Right_Window = 1 "在左侧窗口中显示taglist窗口
+"显示函数列表
+nmap tt :TlistToggle<CR>
 
+"MARKDOWN CONFIG......
 "let g:vim_markdown_toc_autofit = 1
 let g:vim_markdown_math = 1
 let g:vim_markdown_fenced_languages = ['csharp=cs']
@@ -123,7 +135,12 @@ let g:vim_markdown_new_list_item_indent = 2
 let g:vim_markdown_no_extensions_in_markdown = 1
 let g:vim_markdown_autowrite = 1
 let g:vim_markdown_auto_extension_ext = 'txt'
+"autocmd FileType markdown :Toc "confict with file-line plugin
+autocmd FileType markdown nmap <Leader>tt :Toc<CR>
+autocmd FileType markdown set syntax=off
+"autocmd Filetype markdown inoremap <buffer> <silent> ,3 ###<Space><Enter><++><Esc>kA
 
+"NERDTREE CONFIG......
 "使用 NERDTree 插件查看工程文件。设置快捷键，速记：file list
 nmap ff :NERDTreeToggle<CR>
 let NERDTreeWinSize=22 "设置 NERDTree 子窗口宽度
@@ -132,20 +149,32 @@ let NERDTreeWinPos="left" "设置 NERDTree 子窗口位置
 let NERDTreeMinimalUI=1 "NERDTree 子窗口中不显示冗余帮助信息
 let NERDTreeAutoDeleteBuffer=1 "删除文件时自动删除文件对应 buffer
 
-"autocmd FileType markdown :Toc "confict with file-line plugin
-autocmd FileType markdown nmap <Leader>tt :Toc<CR>
-autocmd FileType markdown set syntax=off
-"autocmd Filetype markdown inoremap <buffer> <silent> ,3 ###<Space><Enter><++><Esc>kA
-
+"DOXYGENTOOLKIT CONFIG......
 "添加函数原型说明
 nmap <Leader>f :Dox<CR>
 
-"显示函数列表
-nmap tt :TlistToggle<CR>
-
+"MINIBUFEREXPL CONFIG......
 "buffers list preview
-nmap mm :TMiniBufExplorer<CR>
-let g:miniBufExplorerMoreThanOne=0
+"nmap mm :TMiniBufExplorer<CR>
+"let g:miniBufExplorerMoreThanOne=0
+
+"AIRLINE CONFIG......
+"let g:airline_theme="molokai"
+let g:airline#extensions#tabline#enabled = 1 " 显示窗口tab和buffer
+let g:airline#extensions#tabline#buffer_nr_show = 1
+"let g:airline#extensions#tabline#left_sep = ' '
+"let g:airline#extensions#tabline#left_alt_sep = '|'
+"let g:airline_left_alt_sep = '>'
+"let g:airline_right_alt_sep = '<'
+let g:airline_theme='bubblegum'
+"let g:airline_theme='serene'
+"let g:airline_theme='dark'
+"let g:airline#extensions#tabline#tab_nr_type = 1 " tab number
+"let g:airline#extensions#tabline#formatter = 'default'
+"let g:airline#extensions#tabline#fnametruncate = 16
+"let g:airline#extensions#tabline#fnamecollapse = 2
+"let g:airline#extensions#tabline#buffer_idx_mode = 1
+
 """""""""""""""""""""""""""""""""""""""""在此分割线以上添加""""""""""""""""""""""""""""""""""""""""
 "Plugin 'bogado/file-line'
 " Avoid installing twice or when in unsupported Vim version.
