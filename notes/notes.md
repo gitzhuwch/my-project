@@ -126,14 +126,16 @@
 	6, :s/^/\=range(5, 100)
 	   :s/^/\=range(5, 100, 2) //步进为2的数字序列
 ###十进制转十六进制
-	:%s/\d\+/\=printf("%X", submatch(0))/g
-	%s            在整个文件中替换 (:help :s )
-	\d\+            匹配一个或多个数字 (:help /\d  :help /\+ )
-	\=           使用表达式的结果进行替换 (:help /\w )
-	printf        按指定格式输出 (:help printf() )
-	submatch()    返回:s命令中的指定匹配字符串 (:help submatch() )
-	g           替换行内所有出现的匹配 (:help :s_flags)
-	看来，替换命令的巧妙使用可以完成很多意想不到的功能！
+	vim command:
+		:%s/\d\+/\=printf("%X", submatch(0))/g
+	explain:
+		%s            在整个文件中替换 (:help :s )
+		\d\+            匹配一个或多个数字 (:help /\d  :help /\+ )
+		\=           使用表达式的结果进行替换 (:help /\w )
+		printf        按指定格式输出 (:help printf() )
+		submatch()    返回:s命令中的指定匹配字符串 (:help submatch() )
+		g           替换行内所有出现的匹配 (:help :s_flags)
+		看来，替换命令的巧妙使用可以完成很多意想不到的功能！
 ###vim删除空行的4种技巧
 	1, :g/^\s*$/d
 	   使用 global 命令删除Vim空白行
@@ -484,6 +486,9 @@
 	解决方法:
 		1, 使用gitee.com网站,目前免费,速度1~3MB/s
 		2, 使用gitclone.com,是github的缓存服务器,命令:git clone https://gitclone.com/github.com/gitzhuwch/my-project
+####hooks script从哪来?
+	man git-init:
+		/usr/share/git-core/templates
 
 ###repo:
 	1, sudo apt -y install repo
@@ -2198,3 +2203,11 @@ tips:
 	4, 注意：这种续行的写法要求“\”后面紧跟换行符，中间不能有任何其他的字符。
 	5, 宏定义规定，宏定义必须在一行里完成。所以用#define定义宏定义时，有时为了阅读方便，
 	   就加续行符"\"来换行。在普通代码行后面加不加都一样
+###find忽略某个目录:
+    eg:
+        sudo find / -name "commit-msg.sample" -not -path "/home/*"
+        sudo find / -name "commit-msg.sample" ! -path "/home/*"
+        sudo find / -name "commit-msg.sample" -o -path "/home/*" -prune
+###grep忽略某个目录:
+    eg:
+        grep "grep" ./ --exclude-dir=notes -rn
