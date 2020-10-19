@@ -53,9 +53,11 @@
 		let cmd = 'git clone --depth=1 --recursive '.vundle#installer#shellesc(a:bundle.uri).' '.vundle#installer#shellesc(a:bundle.path())
 		vim input command:PluginInstall
 		wait complete......
-		vim ~/.vim/bundle/Vundle.vim/ftplugin/markdown.vim  // resize table of contents window
+		vim ~/.vim/bundle/vim-markdown/ftplugin/markdown.vim  //resize table of contents window
           execute 'vertical resize ' . (&columns/2)
           execute 'vertical resize ' . (&columns/6)
+          ......
+          call setline(i, repeat('    ', l:level). d.text)
 	4, CTRL-G == :f :file "show current file path
 	5, :help CTRL-] == :tag {ident}
 	6,	A buffer is the in-memory text of a file.

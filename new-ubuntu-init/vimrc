@@ -1,6 +1,6 @@
 let mapleader=";"
 set nocompatible
-autocmd BufWritePost $MYVIMRC source $MYVIMRC
+"autocmd BufWritePost $MYVIMRC source $MYVIMRC
 set wildmenu "vim 自身命令行模式智能补全
 set nu
 set laststatus=2
@@ -107,7 +107,8 @@ Plugin 'auto-pairs'
 Plugin 'vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
 "Plugin 'Molokai'
-
+Plugin 'nathanaelkane/vim-indent-guides'
+"Plugin 'Yggdroot/indentLine'
 call vundle#end()
 filetype plugin indent on
 " Brief help
@@ -118,7 +119,7 @@ filetype plugin indent on
 " see :h vundle for more details or wiki for FAQ
 " Put your non-Plugin stuff after this line
 
-"TAGLIST CONFIG......
+"-------------------------plugin-configs-----------------------
 let Tlist_Ctags_Cmd = '/usr/bin/ctags' "告知系统生成tag的程序的位置
 let Tlist_Show_One_File = 1 "不同时显示多个文件的tag，只显示当前文件的
 let Tlist_Exit_OnlyWindow = 1 "如果taglist窗口是最后一个窗口，则退出vim
@@ -126,7 +127,7 @@ let Tlist_Use_Right_Window = 1 "在左侧窗口中显示taglist窗口
 "显示函数列表
 nmap tt :TlistToggle<CR>
 
-"MARKDOWN CONFIG......
+"-------------------------plugin-configs-----------------------
 "let g:vim_markdown_toc_autofit = 1
 let g:vim_markdown_math = 1
 let g:vim_markdown_fenced_languages = ['csharp=cs']
@@ -140,7 +141,7 @@ autocmd FileType markdown nmap <Leader>tt :Toc<CR>
 autocmd FileType markdown set syntax=off
 "autocmd Filetype markdown inoremap <buffer> <silent> ,3 ###<Space><Enter><++><Esc>kA
 
-"NERDTREE CONFIG......
+"-------------------------plugin-configs-----------------------
 "使用 NERDTree 插件查看工程文件。设置快捷键，速记：file list
 nmap ff :NERDTreeToggle<CR>
 let NERDTreeWinSize=22 "设置 NERDTree 子窗口宽度
@@ -149,16 +150,16 @@ let NERDTreeWinPos="left" "设置 NERDTree 子窗口位置
 let NERDTreeMinimalUI=1 "NERDTree 子窗口中不显示冗余帮助信息
 let NERDTreeAutoDeleteBuffer=1 "删除文件时自动删除文件对应 buffer
 
-"DOXYGENTOOLKIT CONFIG......
+"-------------------------plugin-configs-----------------------
 "添加函数原型说明
-nmap <Leader>f :Dox<CR>
+nmap <Leader>d :Dox<CR>
 
-"MINIBUFEREXPL CONFIG......
+"-------------------------plugin-configs-----------------------
 "buffers list preview
 "nmap mm :TMiniBufExplorer<CR>
 "let g:miniBufExplorerMoreThanOne=0
 
-"AIRLINE CONFIG......
+"-------------------------plugin-configs-----------------------
 "let g:airline_theme="molokai"
 let g:airline#extensions#tabline#enabled = 1 " 显示窗口tab和buffer
 let g:airline#extensions#tabline#buffer_nr_show = 1
@@ -176,6 +177,13 @@ let g:airline_theme='bubblegum'
 "let g:airline#extensions#tabline#fnamecollapse = 2
 "let g:airline#extensions#tabline#buffer_idx_mode = 1
 
+"-------------------------plugin-configs-----------------------
+"let g:indent_guides_enable_on_vim_startup = 1 "vim启动时启用
+let g:indent_guides_start_level = 1            "开始显示对齐线的缩进级别
+let g:indent_guides_guide_size = 1             "对齐线的宽度，（1字符）
+let g:indent_guides_tab_guides = 0             "对tab对齐的禁用
+autocmd FileType markdown IndentGuidesEnable
+"already map ;ig IndentGuidesToggle
 """""""""""""""""""""""""""""""""""""""""在此分割线以上添加""""""""""""""""""""""""""""""""""""""""
 "Plugin 'bogado/file-line'
 " Avoid installing twice or when in unsupported Vim version.
