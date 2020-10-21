@@ -1540,13 +1540,13 @@
     这种例子其实还有很多，比方说两人相亲，男方等待女方给个确定相处的信，男方不可能因为女方不给信，就永远等待下去，双方需要一个时间节点。
     这个时间节点，就是说超过这个时间之后，不能再等了，程序还要继续运行，需要采取其他的行动来解决问题。
 
-##linux sound architecture:
+##linux sound architecture?
 ###Advanced Linux Sound Architecture:
 
-##linux media architecture:
+##linux media architecture?
 ###Video4Linux:
 
-##linux USB framework:
+##linux USB framework?
     universal serial bus
 
 ##linux参数传递和管理:
@@ -1611,6 +1611,65 @@
         return 0;
     }
     subsys_initcall(param_sysfs_init);
+##Linux权限管理
+###Linux文件权限?
+###Linux进程权限?
+###Linux accounts management:
+    1, su - username (Provide an environment similar to what the user would expect had the user logged in directly)
+    2, users: print the user names of users currently logged in to the current host
+    3, w: Show who is logged on and what they are doing
+    4, 查看当前登录
+        w
+        who
+        users
+       查看系统中所有用户：
+        grep bash /etc/passwd
+        或者：
+        cat /etc/passwd | cut -f 1 -d:
+    5, users/w/who command principe: read登录记录文件(/var/run/utmp)
+####useradd与adduser
+    1, useradd is a low level utility for adding users. On Debian, administrators should usually use adduser(8) instead
+    2, file /usr/sbin/adduser
+        /usr/sbin/adduser: Perl script text executable
+    3, file /usr/sbin/useradd
+        /usr/sbin/useradd: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked
+####Linux用户类型:
+    Linux用户类型分为 3 类：超级用户、系统用户和普通用户。
+    超级用户：用户名为 root 或 USER ID(UID)为0的账号，具有一切权限，可以操作系统中的所有资源。root可以进行基础的文件操作以及特殊的文件管理，
+              另外还可以进行网络管理，可以修改系统中的任何文件。日常工作中应避免使用此类账号，只有在必要的时候才使用root登录系统。
+    系统用户：正常运行系统时使用的账户。每个进程运行在系统里都有一个相应的属主，比如某个进程以何种身份运行，
+              这些身份就是系统里对应的用户账号。注意系统账户是不能用来登录的，比如 bin、daemon、mail等。
+    普通用户：普通使用者，能使用Linux的大部分资源，一些特定的权限受到控制。用户只对自己的目录有写权限，读写权限受到一定的限制，
+              从而有效保证了Linux的系统安全，大部分用户属于此类, 普通用户可用来登录。
+####Linux用户帐户创建:
+    1, sudo useradd -r 创建系统级用户，不能登录
+                 -m 生成家目录
+                 -s /bin/bash 指定用户交互程序
+                 gitolite 用户名
+    2, sudo adduser gitolite 这个命令是useradd的封装，自动做了一些事
+####usermod修改用户帐户
+    usermod:modify a user account
+        -d, --home HOME_DIR  --->修改用户家目录
+        The user's new login directory.
+    修改gerrit用户添加到sudo组中，这样gerrit用户能使用sudo，俩中方法如下:
+    > sudo usermod gerrit gerrit,sudo
+    > sudo usermod -a -G sudo gerrit //-a表示追加用户组, sudo代表要追加的组，gerrit代表用户名
+####帐户登录或切换:sudo/su/login
+    1, -E, --preserve-env  preserve user environment when running command
+        sudo -E ./t7gdb vmlinux
+            gdb:edit start_kernel   (success)
+        sudo ./t7gdb vmlinux
+            gdb:edit start_kernel   (failed)
+    2,  su -l username
+        su - username //login as username
+    3,  sudo:   execute a command as another user
+        su:     The su command is used to become another user during a login session.
+        login:  The login program is used to establish a new session with the system.
+    4, 使用sudo时报错误
+        test is not in the sudoers file.  This incident will be reported.
+        resolve mathods:解决方法
+            a) modify /etc/sudoers
+            b) modify user group to sudo group
 
 ##Bootloader:
 ###Bootloader种类
@@ -1952,63 +2011,6 @@ https://www.cnblogs.com/hwli/p/8633314.html:
     4， 修改该分区文件系统大小
         使用resize2fs命令
 
-##Linux accounts management:
-    1, su - username (Provide an environment similar to what the user would expect had the user logged in directly)
-    2, users: print the user names of users currently logged in to the current host
-    3, w: Show who is logged on and what they are doing
-    4, 查看当前登录
-        w
-        who
-        users
-       查看系统中所有用户：
-        grep bash /etc/passwd
-        或者：
-        cat /etc/passwd | cut -f 1 -d:
-    5, users/w/who command principe: read登录记录文件(/var/run/utmp)
-###useradd与adduser
-    1, useradd is a low level utility for adding users. On Debian, administrators should usually use adduser(8) instead
-    2, file /usr/sbin/adduser
-        /usr/sbin/adduser: Perl script text executable
-    3, file /usr/sbin/useradd
-        /usr/sbin/useradd: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked
-###Linux用户类型:
-    Linux用户类型分为 3 类：超级用户、系统用户和普通用户。
-    超级用户：用户名为 root 或 USER ID(UID)为0的账号，具有一切权限，可以操作系统中的所有资源。root可以进行基础的文件操作以及特殊的文件管理，
-              另外还可以进行网络管理，可以修改系统中的任何文件。日常工作中应避免使用此类账号，只有在必要的时候才使用root登录系统。
-    系统用户：正常运行系统时使用的账户。每个进程运行在系统里都有一个相应的属主，比如某个进程以何种身份运行，
-              这些身份就是系统里对应的用户账号。注意系统账户是不能用来登录的，比如 bin、daemon、mail等。
-    普通用户：普通使用者，能使用Linux的大部分资源，一些特定的权限受到控制。用户只对自己的目录有写权限，读写权限受到一定的限制，
-              从而有效保证了Linux的系统安全，大部分用户属于此类, 普通用户可用来登录。
-###Linux用户帐户创建:
-    1, sudo useradd -r 创建系统级用户，不能登录
-                 -m 生成家目录
-                 -s /bin/bash 指定用户交互程序
-                 gitolite 用户名
-    2, sudo adduser gitolite 这个命令是useradd的封装，自动做了一些事
-###usermod修改用户帐户
-    usermod:modify a user account
-        -d, --home HOME_DIR  --->修改用户家目录
-        The user's new login directory.
-    修改gerrit用户添加到sudo组中，这样gerrit用户能使用sudo，俩中方法如下:
-    > sudo usermod gerrit gerrit,sudo
-    > sudo usermod -a -G sudo gerrit //-a表示追加用户组, sudo代表要追加的组，gerrit代表用户名
-###帐户登录或切换:sudo/su/login
-    1, -E, --preserve-env  preserve user environment when running command
-        sudo -E ./t7gdb vmlinux
-            gdb:edit start_kernel   (success)
-        sudo ./t7gdb vmlinux
-            gdb:edit start_kernel   (failed)
-    2,  su -l username
-        su - username //login as username
-    3,  sudo:   execute a command as another user
-        su:     The su command is used to become another user during a login session.
-        login:  The login program is used to establish a new session with the system.
-    4, 使用sudo时报错误
-        test is not in the sudoers file.  This incident will be reported.
-        resolve mathods:解决方法
-            a) modify /etc/sudoers
-            b) modify user group to sudo group
-
 ##ssh原理及相关工具使用
 ###ssh
 ####ssh报错
@@ -2227,3 +2229,29 @@ tips:
 ###grep忽略某个目录:
     eg:
         grep "grep" ./ --exclude-dir=notes -rn
+###volatile
+    1,  volatile 关键字是一种类型修饰符，用它声明的类型变量表示可以被某些编译器未知的因素更改，
+        比如：操作系统、硬件或者其它线程.遇到这个关键字声明的变量，编译器对访问该变量的代码就不再进行优化，
+        从而可以提供对特殊地址的稳定访问。当要求使用 volatile 声明的变量的值的时候,
+        系统总是重新从它所在的内存读取数据，即使它前面的指令刚刚从该处读取过数据。而且读取的数据立刻被保存。例如：
+        {
+            volatile int i=10;
+            int a = i;
+            ... // 在此期间其他代码或硬件，并未明确告诉编译器，对 i 进行过操作
+            int b = i;
+        }
+        volatile 指出 i 是随时可能发生变化的，每次使用它的时候必须从 i的地址中读取，
+        因而编译器生成的汇编代码会重新从i的地址读取数据放在 b 中。而优化做法是，
+        由于编译器发现两次从 i读数据的代码之间的代码没有对 i 进行过操作，
+        它会自动把上次读的数据放在 b 中。而不是重新从 i 里面读。
+        一般调试模式没有进行代码优化，所以这个关键字的作用看不出来。
+    2,  volatile 指针
+        和 const 修饰词类似，const 有常量指针和指针常量的说法，volatile 也有相应的概念:
+        修饰由指针指向的对象、数据是 const 或 volatile 的：
+            const char* cpch;
+            volatile char* vpch;
+        指针自身的值——一个代表地址的整数变量，是 const 或 volatile 的：
+            char* const pchc;
+            char* volatile pchv;
+    3,  volatile 结构体
+        volatile struct xxx{};
