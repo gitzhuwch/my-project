@@ -2,34 +2,39 @@ let mapleader=";"
 set nocompatible
 "autocmd BufWritePost $MYVIMRC source $MYVIMRC
 set wildmenu "vim 自身命令行模式智能补全
-set nu
+set number
 set laststatus=2
 set syntax=on
 set hlsearch
+set incsearch
 set mouse=a
 set autowrite
 set autoread
 set hidden
 filetype on
 set tags=./tags,tags;$HOME
+colorscheme default
 set background=dark
 set showcmd
 set showmatch
 set ignorecase
 set smartcase
-set incsearch
 set hidden
 set mouse=a
 set tabstop=4
 set softtabstop=4
 set shiftwidth=4
-set expandtab "replace tab with space
+set expandtab " replace tab with space
+set smarttab
+set backspace=2 " :set backspace=indent,eol,start
 set encoding=utf-8
 set autoindent
 set cindent
+set smartindent
 set cinoptions={0,1s,t0,n-2,p2s,(03s,=.5s,>1s,=1s,:1s
 set ruler
-set backspace=2
+"set title
+"set visualbell
 set clipboard=unnamed,unnamedplus "*号和+号reg都和系统剪切板关联
 "set cscopetag
 "set cursorline
@@ -38,7 +43,7 @@ set nowrap
 syntax enable
 "set foldmethod=indent
 set foldmethod=syntax
-set nofoldenable "启动 vim 时关闭折叠代码
+set nofoldenable " 启动 vim 时关闭折叠代码
 "set conceallevel=2
 "set laststatus=2
 "set statusline+=%F
@@ -46,13 +51,12 @@ set nofoldenable "启动 vim 时关闭折叠代码
 set sessionoptions="blank,globals,localoptions,tabpages,sesdir,folds,help,options,resize,winpos,winsize"
 highlight WhitespaceEOL ctermbg=red guibg=red
 match WhitespaceEOL /\s\+$/
-"colorscheme adaryn
 
 if has("autocmd")
   autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
 endif
 
-"Like CTRL-], but use :tselect instead of :tag
+" Like CTRL-], but use :tselect instead of :tag
 map <C-]> g]
 "取消w/q定义,避免与下面部分快捷键冲突,CTRL-s:block window and CTRL-q:going on
 map q <Nop>
@@ -88,6 +92,7 @@ nmap <Leader><F4> :!./zmake.sh<CR>
 nmap <Leader><F5> :!./zdebug.sh<CR><CR>
 
 filetype off
+"set the runtime path to include Vundle and initialize
 set rtp+=~/.vim/bundle/Vundle.vim/
 call vundle#begin()
 "如果你的插件来自github，写在下方，只要作者名/项目名就行了
