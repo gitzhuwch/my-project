@@ -174,6 +174,14 @@
         :set noexpandtab
         :%retab!
     加!是用于处理非空白字符之后的TAB，即所有的TAB，若不加!，则只处理行首的TAB。
+###How do I disable the “Press ENTER or type command to continue” prompt in Vim
+    https://stackoverflow.com/questions/890802/how-do-i-disable-the-press-enter-or-type-command-to-continue-prompt-in-vim
+    1,  Add an extra <CR> to the shortcut
+        map <F5> :wall!<CR>:!sbcl --load foo.cl<CR><CR>
+    2,  :silent !<command>
+    3,  :help hit-enter
+    4,  :Silent top
+
 ##tmux:
 ###概念
     1,server/session/window/pane:
@@ -365,6 +373,9 @@
     load -- Dynamically load FILE into the running program.
 ####set confirm off
     关闭gdb命令的确认交互
+####gdb不退出重新加载?
+    1, file xxx
+    2, run
 
 ###GCC:
     GNU Compiler Collection

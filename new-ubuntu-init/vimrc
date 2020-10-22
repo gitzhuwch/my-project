@@ -23,8 +23,8 @@ set mouse=a
 set tabstop=4
 set softtabstop=4
 set shiftwidth=4
-"set expandtab "replace tab with space
-"set encoding=utf-8
+set expandtab "replace tab with space
+set encoding=utf-8
 set autoindent
 set cindent
 set cinoptions={0,1s,t0,n-2,p2s,(03s,=.5s,>1s,=1s,:1s
@@ -82,6 +82,10 @@ map <S-Up> <C-w>+
 map <S-Down> <C-w>-
 "删除空格
 map <Leader>s :%s/\s\+$//g<CR>
+"compile and debug
+nmap <Leader><F4> :!./zmake.sh<CR>
+"Add an extra <CR> to the shortcut using as confirming when quit
+nmap <Leader><F5> :!./zdebug.sh<CR><CR>
 
 filetype off
 set rtp+=~/.vim/bundle/Vundle.vim/
@@ -178,7 +182,7 @@ let g:airline_theme='bubblegum'
 "let g:airline#extensions#tabline#buffer_idx_mode = 1
 
 "-------------------------plugin-configs-----------------------
-"let g:indent_guides_enable_on_vim_startup = 1 "vim启动时启用
+let g:indent_guides_enable_on_vim_startup = 1 "vim启动时启用
 let g:indent_guides_start_level = 1            "开始显示对齐线的缩进级别
 let g:indent_guides_guide_size = 1             "对齐线的宽度，（1字符）
 let g:indent_guides_tab_guides = 0             "对tab对齐的禁用
