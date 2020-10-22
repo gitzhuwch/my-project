@@ -2255,3 +2255,29 @@ tips:
             char* volatile pchv;
     3,  volatile 结构体
         volatile struct xxx{};
+###bash
+####bash_history隐私
+    第一种靠谱的解决方案：
+        第1步：设置 HISTCONTROL 环境变量：export HISTCONTROL=ignorespace。
+        第2步：输入重要命令时，记得在输入命令前加上空格。
+        第3步：执行 history，可以看到刚输入的重要命令没有出现在 history 中。
+    通过设置 HISTCONTROL=ignorespace，可以让 history 不记录你的特殊输入（命令前加空格），这样可以在一定程度上有效地保护我们的系统。
+    第二种靠谱的解决方案：
+        第1步：设置 HISTIGNORE 环境变量 export HISTIGNORE=*。
+        第2步：输入重要命令，比如 mysql-uroot-p123。
+        第3步：查看你的 history，可以看到刚输入的 mysql 命令没有记录在 history 中。
+        第4步：恢复命令的记录 export HISTIGNORE=。
+        第4步后，系统又恢复正常，输入的命令又能被正常记录了。
+    这个方法虽然略显烦琐，需要你每次在输入重要命令时都要先设置 HISTIGNORE=*，执行完命令后再设置 HISTIGNORE=，但是，
+    这种方法能规避由于你的粗心大意（忘记命令前加空格）带来的巨大安全隐患，确保机密信息不会被泄露出去。
+####彻彻底底地删除所有的历史命令
+    history -c
+    history -w
+####other
+    export HISTTIMEFORMAT='%F %T '  # 设置历史记录的时间
+    export HISTFILESIZE=1000        # 控制历史命令记录的总个数
+    export HISTFILE=~/history.log   # 更换历史命令的存储位置
+    export HISTCONTROL=erasedups    # 清除整个命令历史中的重复条目
+    export HISTCONTROL=ignoredups   # 忽略记录命令历史中连续重复的命令
+    export HISTCONTROL=ignorespace  # 忽略记录空格开始的命令
+    export HISTCONTROL=ignoreboth   # 等价于ignoredups和ignorespace
