@@ -87,9 +87,16 @@ map <S-Down> <C-w>-
 "删除空格
 map <Leader>s :%s/\s\+$//g<CR>
 "compile and debug
-nmap <Leader><F4> :!./zmake.sh<CR>
+nmap <Leader><F4> :wa<CR> :!./zmake.sh<CR><CR> :cw<CR>
 "Add an extra <CR> to the shortcut using as confirming when quit
 nmap <Leader><F5> :!./zdebug.sh<CR><CR>
+
+map <Leader><F8> :call Myfunc()<CR> :%s/\s\+$//g<CR>
+function! Myfunc()
+   let lineNum= line(".")
+    exe "normal gg=G"
+    exe lineNum
+endfunction
 
 filetype off
 "set the runtime path to include Vundle and initialize
