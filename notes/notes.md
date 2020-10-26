@@ -181,6 +181,12 @@
     2,  :silent !<command>
     3,  :help hit-enter
     4,  :Silent top
+###quickfix
+    1, :set makeprg=xxxx
+    2, :make/grep/helpgrep
+    3, :cw
+    4, :cclose/:copen
+    5, :cn/cp
 
 ##tmux:
 ###概念
@@ -2219,10 +2225,13 @@ tips:
 ###终端查看ASCII命令
     1, man ascii.7
     2, sudo apt install ascii; ascii
-###printf打印编译时间
+###printf
+####printf打印编译时间
     1, printf(__DATE__);
     2, printf(__TIME__);
     minicom也可以看log时间
+####printf打印颜色设置
+    printf("[QSPI]: \e[31merror\e[0m send cmd timeout\n");
 ###C语言中续行符“\”
     1, 根据定义，一条预处理指示只能由一个逻辑代码行组成,
        所以，把一个预处理指示写成多行要用“\”续行.
