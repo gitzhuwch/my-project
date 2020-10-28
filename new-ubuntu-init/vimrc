@@ -87,11 +87,13 @@ map <S-Down> <C-w>-
 "删除空格
 map <Leader>s :%s/\s\+$//g<CR>
 "compile and debug
-nmap <Leader><F4> :wa<CR> :!./zmake.sh<CR>
+nmap <F2> :!<CR>
+nmap <F3> <Esc><F4><F5>
+imap <F3> <Esc><F4><F5>
 "Add an extra <CR> to the shortcut using as confirming when quit
-nmap <Leader><F5> :!./zdebug.sh<CR><CR>
-
-map <Leader><F8> :call Myfunc()<CR> :%s/\s\+$//g<CR>
+nmap <F4> :wa<CR>:!./zmake.sh<CR><CR>
+nmap <F5> :!./zdebug.sh<CR><CR>
+map <F8> M:call Myfunc()<CR>:%s/\s\+$//ge<CR>:wa<CR>
 function! Myfunc()
     let lineNum= line(".")
     exe "normal gg=G"

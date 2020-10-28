@@ -382,6 +382,11 @@
 ####gdb不退出重新加载?
     1, file xxx
     2, run
+####target/remote/monitor区别
+    1,  target: Connect to a target machine or process
+    2,  remote: Manipulate files on the remote system.
+        Transfer files to and from the remote target system.
+    3,  monitor: Send a command to the remote monitor (remote targets only).
 
 ###GCC:
     GNU Compiler Collection
@@ -2232,6 +2237,11 @@ tips:
     minicom也可以看log时间
 ####printf打印颜色设置
     printf("[QSPI]: \e[31merror\e[0m send cmd timeout\n");
+    #define dprintf_err(fmt,args...) printf("\033[0;31m" fmt "\033[0m", ##args)
+###minicom显示彩色打印
+    sudo minicom -c on
+    注:在普通用户下export MINICOM='-c on',然后sudo minicom不起作用.
+    可以用sudo -E minicom,这个会继承当前用户的环境变量.
 ###C语言中续行符“\”
     1, 根据定义，一条预处理指示只能由一个逻辑代码行组成,
        所以，把一个预处理指示写成多行要用“\”续行.
