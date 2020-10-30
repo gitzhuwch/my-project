@@ -23,6 +23,10 @@ if [ ! -d ~/nfs ]; then
 mkdir ~/nfs
 fi
 
+if [ ! -d ~/samba ]; then
+mkdir ~/samba
+fi
+
 if [ ! -d ~/.vim ]; then
 mkdir ~/.vim
 fi

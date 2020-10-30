@@ -187,6 +187,8 @@
     3, :cw
     4, :cclose/:copen
     5, :cn/cp
+###vertical terminal
+    1, :vertical terminal or :vert ter能在vim中启动一个终端
 
 ##tmux:
 ###概念
@@ -209,6 +211,22 @@
     prefix + <Ctrl>-s手动备份，用prefix + <Ctrl>-r手动恢复
 ####continuum
     每隔15分钟备份一次布局
+###tmux清屏
+    bind -n C-k clear-history #清除历史记录不清屏
+    bind-key b send-keys -R \; clear-history #清除历史记录并清屏
+###tmux command
+    #!/bin/bash
+    tmux new-session -d -s ssh
+    tmux split-window -h
+    tmux select-pane -t 1
+    tmux send-keys "cd /home/user/work/rtems-9-1-from-cd/build" C-m
+    #tmux send-keys "arm-rtems5-gdb arm-rtems5/c/sgr5-expander/testsuites/samples/hello.out" C-m
+    #tmux split-window -v
+    tmux select-pane -t 0
+    tmux send-keys "sudo minicom" C-m
+    tmux send-keys "user" C-m
+    tmux select-pane -t 0
+    tmux attach-session -t ssh
 
 ##kernel debug methods:
 ###qemu32-arm:
@@ -1762,6 +1780,28 @@
     5, burst size：就是一次传几个 transfer size.
 ####JTAG:
     https://blog.csdn.net/beingaz/article/details/7440507
+#####同事讲解
+               -----------------------------
+               |           SOC             |
+               |                           |
+               |  AHB    APB    CPU        |
+               |  / \    / \    / \        |
+               |   |      |      |         |
+               |   |      |   |--------|   |
+               |   |      |   |buffer  |   |
+               |   |      |   |register|   |
+               |   |      |   |--------|   |
+               |   |      |     / \        |
+               |   |      |      |         |
+               |------------     |         |
+               |   TAP     |------         |
+               |-----------|               |
+       JTAG    |  DA | DP  |               |
+JLink--------->|     |     |               |
+               -----------------------------
+        1,  DA模块里有instk and data register,这俩个是移位寄存器，负责和JLink通信通过JTAG协议；DA可以接受执行JTAG指令(不是cpu指令).
+        2   DP模块有AHB,APB master interface,可以直接发送总线请求，DP也可以直接给cpu一个信号，使其进入debug mode，
+            进入debug mode之后，两者通过buffer register通信.
 #####JTAG访问ARM通用寄存器
     下面演示的读取寄存器R0的例子，模拟的ARM指令为STR R0, [R0]，即把R0的值存储到R0为地址的内存，
     使用这条指令的目的是让R0的值出现在数据总线上。这条指令的执行需要两个执行周期，一是执行地址计算，二是把R0的值放在数据总线上。

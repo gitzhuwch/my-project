@@ -76,6 +76,14 @@ fi
 cp -f ./vimrc ~/.vimrc
 vim -c PluginInstall -c qa!
 
+if [ ! -f ~/bin/vim-make.sh ]; then
+	cp ./vim-make.sh ~/bin/vim-make.sh
+fi
+
+if [ ! -f ~/bin/vim-debug.sh ]; then
+	cp ./vim-debug.sh ~/bin/vim-debug.sh
+fi
+
 #-------------------------------------------------------------
 #tmux config:
 if [ ! -d ~/.tmux/plugins/tpm ]; then
@@ -132,4 +140,7 @@ fi
 #-------------------------------------------------------------
 #gdb config
 cp -f ./gdbinit ~/.gdbinit
+if [ ! -f ~/bin/sub-gdbinit ]; then
+	cp ./sub-gdbinit ~/bin/sub-gdbinit
+fi
 #-------------------------------------------------------------
