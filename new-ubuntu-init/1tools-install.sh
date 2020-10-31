@@ -4,6 +4,7 @@ sudo apt update
 sudo apt -y install vim
 sudo apt -y install vim-gtk	#加了些增强特性,如+和*号系统剪切板
 sudo apt -y install ctags
+sudo apt -y install cscope
 sudo apt -y install net-tools #ifconfig tools
 sudo apt -y install ibus-pinyin
 sudo apt -y install git

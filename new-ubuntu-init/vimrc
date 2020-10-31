@@ -36,7 +36,6 @@ set ruler
 "set title
 "set visualbell
 set clipboard=unnamed,unnamedplus "*号和+号reg都和系统剪切板关联
-"set cscopetag
 "set cursorline
 "set cursorcolumn
 set nowrap
@@ -99,6 +98,40 @@ function! Myfunc()
     exe "normal gg=G"
     exe lineNum
 endfunction
+if has("cscope")
+    "set csprg=/usr/bin/cscope
+    set cscopetag "使用cscope作为tags命令,比如:<C-]> will call cscope tag
+    "set csto=0 "优先在cscope数据库中查找，没有结果再从tags文件查找
+    "set csverb "Give messages when adding a cscope database
+    "set cspc=10 "Determines how many components of the path to show in a list of tags
+    "add any database in current dir
+    if filereadable("cscope.out")
+        :cs add cscope.out
+        "else search cscope.out elsewhere
+    else
+        let cscope_file=findfile("cscope.out", ".;")
+        let cscope_pre=matchstr(cscope_file, ".*/")
+        if !empty(cscope_file) && filereadable(cscope_file)
+            exe "cs add" cscope_file cscope_pre
+        endif
+    endif
+    " s: Find this C symbol
+    nnoremap  <leader>fs :cs find s <cword><CR>
+    " g: Find this definition
+    nnoremap  <leader>fg :cs find g <cword><CR>
+    " d: Find functions called by this function
+    nnoremap  <leader>fd :cs find d <cword><CR>
+    " c: Find functions calling this function
+    nnoremap  <leader>fc :cs find c <cword><CR>
+    " t: Find this text string
+    nnoremap  <leader>ft :cs find t <cword><CR>
+    " e: Find this egrep pattern
+    nnoremap  <leader>fe :cs find e <cword><CR>
+    " f: Find this file
+    nnoremap  <leader>ff :cs find f <cword><CR>
+    " i: Find files #including this file
+    nnoremap  <leader>fi :cs find i <cword><CR>
+endif
 
 filetype off
 "set the runtime path to include Vundle and initialize

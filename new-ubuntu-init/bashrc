@@ -1,6 +1,7 @@
 
 #-----------------------------------------------------------------
 alias tags='ctags -R *'
+alias cr='ctags -R --fields=+lS && cscope -Rbq'
 alias gcf='git cat-file'
 alias gcfp='git cat-file -p'
 PATH=~/bin/:$PATH

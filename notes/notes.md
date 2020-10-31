@@ -189,6 +189,23 @@
     5, :cn/cp
 ###vertical terminal
     1, :vertical terminal or :vert ter能在vim中启动一个终端
+###taglist-plugin
+    基于ctags才能发挥作用，因此要确保安装了ctags
+    The taglist plugin requires the following:
+    * Vim version 6.0 and above
+    * Exuberant ctags 5.0 and above
+###cscope
+    1,  生成一个包含所有需要扫描的文件的列表，保存为cscope.files。Cscope默认会处理.c、.h、.y、.l后缀的文件，
+        所以对于一个纯C项目，只需在项目根目录执行 cscope -R 即可建立数据库。但是如果需要解析C++、Java、
+        Python文件，或者想不包含某些文件，那么就需要生成cscope.files。
+        文件列表中的文件最好是绝对路径，这样就不会受数据库创建位置的限制。可以在根路径执行 find 命令来做到。
+        如：
+        find /my/project/dir -name '*.java' > /my/project/dir/cscope.files
+        生成Cscope数据库:
+        cscope -b -q -k
+        -b 表示创建数据库， -q 创建一个反向索引文件，这在数据库较大时会使查找快很多， -k 开启内核模式，
+        这样对项目中的 #include 文件，不查看/usr/include下的头文件。
+        项目中增加了新文件后，将它们加入到cscope.files中，然后重新生成数据库。
 
 ##tmux:
 ###概念
@@ -215,18 +232,25 @@
     bind -n C-k clear-history #清除历史记录不清屏
     bind-key b send-keys -R \; clear-history #清除历史记录并清屏
 ###tmux command
-    #!/bin/bash
-    tmux new-session -d -s ssh
-    tmux split-window -h
-    tmux select-pane -t 1
-    tmux send-keys "cd /home/user/work/rtems-9-1-from-cd/build" C-m
-    #tmux send-keys "arm-rtems5-gdb arm-rtems5/c/sgr5-expander/testsuites/samples/hello.out" C-m
-    #tmux split-window -v
-    tmux select-pane -t 0
-    tmux send-keys "sudo minicom" C-m
-    tmux send-keys "user" C-m
-    tmux select-pane -t 0
-    tmux attach-session -t ssh
+    1,  在tmux命令行中使用命令
+        tmux list-commands  列出所有的 tmux 命令及其参数
+        tmux list-keys      列出所有可以的快捷键和其运行的 tmux 命令
+        tmux info           列出所有的 session, window, pane, 运行的进程号，等
+    2， 在tmux里使用命令
+        C-b + :(和vim类似)
+    3,  简单命令
+        #!/bin/bash
+        tmux new-session -d -s ssh
+        tmux split-window -h
+        tmux select-pane -t 1
+        tmux send-keys "cd /home/user/work/rtems-9-1-from-cd/build" C-m
+        #tmux send-keys "arm-rtems5-gdb arm-rtems5/c/sgr5-expander/testsuites/samples/hello.out" C-m
+        #tmux split-window -v
+        tmux select-pane -t 0
+        tmux send-keys "sudo minicom" C-m
+        tmux send-keys "user" C-m
+        tmux select-pane -t 0
+        tmux attach-session -t ssh
 
 ##kernel debug methods:
 ###qemu32-arm:
