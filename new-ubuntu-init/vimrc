@@ -20,7 +20,6 @@ set showmatch
 set ignorecase
 set smartcase
 set hidden
-set mouse=a
 set tabstop=4
 set softtabstop=4
 set shiftwidth=4
@@ -56,35 +55,31 @@ if has("autocmd")
 endif
 
 " Like CTRL-], but use :tselect instead of :tag
-map <C-]> g]
+nnoremap <C-]> g]
 "取消w/q定义,避免与下面部分快捷键冲突,CTRL-s:block window and CTRL-q:going on
 map q <Nop>
 map Q <Nop>
 map w <Nop>
 map W <Nop>
 "保存/退出
-map qq :qa!<CR>
-map <Leader>q :q!<CR>
-map ww :wa<CR>
-map <Leader>w :w<CR>
-map b :bn<CR>
-map B :bp<CR>
+nnoremap qq :qa!<CR>
+nnoremap <Leader>q :q!<CR>
+nnoremap ww :wa<CR>
+nnoremap <Leader>w :w<CR>
+nnoremap b :bn<CR>
+nnoremap B :bp<CR>
 "切换窗口
-map <C-Left> <C-w>h
-map <C-Right> <C-w>l
-map <C-Up> <C-w>k
-map <C-Down> <C-w>j
 nnoremap <Leader>l <C-W>l
 nnoremap <Leader>h <C-W>h
 nnoremap <Leader>k <C-W>k
 nnoremap <Leader>j <C-W>j
 "改变窗口高度/宽度
-map <S-Left> <C-w><
-map <S-Right> <C-w>>
-map <S-Up> <C-w>+
-map <S-Down> <C-w>-
+nnoremap < <C-w><
+nnoremap > <C-w>>
+nnoremap + <C-w>+
+nnoremap _ <C-w>-
 "删除空格
-map <Leader>s :%s/\s\+$//g<CR>
+nnoremap <Leader>s :%s/\s\+$//g<CR>
 "compile and debug
 nmap <F2> :!<CR>
 nmap <F3> <Esc><F4><F5>
@@ -92,7 +87,7 @@ imap <F3> <Esc><F4><F5>
 "Add an extra <CR> to the shortcut using as confirming when quit
 nmap <F4> :wa<CR>:!~/bin/vim-make.sh<CR><CR>
 nmap <F5> :!~/bin/vim-debug.sh<CR><CR>
-map <F8> M:call Myfunc()<CR>:%s/\s\+$//ge<CR>:wa<CR>
+nmap <F8> M:call Myfunc()<CR>:%s/\s\+$//ge<CR>:wa<CR>
 function! Myfunc()
     let lineNum= line(".")
     exe "normal gg=G"
