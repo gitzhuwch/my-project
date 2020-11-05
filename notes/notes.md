@@ -206,6 +206,8 @@
         -b 表示创建数据库， -q 创建一个反向索引文件，这在数据库较大时会使查找快很多， -k 开启内核模式，
         这样对项目中的 #include 文件，不查看/usr/include下的头文件。
         项目中增加了新文件后，将它们加入到cscope.files中，然后重新生成数据库。
+    2,  cscope乱跳现象
+        是因为源文件已修改,cscope数据库是旧的,所以按照旧的数据库找的行数是错的,自然跳的行数也是不对的.
 
 ##tmux:
 ###概念
@@ -2163,14 +2165,14 @@ https://www.cnblogs.com/hwli/p/8633314.html:
         2, client端使用:
             在windows文件浏览器中添加网络驱动器即可.
 ###SMB/CIFS/SAMBA/NFS:
-    都是协议级别的概念
-    1, Server Message Block - SMB，即服务(器)消息块，是 IBM 公司在 80 年代中期发明的一种文件共享协议。它只是系统之间通信的一种方式（协议），并不是一款特殊的软件。
-    2, Common Internet File System - CIFS，即通用因特网文件系统。CIFS 是 SMB 协议的衍生品，即 CIFS 是 SMB 协议的一种特殊实现，由美国微软公司开发。
+    1,  smb是协议级别的概念,其它的不是
+    2,  Server Message Block - SMB，即服务(器)消息块，是 IBM 公司在 80 年代中期发明的一种文件共享协议。它只是系统之间通信的一种方式（协议），并不是一款特殊的软件。
+    3,  Common Internet File System - CIFS，即通用因特网文件系统。CIFS 是 SMB 协议的衍生品，即 CIFS 是 SMB 协议的一种特殊实现，由美国微软公司开发。
         由于 CIFS 是 SMB 的另一中实现，那么 CIFS 和 SMB 的客户端之间可以互访就不足为奇。
         二者都是协议级别的概念，名字不同自然存在实现方式和性能优化方面的差别，如文件锁、LAN/WAN 网络性能和文件批量修改等。
-    4, Samba 也是 SMB 协议的实现，与 CIFS 类似，它允许 Windows 客户访问 Linux 系统上的目录、打印机和文件
-    5, Network File System - NFS，即网络文件系统。由 Sun 公司面向 SMB 相同的功能（通过本地网络访问文件系统）而开发，但它与 CIFS/SMB 完全不兼容。
-       也就是说 NFS 客户端是无法直接与 SMB 服务器交互的。NFS 用于 Linux 系统和客户端之间的连接。而 Windows 和 Linux 客户端混合使用时，就应该使用 Samba。
+    4,  Samba 也是 SMB 协议的实现，他是软件,与 CIFS 类似，它允许 Windows 客户访问 Linux 系统上的目录、打印机和文件
+    5,  Network File System - NFS，即网络文件系统。由 Sun 公司面向 SMB 相同的功能（通过本地网络访问文件系统）而开发，但它与 CIFS/SMB 完全不兼容。
+        也就是说 NFS 客户端是无法直接与 SMB 服务器交互的。NFS 用于 Linux 系统和客户端之间的连接。而 Windows 和 Linux 客户端混合使用时，就应该使用 Samba。
     Windows共享文件夹使用的协议是SMB/CIFS
         SMB:    Server Message Block
         CIFS:   Common Internet File System
