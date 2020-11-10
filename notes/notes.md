@@ -1166,6 +1166,19 @@
         2)  kernel源码:drivers/tty/vt/vt.c:do_con_trol()
     3,man手册
         man console_codes //Linux console escape and control sequences
+####stty/tty工具
+    1,  tty:显示当前终端设备文件
+#####stty怎么禁止换行
+    1,  好像不行.
+    2,  systemctl -l --no-pager status xx.service
+        如果打印的一行log长度,超出但前tty的colums的log,换一行打印
+    3,  systemctl --no-pager status xx.service
+        如果打印的一行log长度,超出但前tty的colums的log,被省略
+    4,  以上2和3条,看似是tty的设置导致，实际上是systemctl自己作的判断，来控制打印长度和内容
+        strace跟踪如下:
+            不带-l: write(1</dev/pts/3>, "Nov 10 20:52:51 ubuntu exportfs["..., 112) = 112
+            带-l:    write(1</dev/pts/3>, "Nov 10 20:52:51 ubuntu exportfs["..., 156) = 156
+
 ###uevent subsystem:
 ####uevent_helper
     1, /sys/kernel/uevent_helper
@@ -2116,7 +2129,9 @@ https://www.cnblogs.com/hwli/p/8633314.html:
     使用NFS:
         1, server端构建:
             安装nfs-kernel-server并配置:
-            echo "/home/user/nfs *(rw,sync,no_root_squash)" > /etc/exports
+            echo "$HOME/nfs *(rw,sync,no_root_squash)" > /etc/exports
+            systemctl -l --no-pager status nfs-kernel-server.service
+            sudo systemctl restart nfs-kernel-server.service
         2, client端使用:
             mount -t nfs -o nolock 10.3.153.96:/home/user/nfs /mnt/
     使用SAMBA:

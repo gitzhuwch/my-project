@@ -103,9 +103,9 @@ cp -f ./tmux.conf ~/.tmux.conf
 #	----
 #-------------------------------------------------------------
 #nfs-kernel-server config:
-grep "~/nfs" /etc/exports -q
+grep "/nfs" /etc/exports -q
 if [ $? != 0 ]; then
-	echo "~/nfs *(rw,sync,no_root_squash)" | sudo tee -a /etc/exports
+    echo "$HOME/nfs *(rw,sync,no_root_squash)" | sudo tee -a /etc/exports
 fi
 #-------------------------------------------------------------
 #samba config:
