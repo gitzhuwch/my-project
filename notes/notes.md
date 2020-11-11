@@ -2137,6 +2137,13 @@ https://www.cnblogs.com/hwli/p/8633314.html:
     使用SAMBA:
         1, server端构建:
             ubuntu中文件夹右击->属性->共享
+            这一步操作生成配置文件:/var/lib/samba/usershares/samba
+                #VERSION 2
+                path=/home/user/samba
+                comment=
+                usershare_acl=S-1-1-0:F
+                guest_ok=y
+                sharename=samba
         2, client端使用:
             在文件浏览器中"挂载"或打开
 ###linux/windows share folder:
@@ -2392,3 +2399,5 @@ tips:
     export HISTCONTROL=ignoredups   # 忽略记录命令历史中连续重复的命令
     export HISTCONTROL=ignorespace  # 忽略记录空格开始的命令
     export HISTCONTROL=ignoreboth   # 等价于ignoredups和ignorespace
+####C-J
+    C-J will terminate an incremental search
