@@ -2208,6 +2208,18 @@ https://www.cnblogs.com/hwli/p/8633314.html:
     Windows共享文件夹使用的协议是SMB/CIFS
         SMB:    Server Message Block
         CIFS:   Common Internet File System
+###samba的使用
+    1,添加共享文件夹的方式
+        1)nautilus界面右键共享
+        2)编辑/etc/samba/smb.conf
+        3)在/var/lib/samba/usershares/下添加配置文件(方法1也是在这里添加配置文件)
+    2,为共享文件夹添加用户名和密码
+        sudo smbpasswd -a user
+        sudo service smbd restart
+####samba免用户名和密码
+    用nautilus创建共享是可选不要认证，如果设置了用户名和密码认证了，可以通过以下方式取消
+    sudo smbpasswd -x user
+    sudo service smbd restart
 
 ##apt(Advanced Packaging Tool)原理介绍
     1, 如果有需要，编辑/etc/apt/sources.list，选择源服务器；
