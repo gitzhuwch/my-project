@@ -2115,10 +2115,18 @@ https://www.cnblogs.com/hwli/p/8633314.html:
 ##ssh原理及相关工具使用
 ###ssh
 ####ssh报错
-    现象:ssh Unable to negotiate with ip port 22: no matching cipher found. Their offer: aes128-cbc
-    解决方法:
-        vim /etc/ssh/ssh_config
-        将Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-cbc,3des-cbc这一行解注掉
+    1,  现象:ssh Unable to negotiate with ip port 22: no matching cipher found. Their offer: aes128-cbc
+        解决方法:
+            vim /etc/ssh/ssh_config
+            将Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-cbc,3des-cbc这一行解注掉
+    2,  ssh -X user@ip
+        sudo vim /etc/samba/smb.conf
+        report:
+            X11 connection rejected because of wrong authentication
+        resolved:
+                cp /home/user/.Xauthority /root/
+            or
+                sudo -E vim /etc/samba/smb.conf
 ###ssh-keygen
 ###ssh-agent
 ###ssh-copy-id
@@ -2145,7 +2153,9 @@ https://www.cnblogs.com/hwli/p/8633314.html:
                 guest_ok=y
                 sharename=samba
         2, client端使用:
-            在文件浏览器中"挂载"或打开
+                在文件浏览器中"挂载"或打开
+            or
+                sudo mount -t cifs
 ###linux/windows share folder:
     windows作为server，ubuntu作为client:
         1, server端构建:
@@ -2311,6 +2321,10 @@ tips:
     This package contains the afc, afp, archive, cdda, dav, dnssd, ftp,
     gphoto2, http, mtp, network, sftp, smb and smb-browse backends.
     smb-browse的后端
+####右键新建文件
+    新的gnome中没有右键新建文件功能，需要手动在~/Templates/下创建一个模板,
+    eg: new_document.txt, 之后就有新建文件功能了.
+
 ###vmware/ubuntu共享剪切板
     1）sudo apt-get install open-vm-tools
     2）sudo apt-get install open-vm-tools-desktop
