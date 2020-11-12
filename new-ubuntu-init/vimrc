@@ -171,8 +171,8 @@ let Tlist_Show_One_File = 1 "不同时显示多个文件的tag，只显示当前
 let Tlist_Exit_OnlyWindow = 1 "如果taglist窗口是最后一个窗口，则退出vim
 let Tlist_Use_Right_Window = 1 "在右侧窗口中显示taglist窗口
 "let Tlist_Auto_Open = 1
-"显示函数列表
-nmap tt :TlistToggle<CR>
+"显示函数列表快捷键,加上:TlistUpdate为了防止vim窗口过小而导致的Tlist窗口错乱
+nmap tt :TlistToggle<CR> :TlistUpdate<CR>
 
 "-------------------------plugin-configs-----------------------
 "let g:vim_markdown_toc_autofit = 1
@@ -196,6 +196,9 @@ let NERDTreeWinPos="left" "设置 NERDTree 子窗口位置
 "let NERDTreeShowHidden=1 "显示隐藏文件
 let NERDTreeMinimalUI=1 "NERDTree 子窗口中不显示冗余帮助信息
 let NERDTreeAutoDeleteBuffer=1 "删除文件时自动删除文件对应 buffer
+
+"-------------------------plugin-configs-----------------------
+let g:NERDAltDelims_c = 1 "设置c语言的单行注释风格为1(代表用//注释)
 
 "-------------------------plugin-configs-----------------------
 "添加函数原型说明
