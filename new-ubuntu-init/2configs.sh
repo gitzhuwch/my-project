@@ -144,3 +144,6 @@ if [ ! -f ~/bin/sub-gdbinit ]; then
 	cp ./sub-gdbinit ~/bin/sub-gdbinit
 fi
 #-------------------------------------------------------------
+#mime types config
+cp -f ./mime.types ~/.mime.types
+#-------------------------------------------------------------

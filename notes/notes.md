@@ -2427,3 +2427,17 @@ tips:
     export HISTCONTROL=ignoreboth   # 等价于ignoredups和ignorespace
 ####C-J
     C-J will terminate an incremental search
+###firefox
+####about:xxx
+    input something as blow in the address bar:
+    1,  about:about
+    2,  about:config->search "mime"
+    3,  about:preferences
+####How to open Markdown files with md extension in Firefox
+    1,  https://en.terminalroot.com.br/how-to-open-markdown-files-with-md-extension-in-firefox/
+        1,  vim ~/.mime.types
+        2,  And inside it we will insert the following content:
+                text/plain     md txt
+        3,  Now comes the role of Firefox’s extension/addon/plugin.
+        For this we will use the Markdown Viewer Webext, there are others,
+        but we will use this one, after installing, tcharaaamm!!!
