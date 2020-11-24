@@ -73,6 +73,8 @@ nnoremap <Leader>l <C-W>l
 nnoremap <Leader>h <C-W>h
 nnoremap <Leader>k <C-W>k
 nnoremap <Leader>j <C-W>j
+"Clear and redraw the screen
+nnoremap <Leader>r :redraw!<CR>
 "改变窗口高度/宽度
 nnoremap < <C-w><
 nnoremap > <C-w>>
