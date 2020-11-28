@@ -256,6 +256,12 @@
         tmux send-keys "user" C-m
         tmux select-pane -t 0
         tmux attach-session -t ssh
+###No protocol specified
+    情景:   在电脑A本地启动一个tmux，在电脑B上通过ssh -X登陆到电脑A，然后tmux a唤起，在唤起的tmux中，
+            使用gedit，报No protocol specified.
+    分析:   以上tmux是在电脑A本地启动的，tmux中没有带X11服务，所以ssh -X登陆上去连tmux有问题
+    解决:   ssh -X登陆后，执行tmux，启动新的tmux服务，这时tmux默认带了X11服务
+    自解，缺乏依据
 
 ##kernel debug methods:
 ###qemu32-arm:
