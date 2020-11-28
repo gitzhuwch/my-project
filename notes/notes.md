@@ -1843,11 +1843,11 @@
                |   |      |      |         |
                |------------     |         |
                |   TAP     |------         |
-               |-----------|               |
-       JTAG    |  DA | DP  |               |
-JLink--------->|     |     |               |
+               |-----------|      |--------|  data
+       JTAG    |  DA | DP  |----->|trace32 |-------> trace32
+JLink--------->|     |     |      |ETM/ETB |
                -----------------------------
-        1,  DA模块里有instk and data register,这俩个是移位寄存器，负责和JLink通信通过JTAG协议；DA可以接受执行JTAG指令(不是cpu指令).
+        1,  DA模块里有instruction(OPcode) and data register,这俩个是移位寄存器，负责和JLink通信通过JTAG协议；DA可以接受执行JTAG指令(不是cpu指令).
         2   DP模块有AHB,APB master interface,可以直接发送总线请求，DP也可以直接给cpu一个信号，使其进入debug mode，
             进入debug mode之后，两者通过buffer register通信.
 #####JTAG访问ARM通用寄存器
