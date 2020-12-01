@@ -259,9 +259,9 @@
 ###No protocol specified
     情景:   在电脑A本地启动一个tmux，在电脑B上通过ssh -X登陆到电脑A，然后tmux a唤起，在唤起的tmux中，
             使用gedit，报No protocol specified.
-    分析:   以上tmux是在电脑A本地启动的，tmux中没有带X11服务，所以ssh -X登陆上去连tmux有问题
-    解决:   ssh -X登陆后，执行tmux，启动新的tmux服务，这时tmux默认带了X11服务
-    自解，缺乏依据
+    分析:   以上tmux是在电脑A本地启动的，启动时没有$DISPLAY环境变量，所以X window用不了
+    解决:   ssh -X登陆后，再执行tmux，启动新的tmux服务，这时tmux默认带了有环境变量$DISPLAY;
+            应该可以手动export DISPLAY=localhost:10.0
 
 ##kernel debug methods:
 ###qemu32-arm:
@@ -1187,6 +1187,29 @@
         strace跟踪如下:
             不带-l: write(1</dev/pts/3>, "Nov 10 20:52:51 ubuntu exportfs["..., 112) = 112
             带-l:    write(1</dev/pts/3>, "Nov 10 20:52:51 ubuntu exportfs["..., 156) = 156
+####DISPLAY/TERM环境变量
+#####Linux X Window System的基本原理
+    https://m.linuxidc.com/Linux/2013-06/86743.htm
+    X是一个开放的协议规范，当前版本为11，俗称X11。X Window System由客户端和服务端组成，服务端X Server负责图形显示，
+    而客户端库X Client根据系统设置的DISPLAY环境变量，将图形显示请求发送给相应的X Server
+    因此，我们只需要在远端开启一个X Server，并在目标机器上相应的设置DISPLAY变量，即可完成图形的远程显示
+    X Server是Gnome等桌面环境的基础，一个桌面环境通常包含了XDM（X Display Manager，通常的图形化用户登录界面就属于XDM）、
+    窗口管理器（X Server显示的图形是没有&ldquo;窗口&rdquo;边框的，通过替换窗口管理器可以实现不同的视觉效果，比如实现3D效果的Compiz）等组件
+    /usr/bin/Xorg :0 -nr -verbose -audit 4 -auth /var/run/gdm/auth-for-gdm-Ikd3i7/database -nolisten tcp vt1
+    这表示在display 0上运行着一个X Server，这里的X Server是Xorg
+#####DISPLAY
+    DISPLAY环境变量是X window(X11)的client端设置的,ssh -X时就会在本地初始化Xserver端(Xorg进程)，
+    远程初始化一个Xclient端,client设置环境变量DISPLAY为:localhost:10.0这样的值,ssh不带-X时就不会设置
+#####TERM
+    TERM环境变量是选择终端类型的，比如linux,screen-256color,xterm...
+    不同的选择会影响颜色,快捷键等
+####fb/tty/terminal/pts/window/XDM?
+    需要补充的知识
+####vim/terminal的配色文件
+    vim:/usr/share/vim/vim81/colors/*
+    terminal:/lib/terminfo/*
+             /usr/share/terminfo/*
+####用infocap linux能解析terminfo数据库
 
 ###uevent subsystem:
 ####uevent_helper
