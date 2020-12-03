@@ -365,11 +365,18 @@
     2, objcopy --info List object formats and architectures supported
         objcopy -O ihex/verilog  //能够生成ihex,verilog文件
 ####ld:
-    1, linkscript/Command Language
+    1,  ld --verbose 显示内置链接脚本
+#####linkscript/Command Language
         https://www.math.utah.edu/docs/info/ld_3.html:
         https://ftp.gnu.org/old-gnu/Manuals/ld-2.9.1/html_chapter/ld_3.html:
             The command language provides explicit control over the link process,
             allowing complete specification of the mapping between the linker's input files and its output.
+        Scripts: Linker Scripts
+        Expressions: Expressions
+        MEMORY: MEMORY Command
+        SECTIONS: SECTIONS Command
+        Entry Point: The Entry Point
+        Option Commands: Option Commands
 ###gdb:
     1, -E, --preserve-env  preserve user environment when running command
         sudo -E ./t7gdb vmlinux
@@ -483,6 +490,22 @@
     Display the name of the compiler's companion library.
 ####-specs=<file>
     Override built-in specs with the contents of <file>
+####浮点相关参数
+    https://blog.csdn.net/houxiaoni01/article/details/107521098
+    xxx uses VFP register arguments xxx does not
+    1,  -mfpu=vfp(or vfpv1 or vfpv2)
+    2,  -mfloat-abi=soft 使用这个参数时，其将调用软浮点库(softfloat lib)来支持对浮点的运算，GCC编译器已经有这个库了，一般在libgcc里面。
+        这时根本不会使用任何浮点指令，而是采用常用的指令来模拟浮点运算。如果使用的ARM芯片不支持硬浮点时，可以考虑使用这个参数。
+        在使用这个参数时，链接时一般会出现下面的提示：
+        undefined reference to '__aeabi_fdiv'
+        这时使用将libgcc库加入即可
+    3,  -mfloat-abi=softfp
+        -mfloat-abi=hard
+        这两个参数都用来产生硬浮点指令，至于产生哪里类型的硬浮点指令，需要由
+        -mfpu=xxx参数来指令。这两个参数不同的地方是：
+        -mfloat-abi=softfp生成的代码采用兼容软浮点调用接口(即使用-mfloat-abi=soft时的调用接口)，这样带来的好处是：兼容性和灵活性。
+        库可以采用-mfloat-abi=soft编译，而关键的应用程序可以采用-mfloat-abi=softfp来编译。特别是在库由第三方发布的情况下。
+        -mfloat-abi=hard生成的代码采用硬浮点(FPU)调用接口。这样要求所有库和应用程序必须采用这同一个参数来编译，否则连接时会出现接口不兼容错误。
 
 ##CODE VERSION CONTROL:
 ###git:
@@ -1828,6 +1851,12 @@
     --------------------------------------------------------------------------------------
 ###grub给kernel传参修改网络设备名eth0:
     1, 修改/boot/grub/grub.cfg,在linux参数项中加net.ifnames=0 biosdevname=0
+
+##ABI/API/POSIX
+    1,  POSIX 标准啊，C99 标准啊，都是对 API 的规定
+        Linux 上面的 ABI 标准似乎只有 Linux Foundation 提供的一些标准
+    2,  API: POSIX (编译前的源代码) ABI: APPLICATION BINARY INTERFACE (编译后的二进制文件，linux & windows不兼容)
+        POSIX表示可移植操作系统接口（Portable Operating System Interface of UNIX，缩写为 POSIX ），POSIX标准定义了操作系统应该为应用程序提供的接口标准
 
 ##计算机顶层设计中的一些概念
 ###计算机体系结构与组成原理与微机原理
