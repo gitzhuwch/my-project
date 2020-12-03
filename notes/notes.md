@@ -469,6 +469,20 @@
     result:
         libgcc.a
 ####gcc enable openmp?
+####-B/-I/-L
+    1,  -Bprefix    This option specifies where to find the executables, libraries, include files, and data files of
+                    the compiler itself
+                    Add <directory> to the compiler's search paths.
+    2,  -Idir       Add the directory dir to the list of directories to be searched for header files during preprocessing
+    3,  -Ldir       Add directory dir to the list of directories to be searched for -l
+####-dumpspecs
+    Display all of the built in spec strings
+####-print-search-dirs
+    Display the directories in the compiler's search path
+####-print-libgcc-file-name
+    Display the name of the compiler's companion library.
+####-specs=<file>
+    Override built-in specs with the contents of <file>
 
 ##CODE VERSION CONTROL:
 ###git:
@@ -1053,7 +1067,6 @@
     3,cdev_add(&vc0_cdev, MKDEV(TTY_MAJOR, 0), 1)
 ####/dev/tty1-63设备
     1,设备号4,1-63，打开时会到tty_drivers链表里找
-
 ####/dev/ttySn设备
 #####ttyS0设备名的产生
     struct uart_port.line=x-------------------------
@@ -1105,7 +1118,6 @@
                             return sprintf(p, "%s%d", driver->name,-----------------is driver->name not is driver->driver_name
                                        index + driver->name_base);
                     }
-
 #####/dev/ttySn设备号设定
 ######由tty_driver->major决定
     #2  tty_register_device_attr (driver=0xee635200, index=3230862924, device=0x0, drvdata=0xee4b9000, attr_grp=0xee612c00) at drivers/tty/tty_io.c:3145
@@ -1153,9 +1165,18 @@
         .nr         = UART_NR,
         .cons           = AMBA_CONSOLE,
     };
-
-####/dev/ptmx-/dev/pts/n设备
+####/dev/ptmx和/dev/pts/n设备
+    https://segmentfault.com/a/1190000009082089
     1,drivers/tty/pty.c
+#####/dev/pts/x怎么输出到screen
+    https://segmentfault.com/a/1190000009082089
+#####/dev/ttyn与/dev/pts/n区别
+    https://segmentfault.com/a/1190000009082089
+#####kernelspace层终端仿真器
+    drivers/tty/vt/vt.c
+        do_bind_con_driver()
+#####userspace层终端仿真器
+    基于ptm/pts实现的,如:gnome-terminal,putty,ssh...
 ####改变终端标题方法和原理:
     1,方法:
         1)使用PROMPT_COMMAND和PS1俩个变量来实现
