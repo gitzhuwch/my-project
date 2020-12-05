@@ -219,7 +219,7 @@
     一个tmux server上可创建多个session,
     一个session可创建多个window,
     一个window可分割成多个pane.
-    每一个pane都对应一个虚拟终端:/dev/ps/xx
+    每一个pane都对应一个虚拟终端:/dev/ps/xx(说明一个pane对应一个linux process session,因为session和tty一一对应)
 ###不要会话嵌套
     sessions should be nested with care, unset $TMUX to force
 ###tpm插件管理
@@ -1074,6 +1074,16 @@
         }
         return driver;
     }
+####tty种类
+    tty: teletypes 电传打字机
+    1,  vty: virtual tty, Virtual Consoles, Screen Blanking, Screen Dumping, Color, Graphics, Chars, and VT100 enhancements by Peter MacDonald.
+        设备节点为tty0, 给kernel传参console=/dev/tty0时, 可在lcd上显示log
+    2,  tty1-63: 与vty同一代码文件, 这类tty主要是主机自带显示器和键盘
+    3,  console: 这类tty主要给printk使用,kernel启动早期还有early console,kernel启动参数cansole可控制,主要给kernel吐log的, init进程也可用
+    4,  ttySn: 这类tty是serial tty，对应串口设备
+    5,  pty: 这类是伪终端,psuedo tty,有/dev/ptmx和/dev/pts/n一对，ptmx是master，pts/n是slave,
+        ptmx设备节点只有一个,可以被打开多次,每打开一次,会自动产生一个/dev/pts/n,并且open返回的fd都不同,
+        通过fd可以找到与之对应的/dev/pts/n设备节点,主要给终端仿真器使用:gnome-ternimal,putty,sshd,tmux...
 ####tty_drivers
     所有tty_driver都会注册到tty_drivers里面,所以tty_open的时候到这个链表找tty_driver，都可以找得到
 ####/dev/tty设备
@@ -1190,11 +1200,27 @@
     };
 ####/dev/ptmx和/dev/pts/n设备
     https://segmentfault.com/a/1190000009082089
-    1,drivers/tty/pty.c
-#####/dev/pts/x怎么输出到screen
-    https://segmentfault.com/a/1190000009082089
-#####/dev/ttyn与/dev/pts/n区别
-    https://segmentfault.com/a/1190000009082089
+#####/dev/pts/x怎么输出到screen?
+#####/dev/ttyn与/dev/pts/n区别?
+#####ansower
+######SSH远程访问
+    1.Terminal收到键盘的输入，Terminal通过ssh协议将数据发往sshd
+    2.sshd收到客户端的数据后，根据它自己管理的session，找到该客户端对应的关联到ptmx上的fd
+    3.往找到的fd上写入客户端发过来的数据
+    4.ptmx收到数据后，根据fd找到对应的pts（该对应关系由ptmx自动维护），将数据包转发给对应的pts
+    5.pts收到数据包后，检查绑定到自己上面的当前前端进程组，将数据包发给该进程组的leader
+    6.由于pts上只有shell，所以shell的read函数就收到了该数据包
+    7.shell对收到的数据包进行处理，然后输出处理结果（也可能没有输出）
+    8.shell通过write函数将结果写入pts
+    9.pts将结果转发给ptmx
+    10.ptmx根据pts找到对应的fd，往该fd写入结果
+    11.sshd收到该fd的结果后，找到对应的session，然后将结果发给对应的客户端
+######SSH + Screen/Tmux
+    这种情况要稍微复杂一点，不过原理都是一样的，前半部分和普通ssh的方式是一样的，只是pts/0关联的前端进程不是shell了，
+    而是变成了tmux客户端，所以ssh客户端发过来的数据包都会被tmux客户端收到，然后由tmux客户端转发给tmux服务器，而tmux服务器
+    干的活和ssh的类似，也是维护一堆的session，为每个session创建一个pts，然后将tmux客户端发过来的数据转发给相应的pts。
+    由于tmux服务器只和tmux客户端打交道，和sshd没有关系，当终端和sshd的连接断开时，虽然pts/0会被关闭，和它相关的shell和
+    tmux客户端也将被kill掉，但不会影响tmux服务器，当下次再用tmux客户端连上tmux服务器时，看到的还是上次的内容。
 #####kernelspace层终端仿真器
     drivers/tty/vt/vt.c
         do_bind_con_driver()
@@ -1231,6 +1257,10 @@
         strace跟踪如下:
             不带-l: write(1</dev/pts/3>, "Nov 10 20:52:51 ubuntu exportfs["..., 112) = 112
             带-l:    write(1</dev/pts/3>, "Nov 10 20:52:51 ubuntu exportfs["..., 156) = 156
+#####toe
+    可以通过命令toe -a列出系统支持的所有终端类型
+#####infocmp
+    可以通过命令infocmp来比较两个终端的区别，比如infocmp vt100 vt220将会输出vt100和vt220的区别。
 ####DISPLAY/TERM环境变量
 #####Linux X Window System的基本原理
     https://m.linuxidc.com/Linux/2013-06/86743.htm
@@ -1249,11 +1279,75 @@
     不同的选择会影响颜色,快捷键等
 ####fb/tty/terminal/pts/window/XDM?
     需要补充的知识
+####man pty
+    pty - pseudoterminal interfaces
+        Pseudoterminals are used by applications such as network login services (ssh(1),
+        rlogin(1), telnet(1)), terminal emulators such as xterm(1), script(1), screen(1), tmux(1),
+        unbuffer(1), and expect(1).
 ####vim/terminal的配色文件
     vim:/usr/share/vim/vim81/colors/*
     terminal:/lib/terminfo/*
              /usr/share/terminfo/*
 ####用infocap linux能解析terminfo数据库
+####Linux terminals, tty, pty and shell
+    https://dev.to/napicella/linux-terminals-tty-pty-and-shell-192e
+#####How does pseudo terminal work?
+    Terminal emulator (or any other program) can ask the kernel for a pair of characters files (called PTY master and PTY slave).
+    On the master side you have the terminal emulator, while on the slave side you have a Shell.
+    Between master and slave sits the TTY driver (line discipline, session management, etc.) which copies stuff from/to PTY master and slave.
+    Let's see what happens when...
+    you type something in a terminal emulator in the user land like XTerm or any any other application you use to get a terminal.
+    Usually we say we open 'the terminal' or we open 'a bash', but what it actually happens is:
+        1, a GUI which emulates the terminal starts (like the Terminal or Xterm UI application).
+        2, it draws the UI to the video and requests a pty from the OS.
+        3, launches bash as subprocess
+        3, The std input, output and error of the bash will be set to be the pty slave.
+        4, XTerm listens for keyboard events and sends the characters to the pty master
+        5, The line discipline gets the character and buffers them. It copies them to the slave only when you press enter. It also writes back its input to the master (echoing back). Remember the terminal is dumb, it will only show stuff on the screen if it comes from the pty master. Thus, the line discipline echoes back the character so that the terminal can draw it on the video, allowing you to see what you just typed.
+        6, When you press enter, the TTY driver (it's 'just' a kernel module) takes care of copying the buffered data to the pty slave
+        7, bash (which was waiting for input on standard input) finally reads the characters (for example 'ls -la'). Again, remember that bash standard input is set to be the PTY slave.
+        8, At this points bash interprets the character and figures it needs to run 'ls'
+        9, It forks the process and runs 'ls' in it. The forked process will have the same stdin, stdout and stderr used by bash, which is the PTY slave.
+        10, ls runs and prints to standard output (once again, this is the pty slave)
+        11, the tty driver copies the characters to the master(no, the line discipline does not intervene on the way back)
+        12, XTerm reads in a loop the bytes from the pty master and redraws the UI
+    I think we made it! That's roughly what happens when we run a command in a terminal emulator. The drawing should help consolidate the workflow:
+    +------------------------------------------------------+
+    |  +------------------+                                |
+    |  |terminal emulator |                                |
+    |  |(ui like xterm,   |                                |
+    |  |listen for keys   |                                |
+    |  |and draws the gui)|           +------+   +------+  |
+    |  +------------------+           |bash  |   |cat   |  |
+    |          |                      +------+   +------+  |
+    |          |                         |___________|     |
+    |          |                               |           |
+    |      +------+      userspace         +------+        |
+    +------|ptmx  |------------------------|pts/x |--------+
+    |      +------+      kernelspace       +------+        |
+    |         |        +----------------+      |           |
+    |         |        |   TTY DRIVER   |      |           |
+    |         +--------|(line discipline|------+           |
+    |                  |is applied here)|                  |
+    |                  +----------------+                  |
+    +------------------------------------------------------+
+#####How can a program control the terminal?
+    The way for programs to control the terminal is standardized by the ANSI escape codes.
+    Want to change the color of the text from your program?
+    Just print to standard out the ANSI escape code for coloring the text.
+    Standard out is the PTY slave, TTY driver copies the character to the PTY master, terminal gets the code and understands it needs to set the color to print the text on the screen. Voilà'!'
+#####How can I "mirror" everything that's happening on one terminal to another?
+    m1,
+        pacman -Syyu | tee /dev/tty1
+    m2, redirect standard out and error of bash also to a file.
+        s1, Terminal 1
+            bash -i 2>&1 | tee -a out
+        s2, tail -f out
+    m3, use tmux
+#####line discipline
+    You could put the terminal in "raw mode" which is also known as "no line discipline"
+    and the function table would be filled with 127 copies of "send-char-to-program"
+    function, immediately producing a task wakeup
 
 ###uevent subsystem:
 ####uevent_helper
@@ -1294,7 +1388,7 @@
 ####mdev开机自动生成设备节点
     1,在qemu中kernel起来后，在rcS里加了mdev -s 所以/dev下会有节点
 
-##linux file system:
+##linux filesystem:
 ###所有文件系统挂载的关键:
 ####register_filesystem()
     只是将file_system_type实例加到全局链表file_systems中
@@ -1666,6 +1760,10 @@
     /sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq
 ####cpu开关核节点:
     /sys/devices/system/cpu/cpu1/online
+###Linux CPU使用率
+https://segmentfault.com/a/1190000008322093
+###Linux OOM killer
+https://segmentfault.com/a/1190000008268803
 ###gpio/pinctrl区别:
     1, gpio:
     2, pinctrl:
@@ -1766,7 +1864,7 @@
         return 0;
     }
     subsys_initcall(param_sysfs_init);
-##Linux权限管理
+##linux权限管理
 ###Linux文件权限?
 ###Linux进程权限?
 ###Linux accounts management:
@@ -1796,7 +1894,7 @@
               这些身份就是系统里对应的用户账号。注意系统账户是不能用来登录的，比如 bin、daemon、mail等。
     普通用户：普通使用者，能使用Linux的大部分资源，一些特定的权限受到控制。用户只对自己的目录有写权限，读写权限受到一定的限制，
               从而有效保证了Linux的系统安全，大部分用户属于此类, 普通用户可用来登录。
-####Linux用户帐户创建:
+####linux用户帐户创建:
     1, sudo useradd -r 创建系统级用户，不能登录
                  -m 生成家目录
                  -s /bin/bash 指定用户交互程序
@@ -1825,6 +1923,132 @@
         resolve mathods:解决方法
             a) modify /etc/sudoers
             b) modify user group to sudo group
+
+##linux Container容器
+https://segmentfault.com/a/1190000006908063
+    1,  跟我们常说的虚拟机这种虚拟化技术没有关系
+    2,  容器就是一个或多个进程以及他们所能访问的资源的集合
+    3,  容器和虚拟机的差别
+            从技术角度来看，他们是不同的两种技术，没有任何关系，但由于他们的应用场景有重叠的地方，所以人们经常比较他们两个
+            容器目前只能在Linux上运行，容器里面只能跑Linux
+            虚拟机可以在所有主流平台上运行，比如Windows，Linux，Mac等，并且能模拟不同的系统平台，如在Windows下安装Linux的 虚拟机
+            容器是Linux下一组进程以及他们所能访问资源的集合，所有容器共享一个内核，要比虚拟机轻量级，占用系统资源少，
+            并且容器比虚拟机要快，包括启动速度，生成快照速度等
+            虚拟机是一整套的虚拟环境，包括BIOS, 虚拟网卡, 磁盘, CPU，以及操作系统等， 启动慢，占用硬件资源多.
+            由于虚拟机的和主机只是共享硬件资源，隔离程度要比容器高，所以相对来说虚拟机更安全
+    4,  docker和容器的关系
+        docker是容器管理技术的一种实现，用来管理容器，就像VMware是虚拟机的一种实现一样，除了docker，
+        还有LXC/LXD，Rocket，systemd-nspawn，只是docker做的最好，所以我们一说容器，就想到了docker。
+    5,  为什么容器只出现在Linux里面
+        因为Linux中有资源隔离和管理的机制(Namespace,CGroups)，有COW（copy on write）文件系统等容器所需要的基础技术。
+        当然其他平台也有类似的东西，但功能都没有Linux下的完善，不过随着容器技术越来越流行，其他的系统平台也在慢慢的
+        实现和完善类似的这些技术。
+    6,  为什么容器里面只能运行Linux
+        因为Linux下的所有容器共享一个Linux内核，所以容器里面只能跑Linux系统
+    7,  容器启动为什么那么快？
+        容器的本质是一个或多个进程以及他们所能访问的资源的集合。启动一个容器的步骤大概就是：
+            配置好相关资源，如内存、磁盘、网络等
+            配置资源就是往系统中添加一些配置，非常快
+            初始化容器所用到的文件目录结构
+            由于Linux下有COW（copy on write）的文件系统，如Btrfs、aufs，所以可以很快的根据镜像生成容器的文件系统目录结构。
+            启动进程
+            和启动一个普通的进程没有区别，对Linux内核来说，所有的应用层进程都是一样的
+        从上面可以看出启动容器的过程中没有耗时的操作，这也是为什么容器能在毫秒级别启动起来的原因
+    8,  启动容器会占用很多资源导致系统变慢吗
+        由于Namespace和CGroups已经是Linux内核的一部分了，所以应用层运行的进程一定会属于某个Namespace和CGroups（如果没有指定，
+        就属于默认的Namespace和CGroups），也就是说，就算我们不用Docker，所有的进程都已经运行在默认容器中了。对内核来说，默认
+        容器中运行的进程和Docker创建的容器中运行的进程没有什么区别，就是他们所属的容器号不一样。
+        所以说创建新容器会不会影响主机性能完全取决于容器里面运行什么东西。如果运行的是耗资源的进程，那么肯定会对主机性能造
+        成影响，但这种影响可以在一定程度上由CGroups控制住，不至于对主机带来灾难性的影响。如果容器里面运行的是不耗资源的进程，
+        那么对系统就没有影响，只是容器里面的文件系统可能会占用一些磁盘空间。
+
+##linux namespace and cgroup
+    是对进程能看到的，能获取到的系统资源的能力的一种限制，就是让不同的进程拥有不同的系统资源.
+    没有namespace，那么子进程可能继承父进程的所有全局资源，有了namespace，可以邦子进程创建新的
+    namespace，
+###linux namespace
+    docker的原理
+    namespace是为了隔离进程组之间的资源
+    Namespace是对全局系统资源的一种封装隔离，使得处于不同namespace的进程拥有独立的全局系统资源，
+    改变一个namespace中的系统资源只会影响当前namespace里的进程，对其他namespace中的进程没有影响。
+    1,  unshare - run program with some namespaces unshared from parent
+    2,  一个namespace创建了一个子namespace，子namespace的挂载信息和父namespace的挂载信息，看到的不一样
+        比如在子namespace中创建一个目录，在父namespace中可能就看不到
+###linux cgroup
+    cgroup和namespace类似，也是将进程进行分组，但它的目的和namespace不一样，
+    namespace是为了隔离进程组之间的资源，而cgroup是为了对一组进程进行统一的资源监控和限制
+
+##linux session and process group
+https://segmentfault.com/a/1190000009152815
+###session
+    1,  session就是一组进程的集合，session id就是这个session中leader的进程ID。
+    2,  session的特点
+        1)  session的主要特点是当session的leader退出后，session中的所有其它进程将会收到SIGHUP信号，其默认行为是终止进程，
+            即session的leader退出后，session中的其它进程也会退出。
+        2)  如果session和tty关联的话，它们之间只能一一对应，一个tty只能属于一个session，一个session只能打开一个tty。
+            当然session也可以不和任何tty关联。
+###process group
+    1,  进程组（process group）也是一组进程的集合，进程组id就是这个进程组中leader的进程ID。
+    2,  进程组的特点
+        进程组的主要特点是可以以进程组为单位通过函数killpg发送信号
+###session和process group的关系
+    dev@debian:~$ sleep 1000 &
+    [1] 1646
+    dev@debian:~$ cat | wc -l &
+    [2] 1648
+    dev@debian:~$ jobs
+    [1]-  Running                 sleep 1000 &
+    [2]+  Stopped                 cat | wc -l
+    下面这张图标明了这种情况下它们之间的关系：
+    +--------------------------------------------------------------+
+    |                                                              |
+    |      pg1             pg2             pg3            pg4      |
+    |    +------+       +-------+        +-----+        +------+   |
+    |    | bash |       | sleep |        | cat |        | jobs |   |
+    |    +------+       +-------+        +-----+        +------+   |
+    | session leader                     | wc  |                   |
+    |                                    +-----+                   |
+    |                                                              |
+    +--------------------------------------------------------------+
+                                session
+    pg = process group(进程组)
+    bash是session的leader，sleep、cat、wc和jobs这四个进程都由bash fork而来，所以他们也属于这个session
+    bash也是自己所在进程组的leader
+    bash会为自己启动的每个进程都创建一个新的进程组，所以这里sleep和jobs进程属于自己单独的进程组
+    对于用管道符号“|”连接起来的命令，bash会将它们放到一个进程组中
+###deamon
+    通过nohup，就可以实现让进程在后台一直执行的功能，为什么我们还要写deamon进程呢？
+    从上面的nohup的介绍中可以看出来，虽然进程是在后台执行，但进程跟当前session还是有着千丝万缕的关系，至少其父进程还是被session管着的，
+    所以我们还是需要一个跟任何session都没有关系的进程来实现deamon的功能。实现deamon进程的大概步骤如下：
+        调用fork生成一个新进程，然后原来的进程退出，这样新进程就变成了孤儿进程，于是被init进程接收，这样新进程就和调用进程没有父子关系了。
+        调用setsid，创建新的session，新进程将成为新session的leader，同时该新session不和任何tty关联。
+        切换当前工作目录到其它地方，一般是切换到根目录，这样就取消了对原工作目录的引用，如果原工作目录是某个挂载点下面的目录，这样就不会影响该挂载点的卸载。
+        关闭一些从父进程继承过来而自己不需要的fd，避免不小心读写这些fd。
+        重定向stdin、stdout和stderr，避免读写它们出现错误。
+
+##linux network
+https://segmentfault.com/blog/wuyangchun?page=1
+
+##linux交换空间(swap space)
+https://segmentfault.com/a/1190000008125116
+    1,  由于系统会自动将不常用的内存数据移到swap上，对桌面程序来说，有可能会导致最小化一个程序后，再打开时小卡一下，
+        因为需要将swap上的数据重新加载到内存中来。
+    2,  为什么需要swap?
+        要回答这个问题，就需要回答swap给我们带来了哪些好处。
+        对于一些大型的应用程序(如LibreOffice、video editor等)，在启动的过程中会使用大量的内存，但这些内存很多时候只是在启动
+        的时候用一下，后面的运行过程中很少再用到这些内存。有了swap后，系统就可以将这部分不这么使用的内存数据保存到swap上去，
+        从而释放出更多的物理内存供系统使用。
+        很多发行版(如ubuntu)的休眠功能依赖于swap分区，当系统休眠的时候，会将内存中的数据保存到swap分区上，等下次系统启动的
+        时候，再将数据加载到内存中，这样可以加快系统的启动速度，所以如果要使用休眠的功能，必须要配置swap分区，并且大小一定
+        要大于等于物理内存
+        在某些情况下，物理内存有限，但又想运行耗内存的程序怎么办？这时可以通过配置足够的swap空间来达到目标，虽然慢一点，
+        但至少可以运行。
+        虽然大部分情况下，物理内存都是够用的，但是总有一些意想不到的状况，比如某个进程需要的内存超过了预期，
+        或者有进程存在内存泄漏等，当内存不够的时候，就会触发内核的OOM killer，根据OOM killer的配置，某些进程会被kill掉
+        或者系统直接重启（默认情况是优先kill耗内存最多的那个进程），不过有了swap后，可以拿swap当内存用，虽然速度慢了点，
+        但至少给了我们一个去debug、kill进程或者保存当前工作进度的机会。
+        如果看过Linux内存管理，就会知道系统会尽可能多的将空闲内存用于cache，以加快系统的I/O速度，所以如果能将不怎么常用
+        的内存数据移动到swap上，就会有更多的物理内存用于cache，从而提高系统整体性能。
 
 ##Bootloader:
 ###Bootloader种类
