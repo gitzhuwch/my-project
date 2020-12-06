@@ -1080,14 +1080,75 @@
         }
         return driver;
     }
+####tty3是怎么输出到屏幕上的?
+#####ftrace跟踪
+    1,  sudo su
+    2,  set -x
+        cd /sys/kernel/debug/tracing
+        echo 0 > tracing_on
+        echo "" > trace
+        echo 50000 > buffer_size_kb
+        echo '' > set_ftrace_pid
+        #-----------------------------------------------------------
+        echo redraw_screen > set_graph_function  #########################千万不要设到set_ftrace_filter里面去了,那样所有其它函数都会被disabled
+        echo "print-parent" > trace_options
+        echo "nosym-offset" > trace_options
+        echo "nosym-addr" > trace_options
+        echo "noverbose" > trace_options
+        echo "noraw" > trace_options
+        echo "nohex" > trace_options
+        echo "nobin" > trace_options
+        echo "noblock" > trace_options
+        echo "trace_printk" > trace_options
+        echo "annotate" > trace_options
+        echo "nouserstacktrace" > trace_options
+        echo "nosym-userobj" > trace_options
+        echo "noprintk-msg-only" > trace_options
+        echo "context-info" > trace_options
+        echo "nolatency-format" > trace_options
+        echo "record-cmd" > trace_options
+        echo "overwrite" > trace_options
+        echo "nodisable_on_free" > trace_options
+        echo "irq-info" > trace_options
+        echo "markers" > trace_options
+        echo "function-trace" > trace_options
+        echo "display-graph" > trace_options
+        echo "stacktrace" > trace_options
+        echo "nofuncgraph-overrun" > trace_options
+        echo "funcgraph-cpu" > trace_options
+        echo "funcgraph-overhead" > trace_options
+        echo "funcgraph-proc" > trace_options
+        echo "funcgraph-duration" > trace_options
+        echo "nofuncgraph-abstime" > trace_options
+        echo "nofuncgraph-irqs" > trace_options
+        echo "nofuncgraph-tail" > trace_options
+        echo "sleep-time" > trace_options
+        echo "graph-time" > trace_options
+        echo nooverwrite > trace_options
+        echo "" > trace
+        echo 1 > tracing_on
+    3,  cat trace_pipe
+    4,  ctrl+alt+f3  #切换到tty3
+    5,  ls
+    6,  ctrl+alt+f2  #切换回来
+    7,  结束跟踪
+    log如./tty3-ftrace.log
+#####总结
+    由log不难看出，linux真实真实终端(不是ptm/pts/ttySn)tty3，输入输出直接是kernel里的keyboard和framebuffer，不经过用户层转换
+    usb keyboard subsystem没有跟踪，也可以加个关键函数看看
 ####tty种类
     tty: teletypes 电传打字机
-    1,  vty: virtual tty, Virtual Consoles, Screen Blanking, Screen Dumping, Color, Graphics, Chars, and VT100 enhancements by Peter MacDonald.
+#####vty内核里直接接屏幕和键盘:
+        virtual tty, Virtual Consoles, Screen Blanking, Screen Dumping, Color, Graphics, Chars, and VT100 enhancements by Peter MacDonald.
         设备节点为tty0, 给kernel传参console=/dev/tty0时, 可在lcd上显示log
-    2,  tty1-63: 与vty同一代码文件, 这类tty主要是主机自带显示器和键盘
-    3,  console: 这类tty主要给printk使用,kernel启动早期还有early console,kernel启动参数cansole可控制,主要给kernel吐log的, init进程也可用
-    4,  ttySn: 这类tty是serial tty，对应串口设备
-    5,  pty: 这类是伪终端,psuedo tty,有/dev/ptmx和/dev/pts/n一对，ptmx是master，pts/n是slave,
+#####tty1-63:
+        与vty同一代码文件, 这类tty主要是主机自带显示器和键盘
+#####console:
+        这类tty主要给printk使用,kernel启动早期还有early console,kernel启动参数cansole可控制,主要给kernel吐log的, init进程也可用
+#####ttySn:
+        这类tty是serial tty，对应串口设备
+#####pty:
+        这类是伪终端,psuedo tty,有/dev/ptmx和/dev/pts/n一对，ptmx是master，pts/n是slave,
         ptmx设备节点只有一个,可以被打开多次,每打开一次,会自动产生一个/dev/pts/n,并且open返回的fd都不同,
         通过fd可以找到与之对应的/dev/pts/n设备节点,主要给终端仿真器使用:gnome-ternimal,putty,sshd,tmux...
 ####tty_drivers
