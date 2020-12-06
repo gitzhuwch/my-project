@@ -211,6 +211,12 @@
 ###vim刷新屏幕
     1,  Ctrl-L      与tmux.conf中自定义刷屏快捷键冲突,在tmux之外可以用
     2,  :redraw!    可在.vimrc中自定义快捷键，<Leader>r :redraw!,可在tmux中使用，不加!只重绘，不刷屏
+###text文件中画流程图
+    方法一:
+        安装vim plugin DrawIt
+    方法二:
+        浏览器打开:acsiiflow.cn(比较好用)
+        网页源码已下载到本地(没有网络时使用)，导出到vim时，vim粘贴不要用ctrl+shift+v，直接在normal模式下p就行
 
 ##tmux:
 ###概念
@@ -1247,7 +1253,8 @@
         man console_codes //Linux console escape and control sequences
 ####stty/tty工具
     1,  tty:显示当前终端设备文件
-#####stty怎么禁止换行
+#####stty常见的TTY配置
+######怎么禁止换行
     1,  好像不行.
     2,  systemctl -l --no-pager status xx.service
         如果打印的一行log长度,超出但前tty的colums的log,换一行打印
@@ -1257,10 +1264,44 @@
         strace跟踪如下:
             不带-l: write(1</dev/pts/3>, "Nov 10 20:52:51 ubuntu exportfs["..., 112) = 112
             带-l:    write(1</dev/pts/3>, "Nov 10 20:52:51 ubuntu exportfs["..., 156) = 156
+######rows and columns set
+    rows 51; columns 204;
+    这个配置一般由终端控制，当终端的窗口大小发生变化时，需要通过一定的手段修改该配置，比如ssh协议里面就有修改窗口大小的参数，
+    sshd收到客户端的请求后，会通过API修改tty的这个参数，然后由tty通过信号SIGWINCH通知前端程序（比如shell或者vim），前端程序
+    收到信号后，再去读tty的这个参数，然后就知道如何调整自己的输出排版了。
+######intr = ^C
+    tty除了在终端和前端进程之间转发数据之外，还支持很多控制命令，比如终端输入了CTRL+C，那么tty不会将该输入串转发给前端进程，
+    而是将它转换成信号SIGINT发送给前端进程。这个就是用来配置控制命令对应的输入组合的，比如我们可以配置“intr = ^E”表示用
+    CTRL+E代替CTRL+C。
+######start = ^Q; stop = ^S;
+    这是两个特殊的控制命令，估计经常有人会碰到，在键盘上不小心输入CTRL+S后，终端没反应了，即没输出，也不响应任何输入。
+    这是因为这个命令会告诉TTY暂停，阻塞所有读写操作，即不转发任何数据，只有按了CTRL+Q后，才会继续。这个功能应该是历史遗留，
+    以前终端和服务器之间没有流量控制功能，所以有可能服务器发送数据过快，导致终端处理不过来，于是需要这样一个命令告诉服务器
+    不要再发了，等终端处理完了后在通知服务器继续。
+    该命令现在比较常用的一个场景就是用tail -f命令监控日志文件的内容时，可以随时按CTRL+S让屏幕停止刷新，看完后再按CTRL+Q让
+    它继续刷，如果不这样的话，需要先CTRL+C退出，看完后在重新运行tail -f命令。
+######echo
+    在终端输入字符的时候，之所以我们能及时看到我们输入的字符，那是因为TTY在收到终端发过去的字符后，会先将字符原路返回一份，
+    然后才交给前端进程处理，这样终端就能及时的显示输入的字符。echo就是用来控制该功能的配置项，如果是-echo的话表示disable echo功能。
+######-tostop
+    如果你在shell中运行程序的时候，后面添加了&，比如./myapp &，这样myapp这个进程就会在后台运行，但如果这个进程继续往tty上写
+    数据呢？这个参数就用来控制是否将输出转发给终端，也即结果会不会在终端显示，这里“-tostop”表示会输出到终端，如果配置为“tostop”的话，
+    将不输出到终端，并且tty会发送信号SIGTTOU给myapp，该信号的默认行为是将暂停myapp的执行。
 #####toe
     可以通过命令toe -a列出系统支持的所有终端类型
 #####infocmp
     可以通过命令infocmp来比较两个终端的区别，比如infocmp vt100 vt220将会输出vt100和vt220的区别。
+####TTY相关信号
+    除了上面介绍配置时提到的SIGINT，SIGTTOU，SIGWINCHU外，还有这么几个跟TTY相关的信号
+    跟tty相关的信号都是可以捕获的，可以修改它的默认行为
+#####SIGTTIN
+    当后台进程读tty时，tty将发送该信号给相应的进程组，默认行为是暂停进程组中进程的执行。暂停的进程如何继续执行呢？
+    请参考下一篇文章中的SIGCONT。
+#####SIGHUP
+    当tty的另一端挂掉的时候，比如ssh的session断开了，于是sshd关闭了和ptmx关联的fd，内核将会给和该tty相关的所有进程
+    发送SIGHUP信号，进程收到该信号后的默认行为是退出进程。
+#####SIGTSTP
+    终端输入CTRL+Z时，tty收到后就会发送SIGTSTP给前端进程组，其默认行为是将前端进程组放到后端，并且暂停进程组里所有进程的执行。
 ####DISPLAY/TERM环境变量
 #####Linux X Window System的基本原理
     https://m.linuxidc.com/Linux/2013-06/86743.htm
@@ -1284,7 +1325,37 @@
         Pseudoterminals are used by applications such as network login services (ssh(1),
         rlogin(1), telnet(1)), terminal emulators such as xterm(1), script(1), screen(1), tmux(1),
         unbuffer(1), and expect(1).
-####vim/terminal的配色文件
+####\n与\r区别
+    1,  \n是换行，在minicom中，只改变纵坐标不改变横坐标，ascii:0x0a LF
+    2,  \r时回车，在minicom中，只改变横坐标不改变纵坐标，ascii:0x0d CR
+####EOL of unix,macos,dos
+    1, unix EOL is <NL> 换行符
+    2, mac EOL is <CR> 回车符
+    3, dos EOL is <CR><NL> 回车加换行
+####在tty3上也能使用tmux
+    说明tmux是纯字符画面
+####开机进入命令行模式(tty1)
+    sudo vim /etc/default/grub
+    把GRUB_CMDLINE_LINUX_DEFAULT=”quiet splash”改成GRUB_CMDLINE_LINUX_DEFAULT=”quiet splash text”
+    然后更新grub
+    sudo update-grub
+####分辨率调节(解决进入命令界面时字体过大)
+    sudo vim /etc/default/grub
+    加入GRUB_GFXPAYLOAD_LINUX=1280x1024(最新的不一定是这个参数，可以在这个文件里找一找)
+    设置成显卡所支持的分辨率，可以参考显示功能所列出的分辨率
+    然后更新grub
+    sudo update-grub
+####配色和字体
+    方法一：
+        sudo vim /etc/default/console-setup
+        改成如下配置：
+        #一般推荐：
+        CODESET="Hebrew"
+        FONTFACE="VGA"
+        FONTSIZE="16"
+    方法二（没测试过）：
+        sudo dpkg-reconfigure console-setup
+####vim and terminal的配色文件
     vim:/usr/share/vim/vim81/colors/*
     terminal:/lib/terminfo/*
              /usr/share/terminfo/*
@@ -1312,25 +1383,27 @@
         11, the tty driver copies the characters to the master(no, the line discipline does not intervene on the way back)
         12, XTerm reads in a loop the bytes from the pty master and redraws the UI
     I think we made it! That's roughly what happens when we run a command in a terminal emulator. The drawing should help consolidate the workflow:
-    +------------------------------------------------------+
-    |  +------------------+                                |
-    |  |terminal emulator |                                |
-    |  |(ui like xterm,   |                                |
-    |  |listen for keys   |                                |
-    |  |and draws the gui)|           +------+   +------+  |
-    |  +------------------+           |bash  |   |cat   |  |
-    |          |                      +------+   +------+  |
-    |          |                         |___________|     |
-    |          |                               |           |
-    |      +------+      userspace         +------+        |
-    +------|ptmx  |------------------------|pts/x |--------+
-    |      +------+      kernelspace       +------+        |
-    |         |        +----------------+      |           |
-    |         |        |   TTY DRIVER   |      |           |
-    |         +--------|(line discipline|------+           |
-    |                  |is applied here)|                  |
-    |                  +----------------+                  |
-    +------------------------------------------------------+
+    +-------------------------------------------------------------------------+
+    |            +---------------------------+                                |
+    |            |     terminal emulator     |                                |
+    |            |     (ui like xterm,       |         +------+      +------+ |
+    |            |     listen for keys       |         |bash  |      |cat   | |
+    |            |     and draws the gui)    |         +------+      +------+ |
+    |            +---------------------------+          |    |        |    |  |
+    |              |   |       |    |                   |    |        |    |  |
+    |      ________|   |      I|   O|                   |____|________|____|  |
+    |     |            |       |    |                         I|   O|         |
+    | +--------+  +--------+  +------+      userspace         +------+        |
+    +-| screen |--|keyboard|--|ptmx  |------------------------|pts/x |--------+
+    | +--------+  +--------+  +------+      kernelspace       +------+        |
+    |                          |    |     +----------------+   |    |         |
+    |                         I|   O|     |   TTY DRIVER   |  I|   O|         |
+    |                          |    +-----|(line discipline|---+    |         |
+    |                          +----------|is applied here)|--------+         |
+    |                                     +----------------+                  |
+    +-------------------------------------------------------------------------+
+    注意:   上图中，如果是使用ptm/pts的terminal emulator，则在应用层使用GUI画字符界面，
+            如果是使用ttyn(比如按ctrl+alt+fn)的真实终端，则在kernel层使用vt driver直接画字符界面.
 #####How can a program control the terminal?
     The way for programs to control the terminal is standardized by the ANSI escape codes.
     Want to change the color of the text from your program?
