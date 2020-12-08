@@ -2150,15 +2150,31 @@ https://segmentfault.com/a/1190000009152815
     bash也是自己所在进程组的leader
     bash会为自己启动的每个进程都创建一个新的进程组，所以这里sleep和jobs进程属于自己单独的进程组
     对于用管道符号“|”连接起来的命令，bash会将它们放到一个进程组中
-###deamon
-    通过nohup，就可以实现让进程在后台一直执行的功能，为什么我们还要写deamon进程呢？
+###daemon
+    通过nohup，就可以实现让进程在后台一直执行的功能，为什么我们还要写daemon进程呢？
     从上面的nohup的介绍中可以看出来，虽然进程是在后台执行，但进程跟当前session还是有着千丝万缕的关系，至少其父进程还是被session管着的，
-    所以我们还是需要一个跟任何session都没有关系的进程来实现deamon的功能。实现deamon进程的大概步骤如下：
+    所以我们还是需要一个跟任何session都没有关系的进程来实现daemon的功能。实现daemon进程的大概步骤如下：
         调用fork生成一个新进程，然后原来的进程退出，这样新进程就变成了孤儿进程，于是被init进程接收，这样新进程就和调用进程没有父子关系了。
         调用setsid，创建新的session，新进程将成为新session的leader，同时该新session不和任何tty关联。
         切换当前工作目录到其它地方，一般是切换到根目录，这样就取消了对原工作目录的引用，如果原工作目录是某个挂载点下面的目录，这样就不会影响该挂载点的卸载。
         关闭一些从父进程继承过来而自己不需要的fd，避免不小心读写这些fd。
         重定向stdin、stdout和stderr，避免读写它们出现错误。
+####daemon进程中的printf
+#####daemon守护进程中将stdin，stdout，stderr重定向到/dev/null的问题
+    有人认为对于后台守护进程做此类重定向操作浪费资源，建议直接关闭0、1、2号句
+    柄拉倒，这是非常不正确的。假设它们确实被关闭了，则一些普通数据文件句柄将等
+    于0、1、2。以2号句柄为例，某些库函数失败后会向2号句柄输出错误信息，这将破
+    坏原有数据。
+#####Linux开发--探讨将标准输入输出及错误重定向到/dev/null
+    Henry Spencer在setuid(7)手册页中做了如下建议，一切标准I/O句柄都可能因关闭过而不再是真实的标准I/O句柄，在使用printf()一类的函数前，务必确认
+    这些句柄是期待中的标准I/O句柄。1991年，在comp news上有人重贴了这份文档。
+    内核补丁应该确保对于SUID、SGID进程而言，0、1、2号句柄不会被打开后指向一个普通文件。这有很多实现方式，比如使它们全部指向/dev/null。这种限制
+    不应该在库函数一级实现，可能有些SUID、SGID程序直接使用系统调用
+    自1998年以来，OpenBSD内核中execve()里有一个检查，如果句柄0、1、2是关闭的，就打开/dev/null，使之对应0、1、2号句柄。这样就可以安全地执行setuid程序了。FreeBSD/NetBSD直至最近才再次暴露出类似问题，而Linux在glibc中做了一些检查。
+#####How to see the daemon process's output in Linux?
+    It doesn't output anything because it got no terminal attached.
+####gui程序中的printf
+    比如用鼠标双击一个文本文件启动gedit，其0->/dev/null 1,2->socket,这个socket会输出到/var/log/syslog中
 
 ##linux network
 https://segmentfault.com/blog/wuyangchun?page=1
