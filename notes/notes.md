@@ -1288,12 +1288,21 @@
     干的活和ssh的类似，也是维护一堆的session，为每个session创建一个pts，然后将tmux客户端发过来的数据转发给相应的pts。
     由于tmux服务器只和tmux客户端打交道，和sshd没有关系，当终端和sshd的连接断开时，虽然pts/0会被关闭，和它相关的shell和
     tmux客户端也将被kill掉，但不会影响tmux服务器，当下次再用tmux客户端连上tmux服务器时，看到的还是上次的内容。
-#####kernelspace层终端仿真器
+####终端仿真器(virtual console)
+    终端仿真器是能够接收源端发过来的数据、解析部分源端发过来的控制序列、显示源端数据的程序。
+#####内核空间终端仿真器
     drivers/tty/vt/vt.c
         do_bind_con_driver()
-#####userspace层终端仿真器
+#####用户空间终端仿真器
     基于ptm/pts实现的,如:gnome-terminal,putty,ssh...
-####改变终端标题方法和原理:
+####终端转义和控制序列
+    man console_codes //Linux console escape and control sequences
+    本质上是发送端和接收端的"控制协议"，发送端发送控制序列，接收端(包括tty driver和终端仿真器)来决定和执行什么样的行为。
+    即:由源端发送控制序列，tty driver和仿真器来解析。
+#####改变终端仿真器的标题:
+######改变用户空间的gnome-terminal的标题
+    使用转义序列来实现的，向ptsn端发送转义序列，监听在ptmx端的gnome-terminal收到后，
+    执行解析代码，并做相应动作。
     1,方法:
         1)使用PROMPT_COMMAND和PS1俩个变量来实现
             export PROMPT_COMMAND='echo -ne "\033]0;${USER}@${HOSTNAME}:${PWD}\007"'  //PWD前面的HOME部分不能用~号缩写
@@ -1304,14 +1313,94 @@
             echo -ne "\033]0;${USER}@${HOSTNAME}:${PWD}\007" //只刷新一次,如果想在标题中显示实时目录,这种方法不可取
     2,原理:
         1)  https://www.cnblogs.com/fanweisheng/p/11076987.html
-            ESC ] 0 ; txt BEL   将图标名和窗口标题设为文本.
-            ESC ] 1 ; txt BEL   将图标名设为文本.
-            ESC ] 2 ; txt BEL   将窗口名设为文本.
+            ESC ] 0 ; txt BEL       将图标名和窗口标题设为文本.
+            ESC ] 1 ; txt BEL       将图标名设为文本.
+            ESC ] 2 ; txt BEL       将窗口名设为文本.
             ESC ] 4 6 ; name BEL    改变日志文件名(一般由编译时选项禁止)
-            ESC ] 5 0 ; fn BEL  字体设置为 fn.
-        2)  kernel源码:drivers/tty/vt/vt.c:do_con_trol()
-    3,man手册
-        man console_codes //Linux console escape and control sequences
+            ESC ] 5 0 ; fn BEL      字体设置为 fn.
+######改变kernel virtual console的标题
+    内核终端仿真器能够解析该控制序列，但不做任何操作
+    kernel源码:drivers/tty/vt/vt.c:do_con_trol()
+#####vim退出后恢复终端内容
+    vim端:
+        vim有俩个变量:t_ti,t_te，这俩变量来存放控制序列，在vim进入和退出时，会将该序列发给ptsn端，经过tty driver处理一部分
+        控制序列，传到监听在ptmx端的终端仿真器gnome-terminal里，gnome-terminal会执行相应行为。
+        t_ti = "\<Esc>[?1049h"
+        t_te = "\<Esc>[?1049l"
+    gnome-terminal端:
+        接收到控制序列后，发现该序列让进入alternate screen和退出alternate screen，那么gnome-terminal就在vim打开时进入altscreen,
+        进入后，相当于开启一个新的虚拟终端，默认占一屏，没有滚动条。退出时，接收到的控制序列是将之前的screen替换回来。
+#####linux像vim/man/less/top一样在终端的新屏幕中输出,退出后清屏返回原屏幕
+    https://blog.csdn.net/youyudexiaowangzi/article/details/97763505
+    1,script中实现
+        #!/bin/bash
+        tput smcup
+        echo -e '\E7'
+        echo -e '\033[?47h'
+        tput cup 0 0
+        echo "aaaaaaaaaaaaa"
+        echo "aaaaaaaaaaaaa"
+        echo "aaaaaaaaaaaaa"
+        sleep 2
+        tput cup 5 10
+        echo "dddddddddddddd"
+        echo "bbbbbbbbbbbbbb"
+        echo "cccccccccccccc"
+        sleep 2
+        #echo -e '\E[2J'
+        #echo -e '\033[?47l'
+        #echo -e '\E8'
+        tput rmcup
+    tput smcup、tput rmcup是进入altscreen和退出altscreen，进入altscreen后相当于开启一个新的虚拟终端，此终端默认占一屏，没有滚动条，
+    altscreen默认从下往上推动输出，即输出顺序不变，相对位置不变，但是不是从顶部开始输出，而是从底部网上推，所以需要调用
+    tput cup命令设置cursor position（y，x）， 先竖直距离坐标，再横向距离坐标
+    smcup、rmcup与echo -e对比：
+        smcup
+        \E7 saves the cursor's position
+        \E[?47h switches to the alternate screen
+        rmcup
+        \E[2J clears the screen (assumed to be the alternate screen)
+        \E[?47l switches back to the normal screen
+        \E8 restores the cursor's position.
+    2,程序中可以采用ncurses库
+        #include <ncurses.h>
+        #include <unistd.h>
+        #define DELAY 30000
+        int main(int argc, char *argv[])
+        {
+            int x = 0;
+            int y = 0;
+            int max_x = 0,max_y = 0;
+            int next_x = 0;
+            int direction = 1;
+            initscr(); /* 初始化屏幕 */
+            noecho(); /* 屏幕上不返回任何按键 */
+            curs_set(FALSE); /* 不显示光标 */
+            /* getmaxyx(stdscr, max_y, max_x);/* 获取屏幕尺寸 */
+            mvprintw(5, 5, "Hello, world!");
+            refresh(); /* 更新显示器 */
+            sleep(1);
+            while(1) {
+                getmaxyx(stdscr, max_y, max_x);/* 获取屏幕尺寸 */
+                clear(); /* 清屏 */
+                mvprintw(y, x, "x");
+                refresh();
+                usleep(DELAY);
+                next_x = x + direction;
+                if(next_x >= max_x || next_x < 0) {
+                    direction = (-1) * direction;
+                }
+                else {
+                    x = x + direction;
+                }
+            }
+            endwin();  /* 恢复终端 */
+        }
+    编译运行后，可以看到hello, world然后消失，一个x在第一行左右移动，ctrl+c可以退出，然后恢复终端
+#####printf实现进度条
+    使用\r转义序列
+    #define dprintf_info(fmt,args...) printf("\033[0;32m" fmt "\033[0m", ##args)
+    dprintf_info("\rtest index:[%d]%5d [%c]", test_count, j, lable[j%4]);
 ####stty/tty工具
     1,  tty:显示当前终端设备文件
 #####stty常见的TTY配置
@@ -1400,7 +1489,7 @@
     把GRUB_CMDLINE_LINUX_DEFAULT=”quiet splash”改成GRUB_CMDLINE_LINUX_DEFAULT=”quiet splash text”
     然后更新grub
     sudo update-grub
-####分辨率调节(解决进入命令界面时字体过大)
+####tty3分辨率调节(解决进入命令界面时字体过大)
     sudo vim /etc/default/grub
     加入GRUB_GFXPAYLOAD_LINUX=1280x1024(最新的不一定是这个参数，可以在这个文件里找一找)
     设置成显卡所支持的分辨率，可以参考显示功能所列出的分辨率
