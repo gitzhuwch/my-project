@@ -1299,6 +1299,17 @@
     man console_codes //Linux console escape and control sequences
     本质上是发送端和接收端的"控制协议"，发送端发送控制序列，接收端(包括tty driver和终端仿真器)来决定和执行什么样的行为。
     即:由源端发送控制序列，tty driver和仿真器来解析。
+#####内核解析部分控制字符代码
+######输入字符解析
+    drivers/tty/n_tty.c:
+        n_tty_receive_char_special()
+            解析部分控制字符:start,stop,int,quit etc
+######输出字符解析
+        do_output_char()
+            转换\r,\n,\t,\b等字符
+#####内核终端仿真器解析部分代码
+######输入字符解析
+    grep "033" drivers/tty/vt/* -rn
 #####改变终端仿真器的标题:
 ######改变用户空间的gnome-terminal的标题
     使用转义序列来实现的，向ptsn端发送转义序列，监听在ptmx端的gnome-terminal收到后，
