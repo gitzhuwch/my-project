@@ -1089,50 +1089,34 @@
         echo "" > trace
         echo 50000 > buffer_size_kb
         echo '' > set_ftrace_pid
+        echo 3328 > set_ftrace_pid
+        #echo $$ > set_ftrace_pid
+        echo "function_graph" > current_tracer
+        echo "" > set_graph_function
         #-----------------------------------------------------------
-        echo redraw_screen > set_graph_function  #########################千万不要设到set_ftrace_filter里面去了,那样所有其它函数都会被disabled
-        echo "print-parent" > trace_options
-        echo "nosym-offset" > trace_options
-        echo "nosym-addr" > trace_options
-        echo "noverbose" > trace_options
-        echo "noraw" > trace_options
-        echo "nohex" > trace_options
-        echo "nobin" > trace_options
-        echo "noblock" > trace_options
-        echo "trace_printk" > trace_options
-        echo "annotate" > trace_options
-        echo "nouserstacktrace" > trace_options
-        echo "nosym-userobj" > trace_options
-        echo "noprintk-msg-only" > trace_options
-        echo "context-info" > trace_options
-        echo "nolatency-format" > trace_options
-        echo "record-cmd" > trace_options
+        #千万不要设到set_ftrace_filter里面去了,那样所有其它函数都会被disabled
+        echo "con_write" > set_graph_function
+        #echo "con_write_room" > set_graph_function
+        #echo "con_put_char" > set_graph_function
+        #echo "con_flush_chars" > set_graph_function
+        #echo "con_write" > set_graph_function
+        #-----------------------------------------------------------
+        #echo "noblock" > trace_options
+        #echo "context-info" > trace_options
         echo "overwrite" > trace_options
-        echo "nodisable_on_free" > trace_options
-        echo "irq-info" > trace_options
-        echo "markers" > trace_options
-        echo "function-trace" > trace_options
+        #echo "irq-info" > trace_options
         echo "display-graph" > trace_options
         echo "stacktrace" > trace_options
-        echo "nofuncgraph-overrun" > trace_options
-        echo "funcgraph-cpu" > trace_options
-        echo "funcgraph-overhead" > trace_options
-        echo "funcgraph-proc" > trace_options
-        echo "funcgraph-duration" > trace_options
-        echo "nofuncgraph-abstime" > trace_options
-        echo "nofuncgraph-irqs" > trace_options
-        echo "nofuncgraph-tail" > trace_options
-        echo "sleep-time" > trace_options
-        echo "graph-time" > trace_options
-        echo nooverwrite > trace_options
         echo "" > trace
         echo 1 > tracing_on
-    3,  cat trace_pipe
-    4,  ctrl+alt+f3  #切换到tty3
-    5,  ls
-    6,  ctrl+alt+f2  #切换回来
-    7,  结束跟踪
-    log如./tty3-ftrace.log
+        #-----------------------------------------------------------
+        rm -f /home/user/temp/linux/trace.log
+        cat trace_pipe > /home/user/temp/linux/trace.log
+    3,  ctrl+alt+f3  #切换到tty3
+    4,  输入:ls
+    5,  ctrl+alt+f2  #切换回来
+    6,  结束跟踪
+        log如./tty3-ftrace.log
 #####总结
     由log不难看出，linux真实真实终端(不是ptm/pts/ttySn)tty3，输入输出直接是kernel里的keyboard和framebuffer，不经过用户层转换
     usb keyboard subsystem没有跟踪，也可以加个关键函数看看
