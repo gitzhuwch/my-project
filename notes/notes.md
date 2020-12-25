@@ -1081,7 +1081,7 @@
         return driver;
     }
 ####tty3是怎么输出到屏幕上的?
-#####ftrace跟踪
+#####ftrace跟踪:-------------跟踪指定进程和指定的函数;下面有更友好的设置,输出log更好看
     1,  sudo su
     2,  set -x
         cd /sys/kernel/debug/tracing
@@ -1089,7 +1089,7 @@
         echo "" > trace
         echo 50000 > buffer_size_kb
         echo '' > set_ftrace_pid
-        echo 3328 > set_ftrace_pid
+        echo 3328 > set_ftrace_pid #改成tty3的shell进程的PID
         #echo $$ > set_ftrace_pid
         echo "function_graph" > current_tracer
         echo "" > set_graph_function
@@ -1110,6 +1110,7 @@
         echo "" > trace
         echo 1 > tracing_on
         #-----------------------------------------------------------
+        #修改log存放目录,将log放到linux源码目录中方便跳转
         rm -f /home/user/temp/linux/trace.log
         cat trace_pipe > /home/user/temp/linux/trace.log
     3,  ctrl+alt+f3  #切换到tty3
@@ -1118,20 +1119,25 @@
     6,  结束跟踪
         log如./tty3-ftrace.log
 #####总结
-    由log不难看出，linux真实真实终端(不是ptm/pts/ttySn)tty3，输入输出直接是kernel里的keyboard和framebuffer，不经过用户层转换
+    由log不难看出，linux真实终端(不是ptm/pts/ttySn)tty3，输入输出直接是kernel里的keyboard和framebuffer，不经过用户层转换
     usb keyboard subsystem没有跟踪，也可以加个关键函数看看
 ####tty种类
     tty: teletypes 电传打字机
-#####vty内核里直接接屏幕和键盘:
+#####vty内核里直接接屏幕和键盘
         virtual tty, Virtual Consoles, Screen Blanking, Screen Dumping, Color, Graphics, Chars, and VT100 enhancements by Peter MacDonald.
         设备节点为tty0, 给kernel传参console=/dev/tty0时, 可在lcd上显示log
-#####tty1-63:
-        与vty同一代码文件, 这类tty主要是主机自带显示器和键盘
-#####console:
+#####tty1-63虚拟终端(VT)
+    1,  如果你的电脑只有一个终端，那将是多么乏味。一个需要长时间执行的任务就能导致你什么也做不了，
+        Linux 的多任务机制的好处荡然无存。所以，你需要更多的终端。Linux 内核使用复用机制，
+        将一个控制台复用为多个终端 (63 个，/dev/tty1 到 dev/tty63)。 按键 Alt+F1-F12 (
+        如果当前在 X 中，需要再按下 Ctrl 键 ) 能在 12 个终端中进行切换。事实上你拥有 63 个
+        终端，键盘只能切换其中的 12 个，其他的终端你可以通过 chvt 命令进行切换。
+    2,  与vty同一代码文件, 这类tty主要是主机自带显示器和键盘
+#####console
         这类tty主要给printk使用,kernel启动早期还有early console,kernel启动参数cansole可控制,主要给kernel吐log的, init进程也可用
-#####ttySn:
+#####ttySn
         这类tty是serial tty，对应串口设备
-#####pty:
+#####pty伪终端
         这类是伪终端,psuedo tty,有/dev/ptmx和/dev/pts/n一对，ptmx是master，pts/n是slave,
         ptmx设备节点只有一个,可以被打开多次,每打开一次,会自动产生一个/dev/pts/n,并且open返回的fd都不同,
         通过fd可以找到与之对应的/dev/pts/n设备节点,主要给终端仿真器使用:gnome-ternimal,putty,sshd,tmux...
@@ -1463,8 +1469,6 @@
 #####TERM
     TERM环境变量是选择终端类型的，比如linux,screen-256color,xterm...
     不同的选择会影响颜色,快捷键等
-####fb/tty/terminal/pts/window/XDM?
-    需要补充的知识
 ####man pty
     pty - pseudoterminal interfaces
         Pseudoterminals are used by applications such as network login services (ssh(1),
@@ -1477,7 +1481,7 @@
     1, unix EOL is <NL> 换行符
     2, mac EOL is <CR> 回车符
     3, dos EOL is <CR><NL> 回车加换行
-####在tty3上也能使用tmux
+####tty3上也能使用tmux
     说明tmux是纯字符画面
 ####tmux分屏符是怎么显示出来的
 #####strace跟踪
@@ -1529,8 +1533,78 @@
 #####utf8码
 #####gb2312/gbk码
 ####字符的显示
-#####字模
-#####字模转RGB
+    在终端中(包括虚拟终端，伪终端)，是将字符编码根据font文件转化成字形，然后将字形数据copy到显存里
+#####字体font
+    分为点阵字体和矢量字体
+######kernel中自带的font文件
+    点阵字体
+    lib/fonts/fonts.c
+    lib/fonts/font_8x16.c
+    lib/fonts/font_8x8.c
+######用户层更改终端字体
+    ctrl+alt+f3 //切换到tty3
+    cd /usr/share/consolefonts/
+    strace -fyxo xx.txt setfont ./Lat15-Terminus14.psf.gz
+        ioctl(3</dev/tty3>, KDFONTOP, 0x7ffc926534a0) = 0
+        --- SIGWINCH {si_signo=SIGWINCH, si_code=SI_KERNEL} ---
+        ioctl(3</dev/tty3>, PIO_UNIMAPCLR, 0x7ffc926534c2) = 0
+        ioctl(3</dev/tty3>, PIO_UNIMAP, 0x7ffc92653520) = 0
+    KDFONTOP:这个case应该会将用户层的字体数据copy到vt中
+    也可以修改/etc/default/console-setup
+#####字体转RGB
+######虚拟终端中字符显示
+    sudo su
+    cd /sys/kernel/debug/tracing
+    执行tty3-ftrace.sh:-------------跟踪指定进程和指定的函数
+        set -x
+        cd /sys/kernel/debug/tracing
+        echo 0 > tracing_on
+        echo "" > trace
+        echo 50000 > buffer_size_kb
+        echo '' > set_ftrace_pid
+        echo 4115 > set_ftrace_pid
+        #echo $$ > set_ftrace_pid
+        echo "function_graph" > current_tracer
+        echo "" > set_graph_function
+        #-----------------------------------------------------------
+        echo "tty_write" > set_graph_function
+        #-----------------------------------------------------------
+        echo "noblock" > trace_options
+        echo "nofuncgraph-irqs" > trace_options
+        echo "nocontext-info" > trace_options
+        echo "overwrite" > trace_options
+        echo "noirq-info" > trace_options
+        echo "display-graph" > trace_options
+        echo "stacktrace" > trace_options
+        #-----------------------------------------------------------
+        echo "" > trace
+        echo 1 > tracing_on
+        #-----------------------------------------------------------
+        rm -f /home/user/temp/linux/trace.log
+        cat trace_pipe > /home/user/work/linux/trace.log
+        #cat trace_pipe
+    以tty3虚拟终端为例，向tty3写入一个字符的ASCII码的ftrace log的部分内容:
+    fbcon_putcs() {
+      get_color() {
+        fb_get_color_depth();
+      }
+      get_color() {
+        fb_get_color_depth();
+      }
+      bit_putcs() {
+        fb_get_color_depth();
+        fb_get_buffer_offset();
+        drm_fb_helper_cfb_imageblit [drm_kms_helper]() {
+          cfb_imageblit();
+          drm_fb_helper_dirty.isra.13 [drm_kms_helper]() {
+            _raw_spin_lock_irqsave();
+            _raw_spin_unlock_irqrestore();
+            queue_work_on();
+          }
+        }
+      }
+    }
+    会根据ASCII码，从字体文件中找到字形偏移量，然后copy出来显示
 ####开机进入命令行模式(tty1)
     sudo vim /etc/default/grub
     把GRUB_CMDLINE_LINUX_DEFAULT=”quiet splash”改成GRUB_CMDLINE_LINUX_DEFAULT=”quiet splash text”
