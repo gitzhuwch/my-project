@@ -1402,6 +1402,19 @@
     使用\r转义序列
     #define dprintf_info(fmt,args...) printf("\033[0;32m" fmt "\033[0m", ##args)
     dprintf_info("\rtest index:[%d]%5d [%c]", test_count, j, lable[j%4]);
+#####粗体斜体下划线闪烁
+https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethrough-color-background-and-size-i
+    man console_codes
+    echo -e "\e[1mbold\e[0m"
+    echo -e "\e[3mitalic\e[0m"
+    echo -e "\e[3m\e[1mbold italic\e[0m"
+    echo -e "\e[4munderline\e[0m"
+    echo -e "\e[9mstrikethrough\e[0m"
+    echo -e "\e[31mHello World\e[0m"
+    echo -e "\x1B[31mHello World\e[0m"
+#####gnome-terminal palette与vim配色
+    gnome-terminal中可以设置text,cursor,bold颜色，调色板中可以定义16中特定颜色值对应的实际颜色等；
+    vim将颜色值发给gnome-terminal后，gnome-terminal决定颜色值到颜色的映射.
 ####stty/tty工具
     1,  tty:显示当前终端设备文件
 #####stty常见的TTY配置
