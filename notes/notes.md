@@ -358,6 +358,38 @@
     strace -yf dmesg
     read /dev/kmsg      #accumulation log
     read /proc/kmsg     #real time log
+###ftrace
+    我主要用来跟踪某个内核函数从进入到退出，中间的调用流程，即用于跟踪内核调用栈.当然还有其他用途.
+####原理
+    在每个函数的入口加call mcount桩指令
+####exec命令带来的方便
+    使用如下脚本可只trace指定程序
+    ......
+    echo $$ > set_ftrace_pid
+    exec command
+
+##strace
+    用来跟踪应用程序调用了哪些系统调用，以及系统调用的参数
+###常用参数
+    1, -f 跟踪由fork调用所产生的子进程
+    2, -ff 如果提供-o filename,则所有进程的跟踪结果输出到相应的filename.pid中,pid是各进程的进程号
+    3, -c 统计每一系统调用的所执行的时间,次数和出错的次数等
+    4, -t 在输出中的每一行前加上时间信息
+    5, -T 显示每一调用所耗的时间
+    6, -x 以十六进制形式输出非标准字符串
+    7, -e expr 指定一个表达式,用来控制如何跟踪.格式：[qualifier=][!]value1[,value2]...
+        qualifier只能是 trace,abbrev,verbose,raw,signal,read,write其中之一.value是用来限定的符号或数字.默认的 qualifier是 trace.
+        感叹号是否定符号.例如:-e open等价于 -e trace=open,表示只跟踪open调用.而-etrace!=open 表示跟踪除了open以外的其他调用.
+        有两个特殊的符号 all 和 none. 注意有些shell使用!来执行历史记录里的命令,所以要使用\\.
+    8, -s strsize 指定输出的字符串的最大长度.默认为32.文件名一直全部输出.
+    9, -u username 以username的UID和GID执行被跟踪的命令
+###系统调用参数显示不全解决办法
+    strace -e abbrev/--abbrev=syscall_set
+        Abbreviate the output from printing each member of large structures.
+    strace -s strsize/--string-limit=strsize
+        Specify the maximum string size to print (the default is 32).  Note that filenames are not considered strings and are always printed in full
+###跟踪vim向pts中写入的数据
+    strace -fyo log.txt -e trace=write -s 1024 vim xxx
 
 ##ToolChains:
 ###GNU binary utilities:
@@ -1415,11 +1447,79 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
 #####gnome-terminal palette与vim配色
     gnome-terminal中可以设置text,cursor,bold颜色，调色板中可以定义16中特定颜色值对应的实际颜色等；
     vim将颜色值发给gnome-terminal后，gnome-terminal决定颜色值到颜色的映射.
+#####tty自动换行autowrap on/off
+    echo -en "\e[?7h"   on
+    echo -en "\e[?7l"   off
+######ftrace跟踪
+    cd /sys/kernel/debug/tracing
+    echo 0 > tracing_on
+    echo "" > trace
+    echo 50000 > buffer_size_kb
+    echo '' > set_ftrace_pid
+    #echo 70933 > set_ftrace_pid
+    echo $$ > set_ftrace_pid                        ##与exec配合使用
+    echo "function_graph" > current_tracer
+    echo "" > set_graph_function
+    #-----------------------------------------------------------
+    echo "tty_write" > set_graph_function
+    #-----------------------------------------------------------
+    echo "noblock" > trace_options
+    echo "nofuncgraph-irqs" > trace_options
+    echo "nocontext-info" > trace_options
+    echo "overwrite" > trace_options
+    echo "noirq-info" > trace_options
+    echo "display-graph" > trace_options
+    echo "stacktrace" > trace_options
+    #-----------------------------------------------------------
+    echo "" > trace
+    echo 1 > tracing_on
+    #-----------------------------------------------------------
+    #rm -f /home/user/temp/linux/trace.log
+    cat trace_pipe > /home/user/temp/linux/trace1.log &
+    #cat trace_pipe
+    exec echo -ne "\e[?7ha"                         ##与$$配合使用
+    #echo "a"
+######ftrace结果
+    tty_write() {
+        ...
+      n_tty_write() {
+          ...
+        con_write() {
+          do_con_write.part.0() {
+         ...
+            do_con_trol() {
+                set_mode(){  -------drivers/tty/vt/vt.c
+                    case 7:			/* Autowrap on/off */
+                   vc->vc_decawm = on_off;
+                }
+            }
+######使用
+    if (vc->vc_need_wrap) {
+        cr(vc);
+        lf(vc);
+    }
+#####vim wrap实现
+######strace跟踪
+    vim wrap功能是用\e[yy;xxH来控制光标换行实现输出字符换行的，kernel中的vt实现的wrap功能，禁止后，超出colums的字符就没法显示了，所以vim自己实现了wrap。
+    在~/.vimrc中set wrap
+    执行
+        strace -fyo log2 -e trace=write -s 1024 vim test.txt
+    在~/.vimrc中set nowrap
+    执行
+        strace -fyo log2 -e trace=write -s 1024 vim test.txt
+        在vim中移动光标至行尾
+######用echo -en实验
+    1, vim: set wrap; tty: \e[?7l
+        echo -en "\e[?7l\e[3;1H\e[maaaaaaaaaaaaaaaaabbbbbbbbbbccddfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdddddd\e[4;1H\e[93m    \e[mddddddddddddhhhhhhhhhhhhjjjjjjj\r\n\e[94m" > /dev/pts/0
+    这种情况依然能够换行，是因为将光标下移了一行后，才输出超出colums的字符
+    2，vim: set nowrap; tty: \e[?7h
+        echo -en "\e[?7h\e[3;1H\e[maaaaaaaaaaaaaaaaabbbbbbbbbbccddfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffddddddddddddddddddhhhhhhhhhhhhjjjjjjj\r\n\e[94m" > /dev/pts/0
+    这种wrap是由终端模拟器完成的
 ####stty/tty工具
     1,  tty:显示当前终端设备文件
 #####stty常见的TTY配置
 ######怎么禁止换行
-    1,  好像不行.
+    1,  好像不行.用转义控制序列可实现
     2,  systemctl -l --no-pager status xx.service
         如果打印的一行log长度,超出但前tty的colums的log,换一行打印
     3,  systemctl --no-pager status xx.service
@@ -1455,6 +1555,13 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
     可以通过命令toe -a列出系统支持的所有终端类型
 #####infocmp
     可以通过命令infocmp来比较两个终端的区别，比如infocmp vt100 vt220将会输出vt100和vt220的区别。
+####vim wrap与vt wrap总结
+    1，vim使用的pts中的wrap默认是打开的，vim中的wrap变量的设置不影响tty中的wrap。当vim中设nowrap时，如果从文件中读出的一行数据
+        的长度超过tty的colums，那么vim会用\e[yy;xxH来设置cursor坐标，达到换行的目的
+    2, 当vt中的wrap关闭时，超出colums的字符永远不显示
+####终端模拟器水平方向的滚动
+    一般终端模拟器不实现水平方向的滚动，当一行数据太长时，要么打开自动wrap，要么超出colums的数据丢失。
+    水平方向的滚动都由应用程序管理
 ####TTY相关信号
     除了上面介绍配置时提到的SIGINT，SIGTTOU，SIGWINCHU外，还有这么几个跟TTY相关的信号
     跟tty相关的信号都是可以捕获的，可以修改它的默认行为
@@ -3106,6 +3213,10 @@ tips:
     export HISTCONTROL=ignoreboth   # 等价于ignoredups和ignorespace
 ####C-J
     C-J will terminate an incremental search
+####exec命令
+    bash执行一个脚本test.sh，首先fork一个子进程，然后execve("./test.sh"...
+    如果test.sh中用exec echo "a"执行一个子命令，则不会fork一个新进程，而是直接execve("/usr/bin/echo", ["echo", "a"]；
+    这就相当于，当前进程PID没变，但程序换成了echo，并且echo执行完了，直接退出，不会继续解析剩下的脚本内容
 ###firefox
 ####about:xxx
     input something as blow in the address bar:
