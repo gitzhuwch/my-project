@@ -1447,7 +1447,7 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
 #####gnome-terminal palette与vim配色
     gnome-terminal中可以设置text,cursor,bold颜色，调色板中可以定义16中特定颜色值对应的实际颜色等；
     vim将颜色值发给gnome-terminal后，gnome-terminal决定颜色值到颜色的映射.
-#####tty自动换行autowrap on/off
+#####vt自动换行autowrap on/off
     echo -en "\e[?7h"   on
     echo -en "\e[?7l"   off
 ######ftrace跟踪
@@ -1555,13 +1555,67 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
     可以通过命令toe -a列出系统支持的所有终端类型
 #####infocmp
     可以通过命令infocmp来比较两个终端的区别，比如infocmp vt100 vt220将会输出vt100和vt220的区别。
+####setterm关闭自动换行原理
+    strace -fyo log.txt -e trace=open,read,write,ioctl -s 1024 setterm -linewrap off
+        83531 write(1</dev/pts/10>, "\33[?7h", 5) = 5
+####tput rmam同setterm
+    tput smam恢复
 ####vim wrap与vt wrap总结
-    1，vim使用的pts中的wrap默认是打开的，vim中的wrap变量的设置不影响tty中的wrap。当vim中设nowrap时，如果从文件中读出的一行数据
+    1，vim使用的pts中的wrap默认是打开的，vim中的wrap变量的设置不影响tty中的wrap。当vim中设wrap时，如果从文件中读出的一行数据
         的长度超过tty的colums，那么vim会用\e[yy;xxH来设置cursor坐标，达到换行的目的
-    2, 当vt中的wrap关闭时，超出colums的字符永远不显示
+    2, 当vt中的wrap关闭时，超出colums的字符被截断，永远不显示
+    3, if the terminal supports VT escape codes, echo -ne "\x1b[7l" will disable screen wrap
+        (echo -ne "\x1b[7h" will enable it)."]")"]"
+####终端下不换行刷新当前行
+    终端下耗时较长的程序运行过程中输出中间状态时，有时信息太多，希望一些次要的信息能被覆盖掉，整体显得干净一些。
+    以往我用"\r"字符，控制输出的光标回到行首，再次输出覆盖上一行的信息，只要输出不换行，且下次输出的行长度不短于上一次，看起啦就是最后一行不断地在刷新。
+    但是如果下一次的输出长度不确定，甚至因接口限制而必须换行时，这种方式就不行了。
+    玩过BBS的都知道，ANSI定义了一套终端控制转义字符，可以更精细地控制屏幕输出，比如颜色，光标位置等。查阅ANSI转义代码表，
+    CSI n K 　　EL – Erase in Line，当n==2时，清除当前行。
+    CSI n F　　 CPL – Cursor Previous Line，光标上移一行。
+    CSI为ESC字符，也就是八进制的\033或者\x1E字符，再跟一个左大括号。
+    所以，如果能够不换行，只需要输出\r\033[2K字符，就能实现清除当前行并光标回到行首。
+    如果字符串输出时，输出接口会自动加上一个换行的话，那就用CSI F回到上一行即可。
+    最终，我用这种方式实现了，在Blade中，编译源代码的状态信息自动刷新，削减了3/4的滚屏。
 ####终端模拟器水平方向的滚动
     一般终端模拟器不实现水平方向的滚动，当一行数据太长时，要么打开自动wrap，要么超出colums的数据丢失。
     水平方向的滚动都由应用程序管理
+####vt为什么不实现横向滚动
+    滚动功能是将已经flush到屏幕的字符滚动显示，那么要实现这个功能，就要缓存已经flush的字符数据，tty中只能缓存敲回车之前的字符数据，即echo buffer，
+    没有其他的缓存区来记录已经显示在屏幕上的字符数据了，所以要实现这样的缓存功能，要么在显示驱动中做，要么在上层应用中做，要么在终端仿真器中做。
+    在显示驱动中做显然不合理，那么只有在具体应用中做，或者在终端仿真器中做。
+    在具体应用中做，如: vim，less...
+    在终端仿真器中做，如: kernel中的vt，userspace中的gnome-terminal,xterminal,xshell,screen
+####已经flush到screen的字符
+    这些字符数据是实现滚动，查找操作的材料，
+    缓存这些数据的地方:
+        1, 不在tty framwork中；
+        2, 可以在vim,less等应用中；
+        3, 可以在vt,gnome-terminal等终端仿真器中
+####tty echo buffer
+    echo buffer是tty用来存放回显字符的缓存区
+    1, 在echo buffer中可以用方向键移动光标，在已经flush到屏幕的字符不能用方向键移动光标
+    2, 当echo buffer中的字符数量大于屏幕colums时，autowrap打开:可以自动换行和用方向键移动光标；autowrap关闭时:超出colum的字符中不显示光标移动
+#####在echo buffer中按左右方向键
+    strace结果
+        504693 pselect6(1, [0</dev/tty3>], NULL, NULL, NULL, {[], 8}) = 1 (in [0])
+        504693 read(0</dev/tty3>, "\33", 1)     = 1
+        504693 pselect6(1, [0</dev/tty3>], NULL, NULL, NULL, {[], 8}) = 1 (in [0])
+        504693 read(0</dev/tty3>, "[", 1)       = 1
+        504693 pselect6(1, [0</dev/tty3>], NULL, NULL, NULL, {[], 8}) = 1 (in [0])
+        504693 read(0</dev/tty3>, "D", 1)       = 1
+        504693 write(2</dev/tty3>, "\10", 1)    = 1
+        504693 pselect6(1, [0</dev/tty3>], NULL, NULL, NULL, {[], 8} <detached ...>
+    结论:
+        vt接收到向左的方向键，转化成\e[D，传给bash，bash在向tty中写入\010(BACKSPACE)，实现移动光标
+#####在echo buffer中按DEL键
+    strace结果
+        504693 pselect6(1, [0</dev/tty3>], NULL, NULL, NULL, {[], 8}) = 1 (in [0])
+        504693 read(0</dev/tty3>, "\177", 1)    = 1
+        504693 write(2</dev/tty3>, "\33[C\33[C\33[K\10\10\10", 12) = 12
+        504693 pselect6(1, [0</dev/tty3>], NULL, NULL, NULL, {[], 8} <detached ...>
+    结论:
+        将DEL键转化成转义控制序列输出到vt中
 ####TTY相关信号
     除了上面介绍配置时提到的SIGINT，SIGTTOU，SIGWINCHU外，还有这么几个跟TTY相关的信号
     跟tty相关的信号都是可以捕获的，可以修改它的默认行为
