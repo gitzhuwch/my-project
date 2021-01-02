@@ -361,7 +361,7 @@
 ###ftrace
     我主要用来跟踪某个内核函数从进入到退出，中间的调用流程，即用于跟踪内核调用栈.当然还有其他用途.
 ####原理
-    在每个函数的入口加call mcount桩指令
+    在每个函数的入口插入call mcount桩指令
 ####exec命令带来的方便
     使用如下脚本可只trace指定程序
     ......
@@ -1076,7 +1076,7 @@
     #2  kobject_uevent_env (kobj=0xee5c0408, action=<optimized out>, envp_ext=0x0) at lib/kobject_uevent.c:556
     #3  kobject_uevent (kobj=<optimized out>, action=<optimized out>) at lib/kobject_uevent.c:641
     #4  device_add (dev=0xee5c0408) at drivers/base/core.c:2460
-###tty subsystem:
+##tty subsystem:
     static struct tty_driver *tty_lookup_driver(dev_t device, struct file *filp,
             int *index)
     {
@@ -1112,8 +1112,8 @@
         }
         return driver;
     }
-####tty3是怎么输出到屏幕上的?
-#####ftrace跟踪:-------------跟踪指定进程和指定的函数;下面有更友好的设置,输出log更好看
+###tty3是怎么输出到屏幕上的?
+####ftrace跟踪:------跟踪指定进程和指定的函数;下面有更友好的设置,输出log更好看
     1,  sudo su
     2,  set -x
         cd /sys/kernel/debug/tracing
@@ -1150,47 +1150,47 @@
     5,  ctrl+alt+f2  #切换回来
     6,  结束跟踪
         log如./tty3-ftrace.log
-#####总结
+####总结
     由log不难看出，linux真实终端(不是ptm/pts/ttySn)tty3，输入输出直接是kernel里的keyboard和framebuffer，不经过用户层转换
     usb keyboard subsystem没有跟踪，也可以加个关键函数看看
-####tty种类
+###tty种类
     tty: teletypes 电传打字机
-#####vty内核里直接接屏幕和键盘
+####vty内核里直接接屏幕和键盘
         virtual tty, Virtual Consoles, Screen Blanking, Screen Dumping, Color, Graphics, Chars, and VT100 enhancements by Peter MacDonald.
         设备节点为tty0, 给kernel传参console=/dev/tty0时, 可在lcd上显示log
-#####tty1-63虚拟终端(VT)
+####tty1-63虚拟终端(VT)
     1,  如果你的电脑只有一个终端，那将是多么乏味。一个需要长时间执行的任务就能导致你什么也做不了，
         Linux 的多任务机制的好处荡然无存。所以，你需要更多的终端。Linux 内核使用复用机制，
         将一个控制台复用为多个终端 (63 个，/dev/tty1 到 dev/tty63)。 按键 Alt+F1-F12 (
         如果当前在 X 中，需要再按下 Ctrl 键 ) 能在 12 个终端中进行切换。事实上你拥有 63 个
         终端，键盘只能切换其中的 12 个，其他的终端你可以通过 chvt 命令进行切换。
     2,  与vty同一代码文件, 这类tty主要是主机自带显示器和键盘
-#####console
+####console
         这类tty主要给printk使用,kernel启动早期还有early console,kernel启动参数cansole可控制,主要给kernel吐log的, init进程也可用
-#####ttySn
+####ttySn
         这类tty是serial tty，对应串口设备
-#####pty伪终端
+####pty伪终端
         这类是伪终端,psuedo tty,有/dev/ptmx和/dev/pts/n一对，ptmx是master，pts/n是slave,
         ptmx设备节点只有一个,可以被打开多次,每打开一次,会自动产生一个/dev/pts/n,并且open返回的fd都不同,
         通过fd可以找到与之对应的/dev/pts/n设备节点,主要给终端仿真器使用:gnome-ternimal,putty,sshd,tmux...
-####tty_drivers
+###tty_drivers
     所有tty_driver都会注册到tty_drivers里面,所以tty_open的时候到这个链表找tty_driver，都可以找得到
-####/dev/tty设备
+###/dev/tty设备
     1,tty 设备号5,0;打开时会用当前进程的tty
     2,cdev_init(&tty_cdev, &tty_fops);
     3,cdev_add(&tty_cdev, MKDEV(TTYAUX_MAJOR, 0), 1)
-####/dev/console设备
+###/dev/console设备
     1,console 设备号5,1;打开时会找cmdline中console=xxx指定的tty
     2,cdev_init(&console_cdev, &console_fops);
     3,cdev_add(&console_cdev, MKDEV(TTYAUX_MAJOR, 1), 1)
-####/dev/tty0设备
+###/dev/tty0设备
     1,设备号4,0，打开时会找到struct tty_driver *console_driver
     2,cdev_init(&vc0_cdev, console_fops);
     3,cdev_add(&vc0_cdev, MKDEV(TTY_MAJOR, 0), 1)
-####/dev/tty1-63设备
+###/dev/tty1-63设备
     1,设备号4,1-63，打开时会到tty_drivers链表里找
-####/dev/ttySn设备
-#####ttyS0设备名的产生
+###/dev/ttySn设备
+####ttyS0设备名的产生
     struct uart_port.line=x-------------------------
     ttySx-------------------------
     static struct uart_driver amba_reg = {
@@ -1240,8 +1240,8 @@
                             return sprintf(p, "%s%d", driver->name,-----------------is driver->name not is driver->driver_name
                                        index + driver->name_base);
                     }
-#####/dev/ttySn设备号设定
-######由tty_driver->major决定
+####/dev/ttySn设备号设定
+#####由tty_driver->major决定
     #2  tty_register_device_attr (driver=0xee635200, index=3230862924, device=0x0, drvdata=0xee4b9000, attr_grp=0xee612c00) at drivers/tty/tty_io.c:3145
     #3  tty_port_register_device_attr_serdev (port=<optimized out>, driver=0xee614380, index=0, device=0xee540c00, drvdata=0xee4b9000, attr_grp=<optimized out>) at drivers/tty/tty_port.c:166
     #4  uart_add_one_port (drv=0xc0b49c14 <amba_reg>, uport=0xee635040) at drivers/tty/serial/serial_core.c:2861
@@ -1255,8 +1255,8 @@
     dev_t devt = MKDEV(driver->major, driver->minor_start) + index;----由tty_driver->major决定
     ...
     }
-######tty_driver->major怎么设定
-######由uart_driver决定
+#####tty_driver->major怎么设定
+#####由uart_driver决定
     int uart_register_driver(struct uart_driver *drv)
     {
     ...
@@ -1287,12 +1287,12 @@
         .nr         = UART_NR,
         .cons           = AMBA_CONSOLE,
     };
-####/dev/ptmx和/dev/pts/n设备
+###/dev/ptmx和/dev/pts/n设备
     https://segmentfault.com/a/1190000009082089
-#####/dev/pts/x怎么输出到screen?
-#####/dev/ttyn与/dev/pts/n区别?
-#####ansower
-######SSH远程访问
+####/dev/pts/x怎么输出到screen?
+####/dev/ttyn与/dev/pts/n区别?
+####ansower
+#####SSH远程访问
     1.Terminal收到键盘的输入，Terminal通过ssh协议将数据发往sshd
     2.sshd收到客户端的数据后，根据它自己管理的session，找到该客户端对应的关联到ptmx上的fd
     3.往找到的fd上写入客户端发过来的数据
@@ -1304,36 +1304,36 @@
     9.pts将结果转发给ptmx
     10.ptmx根据pts找到对应的fd，往该fd写入结果
     11.sshd收到该fd的结果后，找到对应的session，然后将结果发给对应的客户端
-######SSH + Screen/Tmux
+#####SSH + Screen/Tmux
     这种情况要稍微复杂一点，不过原理都是一样的，前半部分和普通ssh的方式是一样的，只是pts/0关联的前端进程不是shell了，
     而是变成了tmux客户端，所以ssh客户端发过来的数据包都会被tmux客户端收到，然后由tmux客户端转发给tmux服务器，而tmux服务器
     干的活和ssh的类似，也是维护一堆的session，为每个session创建一个pts，然后将tmux客户端发过来的数据转发给相应的pts。
     由于tmux服务器只和tmux客户端打交道，和sshd没有关系，当终端和sshd的连接断开时，虽然pts/0会被关闭，和它相关的shell和
     tmux客户端也将被kill掉，但不会影响tmux服务器，当下次再用tmux客户端连上tmux服务器时，看到的还是上次的内容。
-####终端仿真器(virtual console)
+###终端仿真器
     终端仿真器是能够接收源端发过来的数据、解析部分源端发过来的控制序列、显示源端数据的程序。
-#####内核空间终端仿真器
+####内核空间终端仿真器
     drivers/tty/vt/vt.c
         do_bind_con_driver()
-#####用户空间终端仿真器
+####用户空间终端仿真器
     基于ptm/pts实现的,如:gnome-terminal,putty,ssh...
-####终端转义和控制序列
+###终端转义和控制序列
     man console_codes //Linux console escape and control sequences
     本质上是发送端和接收端的"控制协议"，发送端发送控制序列，接收端(包括tty driver和终端仿真器)来决定和执行什么样的行为。
     即:由源端发送控制序列，tty driver和仿真器来解析。
-#####内核解析部分控制字符代码
-######输入字符解析
+####内核解析部分控制字符代码
+#####输入字符解析
     drivers/tty/n_tty.c:
         n_tty_receive_char_special()
             解析部分控制字符:start,stop,int,quit etc
-######输出字符解析
+#####输出字符解析
         do_output_char()
             转换\r,\n,\t,\b等字符
-#####内核终端仿真器解析部分代码
-######输入字符解析
+####内核终端仿真器解析部分代码
+#####输入字符解析
     grep "033" drivers/tty/vt/* -rn
-#####改变终端仿真器的标题:
-######改变用户空间的gnome-terminal的标题
+####改变终端仿真器的标题:
+#####改变用户空间的gnome-terminal的标题
     使用转义序列来实现的，向ptsn端发送转义序列，监听在ptmx端的gnome-terminal收到后，
     执行解析代码，并做相应动作。
     1,方法:
@@ -1351,10 +1351,10 @@
             ESC ] 2 ; txt BEL       将窗口名设为文本.
             ESC ] 4 6 ; name BEL    改变日志文件名(一般由编译时选项禁止)
             ESC ] 5 0 ; fn BEL      字体设置为 fn.
-######改变kernel virtual console的标题
+#####改变kernel virtual console的标题
     内核终端仿真器能够解析该控制序列，但不做任何操作
     kernel源码:drivers/tty/vt/vt.c:do_con_trol()
-#####vim退出后恢复终端内容
+####vim退出后恢复终端内容
     vim端:
         vim有俩个变量:t_ti,t_te，这俩变量来存放控制序列，在vim进入和退出时，会将该序列发给ptsn端，经过tty driver处理一部分
         控制序列，传到监听在ptmx端的终端仿真器gnome-terminal里，gnome-terminal会执行相应行为。
@@ -1363,7 +1363,7 @@
     gnome-terminal端:
         接收到控制序列后，发现该序列让进入alternate screen和退出alternate screen，那么gnome-terminal就在vim打开时进入altscreen,
         进入后，相当于开启一个新的虚拟终端，默认占一屏，没有滚动条。退出时，接收到的控制序列是将之前的screen替换回来。
-#####linux像vim/man/less/top一样在终端的新屏幕中输出,退出后清屏返回原屏幕
+####linux像vim/man/less/top一样在终端的新屏幕中输出,退出后清屏返回原屏幕
     https://blog.csdn.net/youyudexiaowangzi/article/details/97763505
     1,script中实现
         #!/bin/bash
@@ -1430,11 +1430,11 @@
             endwin();  /* 恢复终端 */
         }
     编译运行后，可以看到hello, world然后消失，一个x在第一行左右移动，ctrl+c可以退出，然后恢复终端
-#####printf实现进度条
+####printf实现进度条
     使用\r转义序列
     #define dprintf_info(fmt,args...) printf("\033[0;32m" fmt "\033[0m", ##args)
     dprintf_info("\rtest index:[%d]%5d [%c]", test_count, j, lable[j%4]);
-#####粗体斜体下划线闪烁
+####粗体斜体下划线闪烁
 https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethrough-color-background-and-size-i
     man console_codes
     echo -e "\e[1mbold\e[0m"
@@ -1444,13 +1444,13 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
     echo -e "\e[9mstrikethrough\e[0m"
     echo -e "\e[31mHello World\e[0m"
     echo -e "\x1B[31mHello World\e[0m"
-#####gnome-terminal palette与vim配色
+####gnome-terminal palette与vim配色
     gnome-terminal中可以设置text,cursor,bold颜色，调色板中可以定义16中特定颜色值对应的实际颜色等；
     vim将颜色值发给gnome-terminal后，gnome-terminal决定颜色值到颜色的映射.
-#####vt自动换行autowrap on/off
+####vt自动换行autowrap on/off
     echo -en "\e[?7h"   on
     echo -en "\e[?7l"   off
-######ftrace跟踪
+#####ftrace跟踪
     cd /sys/kernel/debug/tracing
     echo 0 > tracing_on
     echo "" > trace
@@ -1479,7 +1479,7 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
     #cat trace_pipe
     exec echo -ne "\e[?7ha"                         ##与$$配合使用
     #echo "a"
-######ftrace结果
+#####ftrace结果
     tty_write() {
         ...
       n_tty_write() {
@@ -1493,13 +1493,13 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
                    vc->vc_decawm = on_off;
                 }
             }
-######使用
+#####使用
     if (vc->vc_need_wrap) {
         cr(vc);
         lf(vc);
     }
-#####vim wrap实现
-######strace跟踪
+####vim wrap实现
+#####strace跟踪
     vim wrap功能是用\e[yy;xxH来控制光标换行实现输出字符换行的，kernel中的vt实现的wrap功能，禁止后，超出colums的字符就没法显示了，所以vim自己实现了wrap。
     在~/.vimrc中set wrap
     执行
@@ -1508,17 +1508,17 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
     执行
         strace -fyo log2 -e trace=write -s 1024 vim test.txt
         在vim中移动光标至行尾
-######用echo -en实验
+#####用echo -en实验
     1, vim: set wrap; tty: \e[?7l
         echo -en "\e[?7l\e[3;1H\e[maaaaaaaaaaaaaaaaabbbbbbbbbbccddfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdddddd\e[4;1H\e[93m    \e[mddddddddddddhhhhhhhhhhhhjjjjjjj\r\n\e[94m" > /dev/pts/0
     这种情况依然能够换行，是因为将光标下移了一行后，才输出超出colums的字符
     2，vim: set nowrap; tty: \e[?7h
         echo -en "\e[?7h\e[3;1H\e[maaaaaaaaaaaaaaaaabbbbbbbbbbccddfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffddddddddddddddddddhhhhhhhhhhhhjjjjjjj\r\n\e[94m" > /dev/pts/0
     这种wrap是由终端模拟器完成的
-####stty/tty工具
+###stty/tty工具
     1,  tty:显示当前终端设备文件
-#####stty常见的TTY配置
-######怎么禁止换行
+####stty常见的TTY配置
+#####怎么禁止换行
     1,  好像不行.用转义控制序列可实现
     2,  systemctl -l --no-pager status xx.service
         如果打印的一行log长度,超出但前tty的colums的log,换一行打印
@@ -1528,45 +1528,45 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
         strace跟踪如下:
             不带-l: write(1</dev/pts/3>, "Nov 10 20:52:51 ubuntu exportfs["..., 112) = 112
             带-l:    write(1</dev/pts/3>, "Nov 10 20:52:51 ubuntu exportfs["..., 156) = 156
-######rows and columns set
+#####rows and columns set
     rows 51; columns 204;
     这个配置一般由终端控制，当终端的窗口大小发生变化时，需要通过一定的手段修改该配置，比如ssh协议里面就有修改窗口大小的参数，
     sshd收到客户端的请求后，会通过API修改tty的这个参数，然后由tty通过信号SIGWINCH通知前端程序（比如shell或者vim），前端程序
     收到信号后，再去读tty的这个参数，然后就知道如何调整自己的输出排版了。
-######intr = ^C
+#####intr = ^C
     tty除了在终端和前端进程之间转发数据之外，还支持很多控制命令，比如终端输入了CTRL+C，那么tty不会将该输入串转发给前端进程，
     而是将它转换成信号SIGINT发送给前端进程。这个就是用来配置控制命令对应的输入组合的，比如我们可以配置“intr = ^E”表示用
     CTRL+E代替CTRL+C。
-######start = ^Q; stop = ^S;
+#####start = ^Q; stop = ^S;
     这是两个特殊的控制命令，估计经常有人会碰到，在键盘上不小心输入CTRL+S后，终端没反应了，即没输出，也不响应任何输入。
     这是因为这个命令会告诉TTY暂停，阻塞所有读写操作，即不转发任何数据，只有按了CTRL+Q后，才会继续。这个功能应该是历史遗留，
     以前终端和服务器之间没有流量控制功能，所以有可能服务器发送数据过快，导致终端处理不过来，于是需要这样一个命令告诉服务器
     不要再发了，等终端处理完了后在通知服务器继续。
     该命令现在比较常用的一个场景就是用tail -f命令监控日志文件的内容时，可以随时按CTRL+S让屏幕停止刷新，看完后再按CTRL+Q让
     它继续刷，如果不这样的话，需要先CTRL+C退出，看完后在重新运行tail -f命令。
-######echo
+#####echo
     在终端输入字符的时候，之所以我们能及时看到我们输入的字符，那是因为TTY在收到终端发过去的字符后，会先将字符原路返回一份，
     然后才交给前端进程处理，这样终端就能及时的显示输入的字符。echo就是用来控制该功能的配置项，如果是-echo的话表示disable echo功能。
-######-tostop
+#####-tostop
     如果你在shell中运行程序的时候，后面添加了&，比如./myapp &，这样myapp这个进程就会在后台运行，但如果这个进程继续往tty上写
     数据呢？这个参数就用来控制是否将输出转发给终端，也即结果会不会在终端显示，这里“-tostop”表示会输出到终端，如果配置为“tostop”的话，
     将不输出到终端，并且tty会发送信号SIGTTOU给myapp，该信号的默认行为是将暂停myapp的执行。
-#####toe
+####toe
     可以通过命令toe -a列出系统支持的所有终端类型
-#####infocmp
+####infocmp
     可以通过命令infocmp来比较两个终端的区别，比如infocmp vt100 vt220将会输出vt100和vt220的区别。
-####setterm关闭自动换行原理
+###setterm关闭自动换行原理
     strace -fyo log.txt -e trace=open,read,write,ioctl -s 1024 setterm -linewrap off
         83531 write(1</dev/pts/10>, "\33[?7h", 5) = 5
-####tput rmam同setterm
+###tput rmam同setterm
     tput smam恢复
-####vim wrap与vt wrap总结
+###vim wrap与vt wrap总结
     1，vim使用的pts中的wrap默认是打开的，vim中的wrap变量的设置不影响tty中的wrap。当vim中设wrap时，如果从文件中读出的一行数据
         的长度超过tty的colums，那么vim会用\e[yy;xxH来设置cursor坐标，达到换行的目的
     2, 当vt中的wrap关闭时，超出colums的字符被截断，永远不显示
     3, if the terminal supports VT escape codes, echo -ne "\x1b[7l" will disable screen wrap
         (echo -ne "\x1b[7h" will enable it)."]")"]"
-####终端下不换行刷新当前行
+###终端下不换行和刷新当前行
     终端下耗时较长的程序运行过程中输出中间状态时，有时信息太多，希望一些次要的信息能被覆盖掉，整体显得干净一些。
     以往我用"\r"字符，控制输出的光标回到行首，再次输出覆盖上一行的信息，只要输出不换行，且下次输出的行长度不短于上一次，看起啦就是最后一行不断地在刷新。
     但是如果下一次的输出长度不确定，甚至因接口限制而必须换行时，这种方式就不行了。
@@ -1577,26 +1577,26 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
     所以，如果能够不换行，只需要输出\r\033[2K字符，就能实现清除当前行并光标回到行首。
     如果字符串输出时，输出接口会自动加上一个换行的话，那就用CSI F回到上一行即可。
     最终，我用这种方式实现了，在Blade中，编译源代码的状态信息自动刷新，削减了3/4的滚屏。
-####终端模拟器水平方向的滚动
+###终端模拟器水平方向的滚动
     一般终端模拟器不实现水平方向的滚动，当一行数据太长时，要么打开自动wrap，要么超出colums的数据丢失。
     水平方向的滚动都由应用程序管理
-####vt为什么不实现横向滚动
+###vt为什么不实现横向滚动
     滚动功能是将已经flush到屏幕的字符滚动显示，那么要实现这个功能，就要缓存已经flush的字符数据，tty中只能缓存敲回车之前的字符数据，即echo buffer，
     没有其他的缓存区来记录已经显示在屏幕上的字符数据了，所以要实现这样的缓存功能，要么在显示驱动中做，要么在上层应用中做，要么在终端仿真器中做。
     在显示驱动中做显然不合理，那么只有在具体应用中做，或者在终端仿真器中做。
     在具体应用中做，如: vim，less...
     在终端仿真器中做，如: kernel中的vt，userspace中的gnome-terminal,xterminal,xshell,screen
-####已经flush到screen的字符
+###已经flush到screen的字符
     这些字符数据是实现滚动，查找操作的材料，
     缓存这些数据的地方:
         1, 不在tty framwork中；
         2, 可以在vim,less等应用中；
         3, 可以在vt,gnome-terminal等终端仿真器中
-####tty echo buffer
+###tty echo buffer
     echo buffer是tty用来存放回显字符的缓存区
     1, 在echo buffer中可以用方向键移动光标，在已经flush到屏幕的字符不能用方向键移动光标
     2, 当echo buffer中的字符数量大于屏幕colums时，autowrap打开:可以自动换行和用方向键移动光标；autowrap关闭时:超出colum的字符中不显示光标移动
-#####在echo buffer中按左右方向键
+####在echo buffer中按左右方向键
     strace结果
         504693 pselect6(1, [0</dev/tty3>], NULL, NULL, NULL, {[], 8}) = 1 (in [0])
         504693 read(0</dev/tty3>, "\33", 1)     = 1
@@ -1608,7 +1608,7 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
         504693 pselect6(1, [0</dev/tty3>], NULL, NULL, NULL, {[], 8} <detached ...>
     结论:
         vt接收到向左的方向键，转化成\e[D，传给bash，bash在向tty中写入\010(BACKSPACE)，实现移动光标
-#####在echo buffer中按DEL键
+####在echo buffer中按DEL键
     strace结果
         504693 pselect6(1, [0</dev/tty3>], NULL, NULL, NULL, {[], 8}) = 1 (in [0])
         504693 read(0</dev/tty3>, "\177", 1)    = 1
@@ -1616,19 +1616,19 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
         504693 pselect6(1, [0</dev/tty3>], NULL, NULL, NULL, {[], 8} <detached ...>
     结论:
         将DEL键转化成转义控制序列输出到vt中
-####TTY相关信号
+###TTY相关信号
     除了上面介绍配置时提到的SIGINT，SIGTTOU，SIGWINCHU外，还有这么几个跟TTY相关的信号
     跟tty相关的信号都是可以捕获的，可以修改它的默认行为
-#####SIGTTIN
+####SIGTTIN
     当后台进程读tty时，tty将发送该信号给相应的进程组，默认行为是暂停进程组中进程的执行。暂停的进程如何继续执行呢？
     请参考下一篇文章中的SIGCONT。
-#####SIGHUP
+####SIGHUP
     当tty的另一端挂掉的时候，比如ssh的session断开了，于是sshd关闭了和ptmx关联的fd，内核将会给和该tty相关的所有进程
     发送SIGHUP信号，进程收到该信号后的默认行为是退出进程。
-#####SIGTSTP
+####SIGTSTP
     终端输入CTRL+Z时，tty收到后就会发送SIGTSTP给前端进程组，其默认行为是将前端进程组放到后端，并且暂停进程组里所有进程的执行。
-####DISPLAY/TERM环境变量
-#####Linux X Window System的基本原理
+###DISPLAY/TERM环境变量
+####Linux X Window System的基本原理
     https://m.linuxidc.com/Linux/2013-06/86743.htm
     X是一个开放的协议规范，当前版本为11，俗称X11。X Window System由客户端和服务端组成，服务端X Server负责图形显示，
     而客户端库X Client根据系统设置的DISPLAY环境变量，将图形显示请求发送给相应的X Server
@@ -1637,39 +1637,39 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
     窗口管理器（X Server显示的图形是没有&ldquo;窗口&rdquo;边框的，通过替换窗口管理器可以实现不同的视觉效果，比如实现3D效果的Compiz）等组件
     /usr/bin/Xorg :0 -nr -verbose -audit 4 -auth /var/run/gdm/auth-for-gdm-Ikd3i7/database -nolisten tcp vt1
     这表示在display 0上运行着一个X Server，这里的X Server是Xorg
-#####DISPLAY
+####DISPLAY
     DISPLAY环境变量是X window(X11)的client端设置的,ssh -X时就会在本地初始化Xserver端(Xorg进程)，
     远程初始化一个Xclient端,client设置环境变量DISPLAY为:localhost:10.0这样的值,ssh不带-X时就不会设置
-#####TERM
+####TERM
     TERM环境变量是选择终端类型的，比如linux,screen-256color,xterm...
     不同的选择会影响颜色,快捷键等
-####man pty
+###man pty
     pty - pseudoterminal interfaces
         Pseudoterminals are used by applications such as network login services (ssh(1),
         rlogin(1), telnet(1)), terminal emulators such as xterm(1), script(1), screen(1), tmux(1),
         unbuffer(1), and expect(1).
-####\n与\r区别
+###\n与\r区别
     1,  \n是换行，在minicom中，只改变纵坐标不改变横坐标，ascii:0x0a LF
     2,  \r时回车，在minicom中，只改变横坐标不改变纵坐标，ascii:0x0d CR
-####EOL of unix,macos,dos
+###EOL of unix,macos,dos
     1, unix EOL is <NL> 换行符
     2, mac EOL is <CR> 回车符
     3, dos EOL is <CR><NL> 回车加换行
-####tty3上也能使用tmux
+###tty3上也能使用tmux
     说明tmux是纯字符画面
-####tmux分屏符是怎么显示出来的
-#####strace跟踪
+###tmux分屏符是怎么显示出来的
+####strace跟踪
     strace -fyxo trace-tmux.log tmux
-#####strace跟踪结果：
+####strace跟踪结果：
     vim trace-tmux.log
         writev(5</dev/pts/0>, [{iov_base="\x1b\x5b\x31\x3b\x39\x36\x48\xe2\x94\x82\x1b\x5b\x32\x3b\x39\x36\x48\xe2\x94\x82\x1b\x5b\x33\x3b\x39\x36\x48\xe2\x94\x82\x1b\x5b"..., iov_len=976}, {iov_base="\x1b\x5b\x4b\x0a\x1b\x5b\x4b\x0a\x1b\x5b\x4b\x0a\x1b\x5b\x4b\x0a\x1b\x5b\x4b\x0a\x1b\x5b\x4b\x0a\x1b\x5b\x4b\x0a\x1b\x5b\x4b\x0a"..., iov_len=318}], 2 <unfinished ...>
         注意:strace只显示了部分参数，实际长度为iov_len=976，并且一次发了多个iov_base
-#####实验：
+####实验：
         echo -en "\xe2\x94\x82\n\xe2\x94\x82\n"
-#####结论
+####结论
     1, tmux的所有画图都是用writev(5</dev/pts/0),函数完成的
     2, tmux的分屏符不是ASCII，是UNICODE码:\xe2\x94\x82
-####tmux client的标准IO作用
+###tmux client的标准IO作用
     由上一章节的strace结果可知，tmux server会将输出的字符、画图字符、控制编码都写入client的标准IO中，并且可以有多个client连接同一个server，这样可以实现
     所谓的屏幕镜像
         +----------------------------------------------------------------------------------------------------------+
@@ -1698,24 +1698,24 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
         |                                                                                                          |
         |                                                                                                          |
         +----------------------------------------------------------------------------------------------------------+
-####字符编码
+###字符编码
     是将文字符号转化成计算机的二进制码
     整个tty系统都是基于字符的系统，包括可显示的字符，和控制编码（或者叫不可显示的字符，也是字节序），所以了解一些字符编码很有必要
-#####ASCII码
-#####ASCII扩展码
-#####unicode码
-#####utf8码
-#####gb2312/gbk码
-####字符的显示
+####ASCII码
+####ASCII扩展码
+####unicode码
+####utf8码
+####gb2312/gbk码
+###字符的显示
     在终端中(包括虚拟终端，伪终端)，是将字符编码根据font文件转化成字形，然后将字形数据copy到显存里
-#####字体font
+####字体font
     分为点阵字体和矢量字体
-######kernel中自带的font文件
+#####kernel中自带的font文件
     点阵字体
     lib/fonts/fonts.c
     lib/fonts/font_8x16.c
     lib/fonts/font_8x8.c
-######用户层更改终端字体
+#####用户层更改终端字体
     ctrl+alt+f3 //切换到tty3
     cd /usr/share/consolefonts/
     strace -fyxo xx.txt setfont ./Lat15-Terminus14.psf.gz
@@ -1725,8 +1725,8 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
         ioctl(3</dev/tty3>, PIO_UNIMAP, 0x7ffc92653520) = 0
     KDFONTOP:这个case应该会将用户层的字体数据copy到vt中
     也可以修改/etc/default/console-setup
-#####字体转RGB
-######虚拟终端中字符显示
+####字体转RGB
+#####虚拟终端中字符显示
     sudo su
     cd /sys/kernel/debug/tracing
     执行tty3-ftrace.sh:-------------跟踪指定进程和指定的函数
@@ -1779,18 +1779,18 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
       }
     }
     会根据ASCII码，从字体文件中找到字形偏移量，然后copy出来显示
-####开机进入命令行模式(tty1)
+###开机进入命令行模式(tty1)
     sudo vim /etc/default/grub
     把GRUB_CMDLINE_LINUX_DEFAULT=”quiet splash”改成GRUB_CMDLINE_LINUX_DEFAULT=”quiet splash text”
     然后更新grub
     sudo update-grub
-####tty3分辨率调节(解决进入命令界面时字体过大)
+###tty3分辨率调节(解决进入命令界面时字体过大)
     sudo vim /etc/default/grub
     加入GRUB_GFXPAYLOAD_LINUX=1280x1024(最新的不一定是这个参数，可以在这个文件里找一找)
     设置成显卡所支持的分辨率，可以参考显示功能所列出的分辨率
     然后更新grub
     sudo update-grub
-####配色和字体
+###配色和字体
     方法一：
         sudo vim /etc/default/console-setup
         改成如下配置：
@@ -1800,14 +1800,14 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
         FONTSIZE="16"
     方法二（没测试过）：
         sudo dpkg-reconfigure console-setup
-####vim and terminal的配色文件
+###vim and terminal的配色文件
     vim:/usr/share/vim/vim81/colors/*
     terminal:/lib/terminfo/*
              /usr/share/terminfo/*
-####用infocap linux能解析terminfo数据库
-####Linux terminals, tty, pty and shell
+###用infocap linux能解析terminfo数据库
+###Linux terminals, tty, pty and shell
     https://dev.to/napicella/linux-terminals-tty-pty-and-shell-192e
-#####How does pseudo terminal work?
+####How does pseudo terminal work?
     Terminal emulator (or any other program) can ask the kernel for a pair of characters files (called PTY master and PTY slave).
     On the master side you have the terminal emulator, while on the slave side you have a Shell.
     Between master and slave sits the TTY driver (line discipline, session management, etc.) which copies stuff from/to PTY master and slave.
@@ -1849,12 +1849,12 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
     +-------------------------------------------------------------------------+
     注意:   上图中，如果是使用ptm/pts的terminal emulator，则在应用层使用GUI画字符界面，
             如果是使用ttyn(比如按ctrl+alt+fn)的真实终端，则在kernel层使用vt driver直接画字符界面.
-#####How can a program control the terminal?
+####How can a program control the terminal?
     The way for programs to control the terminal is standardized by the ANSI escape codes.
     Want to change the color of the text from your program?
     Just print to standard out the ANSI escape code for coloring the text.
     Standard out is the PTY slave, TTY driver copies the character to the PTY master, terminal gets the code and understands it needs to set the color to print the text on the screen. Voilà'!'
-#####How can I "mirror" everything that's happening on one terminal to another?
+####How can I "mirror" everything that's happening on one terminal to another?
     m1,
         pacman -Syyu | tee /dev/tty1
     m2, redirect standard out and error of bash also to a file.
@@ -1862,19 +1862,206 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
             bash -i 2>&1 | tee -a out
         s2, tail -f out
     m3, use tmux
-#####line discipline
+####line discipline
     You could put the terminal in "raw mode" which is also known as "no line discipline"
     and the function table would be filled with 127 copies of "send-char-to-program"
     function, immediately producing a task wakeup
 
-###uevent subsystem:
-####uevent_helper
+##input subsystem
+###相关目录
+    1, /dev/input/
+    2, /proc/bus/input/
+    3, /sys/class/input
+###设备层-核心层-事件层
+    1，device层文件
+        drivers/input/keyboard/atkbd.c
+    2, core层文件
+        drivers/input/input.c
+    3, event层文件
+        drivers/tty/vt/keyboard.c
+                                                                            +-----------------+
+                      +-----------------+  +--------------+ +--------------+ |/dev/input/mice  | +------------+
+                      |/dev/input/event0|  |/dev/input/ts0| |/dev/input/js0| |/dev/input/mouse0| |/dev/console|
+                      |/dev/input/event1|  |/dev/input/ts1| |/dev/input/js1| |/dev/input/mouse1| |/dev/ttyn   |
+                      |......           |  |......        | |......        | |......           | |......      |
+                      +--------^--------+  +------^-------+ +------^-------+ +--------^--------+ +------^-----+
+                               |                  |                |                  |                 |
+    +--------------------------|------------------|----------------|------------------|-----------------|---------+
+    |kernel space              |                  |                |                  |                 |         |
+    |  +-------------+     +-------+          +-------+       +--------+        +----------+       +----------+   |
+    |  |event handler|---->|evdev.c|          |tsdev.c|       |joydev.c|        |mousedev.c|       |keyboard.c|   |
+    |  +-------------+     +-------+          +-------+       +--------+        +----------+       +----------+   |
+    |-------------------------------------------------------------------------------------------------------------|
+    |  +----------+                               +---------------------+                                         |
+    |  |input core|------------------------------>|drivers/input/input.c|                                         |
+    |  +----------+                               +---------------------+                                         |
+    |-------------------------------------------------------------------------------------------------------------|
+    |  +------------+      +-----------+         +----------+          +--------+        +------+                 |
+    |  |input driver|----->|s3c2410ts.c|         |usbmouse.c|          |usbkbd.c|        |......|                 |
+    |  +------------+      +-----------+         +----------+          +--------+        +------+                 |
+    +-------------------------------------------------------------------------------------------------------------+
+###input_dev与input_handler匹配
+    device匹配handler:
+        input设备在增加到input_dev_list链表上之后，会查找
+        input_handler_list事件处理链表上的handler进行匹配，这里的匹配
+        方式与设备模型的device和driver匹配过程很相似，所有的input device
+        都挂在input_dev_list上，所有类型的事件都挂在input_handler_list
+        上，进行“匹配相亲”
+        list_for_each_entry(handler, &input_handler_list, node)
+            input_attach_handler(dev, handler); /*遍历input_handler_list，试图与每一个handler进行匹配*/
+    handler匹配device:
+        对于Event handler，就是根据事件注册一个handler，将handler挂到链表input_handler_list下，然后遍历input_dev_list链表,查找并匹配输入设备对应的事件处理层，
+        如果匹配上了，就调用connect函数进行连接，并创建input_handle结构
+###input_register_device函数
+    1, 添加设备；
+    2, 把输入设备挂到输入设备链表input_dev_list中；
+    3, 遍历input_handler_list链表，查找并匹配输入设备对应的事件处理层，如果匹配上了，就调用handler的connnect函数进行连接。
+        设备就是在此时注册的，下面分析handler就清晰了。（input_attach_handler放到分析handler时再做讲解，更容易理解。）
+###/dev/input/event节点的创建
+    input_dev和input_handler match之后会调用input_handler的connect函数:
+        static int mousedev_connect(struct input_handler *handler,
+                struct input_dev *dev,
+                const struct input_device_id *id)
+        {
+            struct mousedev *mousedev;
+            int error;
+            mousedev = mousedev_create(dev, handler, false); --------这里创建/dev/input/eventx
+            if (IS_ERR(mousedev))
+                return PTR_ERR(mousedev);
+            error = mixdev_add_device(mousedev);
+            if (error) {
+                mousedev_destroy(mousedev);
+                return error;
+            }
+            return 0;
+        }
+###input_event处理流程
+                        +-----------+
+                        |program app|
+                        +-----^-----+
+                              |
+                              |
+                              |read
+                              |
+                              |
+      +------------+      +------------+                 user space
++-----|device node0|------|device nodex|------------------------------+
+|     +------------+      +-^----------+                 kernel space |
+|                           |  |read opration will add wait queue     |
+|                           |  |           +----------+               |
+|    dev and handler match  |  +---------->|wait queue|               |
+|    then create input dev  |              +----^-----+               |
+|    node                   |                   |wake up              |
+|                           |       +-----------+                     |
+|                           |       |                                 |
+|                         +------------+                              |
+|              +--------->| input core |<------+                      |
+|              |          +------------+       |                      |
+|              |input_handler_register         |input_device_register |
+|              |                               |                      |
+|              |                               |                      |
+|          +-----------+                  +----+-------+              |
+|          |input event|                  |input device|              |
+|          +---^-------+                  +------------+              |
+|              |                               |                      |
+|              |                               |                      |
+|              +-------------------------------+                      |
+|               dev interrupt call handler.event                      |
+|               then event()->wake_up user app                        |
++---------------------------------------------------------------------+
+###input subsystem与tty关系
+    输入子系统是相对独立的，除了可以服务于tty/console之外，也可以通过设备文件服务于X Window等窗口管理器和用户程序
+
+##VT(virtual terminal)
+###VT中的键盘输入流程
+    基于kernel的input subsystem实现了input_handler驱动:drivers/tty/vt/keyboard.c
+    usb键盘中断 调用 input_handler->evnet，然后
+        static void kbd_event(struct input_handle *handle, unsigned int event_type,
+                      unsigned int event_code, int value)
+        {
+            /* We are called with interrupts disabled, just take the lock */
+            spin_lock(&kbd_event_lock);
+            if (event_type == EV_MSC && event_code == MSC_RAW && HW_RAW(handle->dev))
+                kbd_rawcode(value);
+            if (event_type == EV_KEY && event_code <= KEY_MAX)
+                kbd_keycode(event_code, value, HW_RAW(handle->dev));
+            spin_unlock(&kbd_event_lock);
+            tasklet_schedule(&keyboard_tasklet);
+            do_poke_blanked_console = 1;
+            schedule_console_callback(); ------->这里会调void schedule_console_callback(void)
+                                                         {
+                                                             schedule_work(&console_work);--->唤醒tty wait进程
+                                                         }
+        }
+####scancode转换成keycode
+####对方向键的处理
+    static void k_cur(struct vc_data *vc, unsigned char value, char up_flag)
+    {
+        static const char cur_chars[] = "BDCA";
+        if (up_flag)
+            return;
+        applkey(vc, cur_chars[value], vc_kbd_mode(kbd, VC_CKMODE));
+    }
+    最终将方向键转化成终端控制序列，发给用户程序，用户程序再发给终端仿真器，终端仿真器解析后实现显示效果
+###VT中的屏幕输出流程
+    基于framebuffer实现的:drivers/tty/vt/vt.c
+                          drivers/video/fbdev/core/fbcon.c
+                            static const struct consw fb_con = {
+                                .owner          = THIS_MODULE,
+                                .con_startup        = fbcon_startup,
+                                .con_init       = fbcon_init,
+                                .con_deinit         = fbcon_deinit,
+                                .con_clear      = fbcon_clear,
+                                .con_putc       = fbcon_putc,
+                                .con_putcs      = fbcon_putcs, ------>显示函数
+                                .con_cursor         = fbcon_cursor,
+                                .con_scroll         = fbcon_scroll,
+                                .con_switch         = fbcon_switch,
+                                .con_blank      = fbcon_blank,
+                                .con_font_set       = fbcon_set_font,
+                                .con_font_get       = fbcon_get_font,
+                                .con_font_default   = fbcon_set_def_font,
+                                .con_font_copy      = fbcon_copy_font,
+                                .con_set_palette    = fbcon_set_palette,
+                                .con_scrolldelta    = fbcon_scrolldelta,
+                                .con_set_origin     = fbcon_set_origin,
+                                .con_invert_region  = fbcon_invert_region,
+                                .con_screen_pos     = fbcon_screen_pos,
+                                .con_getxy      = fbcon_getxy,
+                                .con_resize             = fbcon_resize,
+                                .con_debug_enter    = fbcon_debug_enter,
+                                .con_debug_leave    = fbcon_debug_leave,
+                            };
+####ftrace log
+    fbcon_putcs() {
+     get_color() {
+       fb_get_color_depth();
+     }
+     get_color() {
+       fb_get_color_depth();
+     }
+     bit_putcs() {
+       fb_get_color_depth();
+       fb_get_buffer_offset();
+       drm_fb_helper_cfb_imageblit [drm_kms_helper]() {
+         cfb_imageblit();
+         drm_fb_helper_dirty.isra.13 [drm_kms_helper]() {
+           _raw_spin_lock_irqsave();
+           _raw_spin_unlock_irqrestore();
+           queue_work_on();
+         }
+       }
+     }
+   }
+
+##uevent subsystem:
+###uevent_helper
     1, /sys/kernel/uevent_helper
-#####/sys/kernel目录怎么创建的
+####/sys/kernel目录怎么创建的
     kernel/ksysfs.c
         ksysfs_init()
             -->kernel_kobj = kobject_create_and_add("kernel", NULL);
-#####/sys/kernel/uevent_helper节点怎么创建的
+####/sys/kernel/uevent_helper节点怎么创建的
     kernel/ksysfs.c:
     static struct attribute * kernel_attrs[] = {
         &fscaps_attr.attr,
@@ -1903,7 +2090,7 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
         .attrs = kernel_attrs,
     };
     error = sysfs_create_group(kernel_kobj, &kernel_attr_group);
-####mdev开机自动生成设备节点
+###mdev开机自动生成设备节点
     1,在qemu中kernel起来后，在rcS里加了mdev -s 所以/dev下会有节点
 
 ##linux filesystem:
