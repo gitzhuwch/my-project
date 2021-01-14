@@ -1866,6 +1866,51 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
     You could put the terminal in "raw mode" which is also known as "no line discipline"
     and the function table would be filled with 127 copies of "send-char-to-program"
     function, immediately producing a task wakeup
+###reset/clear原理
+####reset
+    man reset:tset, reset - terminal initialization //reset实际上是tset的链接文件
+    strace跟踪:
+        strace -fyo ./strace-reset.log -e trace=open,read,write,ioctl -s 1024 reset
+    log:
+        18179 write(2</dev/pts/11>, "\33", 1)   = 1
+        18179 write(2</dev/pts/11>, "c", 1)     = 1
+        18179 write(2</dev/pts/11>, "\33", 1)   = 1
+        18179 write(2</dev/pts/11>, "]", 1)     = 1
+        18179 write(2</dev/pts/11>, "1", 1)     = 1
+        18179 write(2</dev/pts/11>, "0", 1)     = 1
+        18179 write(2</dev/pts/11>, "4", 1)     = 1
+        18179 write(2</dev/pts/11>, "\7", 1)    = 1
+        18179 write(2</dev/pts/11>, "\33", 1)   = 1
+        18179 write(2</dev/pts/11>, "[", 1)     = 1
+        18179 write(2</dev/pts/11>, "!", 1)     = 1
+        18179 write(2</dev/pts/11>, "p", 1)     = 1
+        18179 write(2</dev/pts/11>, "\33", 1)   = 1
+        18179 write(2</dev/pts/11>, "[", 1)     = 1
+        18179 write(2</dev/pts/11>, "?", 1)     = 1
+        18179 write(2</dev/pts/11>, "3", 1)     = 1
+        18179 write(2</dev/pts/11>, ";", 1)     = 1
+        18179 write(2</dev/pts/11>, "4", 1)     = 1
+        18179 write(2</dev/pts/11>, "l", 1)     = 1
+        18179 write(2</dev/pts/11>, "\33", 1)   = 1
+        18179 write(2</dev/pts/11>, "[", 1)     = 1
+        18179 write(2</dev/pts/11>, "4", 1)     = 1
+        18179 write(2</dev/pts/11>, "l", 1)     = 1
+        18179 write(2</dev/pts/11>, "\33", 1)   = 1
+        18179 write(2</dev/pts/11>, ">", 1)     = 1
+        18179 write(2</dev/pts/11>, "\r", 1)    = 1
+    结论:
+        reset是由"\ec"等一系列终端转义控制序列完成。
+    实验:
+        echo -en "\ec"
+####clear
+    strace跟踪:
+        strace -fyo ./strace-clear.log -e trace=open,read,write,ioctl -s 1024 clear
+    log:
+        19529 write(1</dev/pts/11>, "\33[H\33[2J\33[3J", 11) = 11
+    结论:
+        clear也是由终端转义控制序列完成
+    实验:
+        echo -en "\e[H\e[2J\e[3J"
 
 ##input subsystem
 ###相关目录
@@ -1879,7 +1924,7 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
         drivers/input/input.c
     3, event层文件
         drivers/tty/vt/keyboard.c
-                                                                            +-----------------+
+                                                                             +-----------------+
                       +-----------------+  +--------------+ +--------------+ |/dev/input/mice  | +------------+
                       |/dev/input/event0|  |/dev/input/ts0| |/dev/input/js0| |/dev/input/mouse0| |/dev/console|
                       |/dev/input/event1|  |/dev/input/ts1| |/dev/input/js1| |/dev/input/mouse1| |/dev/ttyn   |
