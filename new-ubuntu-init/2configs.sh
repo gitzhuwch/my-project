@@ -147,3 +147,8 @@ fi
 #mime types config
 cp -f ./mime.types ~/.mime.types
 #-------------------------------------------------------------
+#goldendict config
+##set translate engine on line
+###config with gui
+###config with config file: ~/.goldendict/config
+#-------------------------------------------------------------
