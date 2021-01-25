@@ -148,7 +148,11 @@ fi
 cp -f ./mime.types ~/.mime.types
 #-------------------------------------------------------------
 #goldendict config
+cp ./bingdict.html ~/.bingdict.html
 ##set translate engine on line
-###config with gui
+###config with gui: [Edit]->[Dictionaries]->[Sources]->[Websites]->[Add]->file:///home/user/.bingdict.html?a=%GDWORD%
+###or
+###config with gui: [Edit]->[Dictionaries]->[Sources]->[Websites]->[Add]->https://www.bing.com/dict/search?q=%GDWORD%
+###or
 ###config with config file: ~/.goldendict/config
 #-------------------------------------------------------------
