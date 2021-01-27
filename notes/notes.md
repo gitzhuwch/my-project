@@ -2871,7 +2871,7 @@ https://segmentfault.com/a/1190000008125116
 ###arm:arm9:armv9:cortex-a9:
     1,且在GCC编译中，常常要用到 -march,-mcpu等
     2,ARM（Advanced RISCMachines)
-    3,ＡＲＭ公司定义了６种主要的指令集体系结构版本。Ｖ１－Ｖ６。（所以上面提到的ＡＲＭｖ６是指指令集版本号）。即：ARM architecture
+    3,ARM公司定义了６种主要的指令集体系结构版本。V1-V6。（所以上面提到的ARM-v6是指指令集版本号）。即：ARM architecture
     4, ARM公司开发了很多ARM处理器核，最新版位ARM11。ARM11：指令集ARMv6，8级流水线，1.25DMIPS/MHz
     5, Cortex-A8：指令集ARMv7-A，13级整数流水线，超标量双发射，2.0DMIPS/MHz，标配Neon，不支持多核
       Scorpion：指令集ARMv7-A，高通获得指令集授权后在A8的基础上设计的。13级整数流水线，超标量双发射，部分乱序执行，2.1DMIPS/MHz，标配Neon，支持多核
@@ -2881,6 +2881,36 @@ https://segmentfault.com/a/1190000008125116
 
 ##IC设计/生产/封装/测试：
 ###IC design related:
+####cache design
+    https://www.cnblogs.com/east1203/p/11572500.html
+    see ./cache-map-blcok-diagram/*
+    Cache与主存的数据交换是以块为单位的(一块=line??)
+#####直接映射
+    主存中的一个块只能映射到Cache的某一特定块中去。例如，主存的第0块、第16块、……、第2032块，只能
+    映射到Cache的第0块；而主存的第1块、第17块、……、第2033块，只能映射到Cache的第1块……。
+    直接映射是最简单的地址映射方式，它的硬件简单，成本低，地址变换速度快，而且不涉及替换算法问题。
+    但是这种方式不够灵活，Cache的存储空间得不到充分利用，每个主存块只有一个固定位置可存放，容易产
+    生冲突，使Cache效率下降，因此只适合大容量Cache采用。例如，如果一个程序需要重复引用主存中第0块
+    与第16块，最好将主存第0块与第16块同时复制到Cache中，但由于它们都只能复制到Cache的第0块中去，
+    即使Cache中别的存储空间空着也不能占用， 因此这两个块会不断地交替装入Cache中，导致命中率降低。
+#####全相联映射
+    全相联映射方式比较灵活，主存的各块可以映射到Cache的任一块中，Cache的利用率高，块冲突概率低，
+    只要淘汰Cache中的某一块，即可调入主存的任一块。但是，由于Cache比较电路的设计和实现比较困难，这
+    种方式只适合于小容量Cache采用。
+#####组相联映射
+    组相联映射实际上是直接映射和全相联映射的折中方案，其组织结构如图3-16所示。主存和Cache都分组，
+    主存中一个组内的块数与Cache中的分组数相同，组间采用直接映射，组内采用全相联映射。也就是说，将
+    Cache分成u组，每组v块，主存块存放到哪个组是固定的，至于存到该组哪一块则是灵活的。例如，主存
+    分为256组，每组8块，Cache分为8组，每组2块。主存中的各块与Cache的组号之间有固定的映射关系，但
+    可自由映射到对应Cache组中的任何一块。例如，主存中的第0块、第8块……均映射于Cache的第0组，但可
+    映射到Cache第0组中的第0块或第1块；主存的第1块、第9块……均映射于Cache的第1组，但可映射到Cache
+    第1组中的第2块或第3块。常采用的组相联结构Cache，每组内有2、4、8、16块，称为2路、4路、8路、16路
+    组相联Cache。组相联结构Cache是前两种方法的折中方案，适度兼顾二者的优点，尽量避免二者的缺点，
+    因而得到普遍采用。
+#####cache line
+    在cache中的数据是以缓存线（line）为单位组织的，一条缓存线对应于内存中一个连续的字节块
+#####cache way
+    这些线被保存在cache bank中，也叫路（way）。每一路都有一个专门的目录（directory）用来保存一些登记信息。
 ####DMA burst:
     1, burst传输就是占用多个总线周期，完成一次块传输，此间cpu不能访问总线; DMA占用的周期个数叫做burst length.
     2, Burst操作还是要通过CPU的参与的，与单独的一次读写操作相比，burst只需要提供一个起始地址就行了，
@@ -3517,3 +3547,9 @@ tips:
         3,  Now comes the role of Firefox’s extension/addon/plugin.
         For this we will use the Markdown Viewer Webext, there are others,
         but we will use this one, after installing, tcharaaamm!!!
+###see linux version
+    command:
+        cat /proc/version
+    sources:
+        init/version.c
+        fs/proc/version.c
