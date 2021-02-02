@@ -201,6 +201,9 @@ let NERDTreeAutoDeleteBuffer=1 "删除文件时自动删除文件对应 buffer
 
 "-------------------------plugin-configs-----------------------
 let g:NERDAltDelims_c = 1 "设置c语言的单行注释风格为1(代表用//注释)
+let g:NERDAltDelims_asm = 1
+"modify the commenter delimiters of asm filetype, default is ';' and '#'
+let g:NERDCustomDelimiters = { 'asm': { 'left': '//', 'leftAlt': '/*', 'rightAlt': '*/' }}
 
 "-------------------------plugin-configs-----------------------
 "添加函数原型说明

@@ -397,7 +397,7 @@
     Binary File Descriptor library;
     多数binutils程序使用BFD(Binary File Descriptor库)实现底层操作,多数也使用opcodes库来汇编及反汇编机器指令.
 ####objcopy:
-    1, 要将一个二进制的文件，如图片作为一个目标文件的段:
+    1, 要将一个二进制的文件:比如图片文件, 作为目标文件的一个段:
         objcopy -I binary -O elf32-i386 -B i386 Dark.jpg image.o
         gcc -o test_elf main.c image.o
     2, objcopy --info List object formats and architectures supported
@@ -513,6 +513,15 @@
         arm-poky-linux-gnueabi-gcc  -print-libgcc-file-name
     result:
         libgcc.a
+####gcc打印库的全局路径
+    arm-none-eabi-gcc -print-file-name=<lib>
+    eg:
+    1,
+        arm-none-eabi-gcc -print-file-name=libm.a
+        /usr/lib/gcc/arm-none-eabi/9.2.1/../../../arm-none-eabi/lib/libm.a
+    2,
+        arm-none-eabi-gcc -print-file-name=libgcc.a
+        /usr/lib/gcc/arm-none-eabi/9.2.1/libgcc.a
 ####gcc enable openmp?
 ####-B/-I/-L
     1,  -Bprefix    This option specifies where to find the executables, libraries, include files, and data files of

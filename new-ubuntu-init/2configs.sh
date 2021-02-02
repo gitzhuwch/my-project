@@ -35,13 +35,16 @@ fi
 #	backgroud color
 #-------------------------------------------------------------
 #git config:
+cp ./gitignore $HOME/.gitignore
 git config --global alias.st status
 git config --global alias.br branch
 git config --global diff.tool meld
-git config --global core.editor vim
-git config --global color.diff.whitespace "red reverse"
 git config --global diff.wsErrorHighlight all
 git config --global difftool.prompt no
+git config --global color.diff.whitespace "red reverse"
+git config --global core.editor vim
+git config --global core.excludesFile $HOME/.gitignore
+git config --global credential.helper store
 #	git diff --ws-error-highlight=all
 #-------------------------------------------------------------
 #evince config:
