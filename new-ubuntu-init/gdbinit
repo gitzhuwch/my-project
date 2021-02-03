@@ -1,5 +1,7 @@
 set auto-load safe-path /
 set pagination off
+#set height unlimited
+#set width unlimited
 set logging file ~/.glog.txt
 set logging overwrite on
 set logging on

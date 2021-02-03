@@ -87,8 +87,8 @@ nmap <F2> :!<CR>
 nmap <F3> <Esc><F4><F5>
 imap <F3> <Esc><F4><F5>
 "Add an extra <CR> to the shortcut using as confirming when quit
-nmap <F4> :wa<CR>:!~/bin/vim-make.sh<CR><CR>
-nmap <F5> :!~/bin/vim-debug.sh<CR><CR>
+nmap <F4> :wa<CR>:!~/bin/vim.pro/vim-make<CR><CR>
+nmap <F5> :!~/bin/vim.pro/vim-debug<CR><CR>
 nmap <F8> M:call Myfunc()<CR>:%s/\s\+$//ge<CR>:wa<CR>
 function! Myfunc()
     let lineNum= line(".")

@@ -1,0 +1,39 @@
+#/* vim: set filetype=gdb : */
+
+#define dd
+#target remote localhost:2331
+#monitor reset
+#monitor halt
+#load
+#delete
+#end
+
+#define rr
+##target remote 172.17.129.130:2331
+#target remote localhost:2331
+#monitor reset
+#monitor halt
+#load
+#delete
+#b qspi_test_end
+#c
+##x/45xw 0x2f100000
+#quit
+#end
+
+#define ww
+##target remote 172.17.129.130:2331
+#target remote localhost:2331
+#set $count=1
+    #while ($count--)
+        #monitor reset
+        #monitor halt
+        #load
+        #delete
+        #b qspi_test_end
+        #c
+    #end
+#quit
+#end
+
+#rr

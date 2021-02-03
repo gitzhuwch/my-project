@@ -1,0 +1,4 @@
+#!/bin/bash
+
+#cd project drectory
+#arm-none-eabi-gdb -x ~/bin/vim.pro/sub-gdbinit a.out

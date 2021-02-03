@@ -13,11 +13,23 @@ export MINICOM='-c on'
 export PS1="\[\e]0;[  \W  ]\u@\h\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$\n\[\033[00m\]->"
 #export PROMPT_COMMAND='echo -ne "\033]0;${USER}@${HOSTNAME}:${PWD}\007"'
 function nn() {
-	local ORIG="\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$\n\[\033[00m\]->"
-	if [ "$1" != "" ]; then
-		local TITLE="\[\e]0;[  $1  ]\u@\h\a\]"
-	else
-		local TITLE="\[\e]0;[  \W  ]\u@\h\a\]"
-	fi
-	export PS1=${TITLE}${ORIG}
+    local ORIG="\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$\n\[\033[00m\]->"
+    if [ "$1" != "" ]; then
+        local TITLE="\[\e]0;[  $1  ]\u@\h\a\]"
+    else
+        local TITLE="\[\e]0;[  \W  ]\u@\h\a\]"
+    fi
+    export PS1=${TITLE}${ORIG}
+}
+function lvim() {
+    rm -f ~/bin/vim.pro
+    if [ "$1" != "" ]; then
+        if [ -d ~/bin/$1.pro ]; then
+            ln -sf ~/bin/$1.pro ~/bin/vim.pro
+        fi
+    else
+        if [ -d ~/bin/vim-tools-demo.pro ]; then
+            ln -sf ~/bin/vim-tools-demo.pro ~/bin/vim.pro
+        fi
+    fi
 }

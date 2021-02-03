@@ -363,6 +363,10 @@
 ####原理
     在每个函数的入口插入call mcount桩指令
 ####exec命令带来的方便
+    type exec:
+        exec is a shell builtin
+    help exec:
+        Replace the shell with the given command
     使用如下脚本可只trace指定程序
     ......
     echo $$ > set_ftrace_pid
