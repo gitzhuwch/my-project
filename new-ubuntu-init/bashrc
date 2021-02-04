@@ -33,3 +33,4 @@ function lvim() {
         fi
     fi
 }
+source ~/.tmux-bash-completion

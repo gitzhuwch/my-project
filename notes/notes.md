@@ -3566,3 +3566,10 @@ tips:
     sources:
         init/version.c
         fs/proc/version.c
+###bash command completion
+    bash在接收输入时的自动补全功能是bash自带的一种机制，主要使用bash build-in command:compgen and complete来实现的,
+    实现这种功能需要将待补全的命令事先准备好，一般放到:/usr/share/bash-completion/completions/这个目录下面,在启动bash时，
+    会source这里的脚本文件,也可以放到别的路径下，自己手动source.
+####tmux sub-cmd completion
+    tmux在install时没有带completion脚本，在github上有人实现了，我把它下载放到$HOME目录下:.tmux-bash-completion，在.bashrc中
+    source一下,就可以用TAB键补全了.
