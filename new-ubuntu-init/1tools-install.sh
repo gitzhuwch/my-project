@@ -57,3 +57,4 @@ sudo apt -y install goldendict
 ##sudo aptitude -y install samba-common-bin
 ##sudo aptitude -y install samba
 ##sudo aptitude -y install samba-common
+sudo apt install -y wkhtmltopdf

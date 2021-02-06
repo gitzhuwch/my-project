@@ -37,7 +37,6 @@
             :set statusline=%!MyStatusLine()
     The g:statusline_winid variable will be set to the window-ID of the
     window that the status line belongs to.
-
 ###minibufexplr/airline区别
     前者是基于window原理实现的(新建窗口来显示buffer name)，后者是基于tabpage原理实现的(修改tabline)
     大多插件是新建window来实现的，缺点是窗口显示易出问题.
@@ -217,6 +216,13 @@
     方法二:
         浏览器打开:acsiiflow.cn(比较好用)
         网页源码已下载到本地(没有网络时使用)，导出到vim时，vim粘贴不要用ctrl+shift+v，直接在normal模式下p就行
+###covert to html
+    vim自带转html功能插件.
+    cmd: TOhtml
+    可将notes.md转成html,再转成pdf
+###html covert to pdf
+    sudo apt install -y wkhtmltopdf
+    wkhtmltopdf xxx.html yyy.pdf
 
 ##tmux:
 ###概念
@@ -668,7 +674,6 @@
 ####hooks script从哪来?
     man git-init:
         /usr/share/git-core/templates
-
 ###repo:
     1, sudo apt -y install repo
     2, vim /usr/bin/repo
@@ -1000,7 +1005,6 @@
         开发者修改之后重新推送到 Gerrit 时就要注意在提交说明中使用相同的 “Change-Id” （使用 --amend 提交即可保持提交说明），
         以免创建新的评审任务，还要在推送时将当前分支推送到   refs/changes/nn/task-id/m中。其中   nn   和   task-id   和之前提交的评审任务的修订相同，
         m 则要人工选择一个新的修订号。
-
 ###gitolite:
     1, sudo useradd -r -m -s /bin/bash gitolite
     2, sudo passwd gitolite
@@ -1009,7 +1013,6 @@
     5, git clone https://github.com/sitaramc/gitolite.git
     6, gitolite/install -to $HOME/bin
     7, $HOME/bin/gitolite setup -pk YourName.pub
-
 ####git describe failed; cannot deduce version numbe
       a)--depth=1 will not cover the release version so install failed
         git clone --depth=1  https://github.com/sitaramc/gitolite.git
@@ -1018,7 +1021,6 @@
       b)success
         git clone https://github.com/sitaramc/gitolite.git
         gitolite/install -to $HOME/bin
-
 ####PTY allocation request failed on channel 0 hello id_rsa, this is git@user-ThinkPad-E490 running gitolite3 v3.6.11-9-gd89c7dd on git 2.17.1
     ssh -X git@10.3.153.96 report title error
     cat .ssh/authorized_keys
@@ -1028,16 +1030,77 @@
         AAAAB3NzaC1yc2EAAA......T4UNW7kAwKgonTeNg3
         user@user-ThinkPad-E490
         # gitolite end
-
 ####fatal: No path specified. See 'man git-pull' for valid url syntax
     git clone ssh://git@10.3.153.96:gitolite-admin report title error
     fix: below two all right
         git clone ssh://git@10.3.153.96:/gitolite-admin
         git clone ssh://git@10.3.153.96/gitolite-admin
-
 ###gitolite/gerrit:
     gitolite is through .ssh/authorized_keys-->command to export git repository
     gerrit is through ip:29418 port to process client requestion
+
+##Makefile
+    https://www.cnblogs.com/xiaomaohai/p/6157594.html
+###基本语法
+    Makefile包含很多规则(Rule)，每一条规则的语法结构由目标(Target)、先决条件(Prerequisite)、动作(Recipe)三部分组成
+    目标：通常有两种命名方法，一是与要生成的可执行文件或目标文件同名，二是说明动作的目的，例如最常见的clean清理规则。
+        对于第二种规则命名，为了避免与同名文件冲突，可以将目标名加入到.PHONY伪目标列表中。默认情况下，make执行Makefile中的
+        第一个规则，此规则被称为最终目标
+    先决条件：先决条件是用来创建目标的输入文件，一个目标可以依赖多个先决条件
+    动作：动作由Make命令负责执行，可以包含多个命令，每个命令可以另起一行。一定要注意的是：命令必须以TAB开头！
+    target: prerequisite
+        recipe
+###实现原理
+    Make看似非常智能，其实它的原理就像其语法规则一样简单。
+    1.确定目标：如果没有指明，则执行最终目标，即第一个规则的目标
+    2.处理变量和规则：替换变量，推导隐式规则（下一节会学习）
+    3.生成依赖关系链：为所有目标生成依赖关系链
+    4.递归构建：从依赖链的底部向上，根据先决条件会有三种情况：
+        4.1 先决条件不存在，则执行规则中的命令
+        4.2 先决条件存在，且至少一个比目标“更新”，则执行规则中的命令重新生成
+        4.3 先决条件存在，且都比目标“更旧”， 则什么都不做
+###Make进阶
+####变量
+    在Makefile中，我们可以用变量来替换重复出现在先决条件或动作中的字符串。例如，对于前面我们的示例Makefile，
+    最明显的问题就是gcc和main目标依赖的main.o和hello.o出现了多次，我们可以用变量将它们提取出来。
+    同样地，我们也经常将链接和编译选项做成变量。
+####隐式规则
+    使用Make编译.c源文件时，规则的命令和先决条件都可以简化，对于命令，我们不用明确指出，Make能够自动将.c编译成.o；
+    对于先决条件，Make还会自动寻找.o对应的.c源文件，我们只需给出头文件即可。
+    LD      = gcc
+    OBJECTS = main.o hello.o
+    all: main
+
+    main: $(OBJECTS)
+        $(LD) -o main $(OBJECTS)
+
+    main.o: hello.h
+    hello.o: hello.h
+    我们将main.o和hell.o的规则都做了简化，执行一下可以看到Make自动执行了cc -c，并根据目标找到了对应的源文件main.c和hello.c。
+####模式规则
+    隐式规则虽然很方便，但有时我们还想自己控制规则，这时我们可以使用模式规则。老Make支持.c.o这种规则定义，
+    而新Make一般推荐使用模式规则，因为它支持模式匹配，更灵活、更强大！例如，我们定义目标名匹配%.o和先决条件匹配%.c的话，
+    就执行编译命令。这样main.o和hello.o被简化的同时，我们还对其进行了精确的控制。
+###Makefile生成工具
+    Make的流行也带动起一批自动生成Makefile的工具，目的就是进一步减轻项目构建中的工作量，让我们程序员全身心投入到开发之中。
+    在这些工具中，不得不提Automake和CMake。
+####Automake
+    Automake其实是一系列工具集Autotools中的一员，要想发挥Automake的威力，需要配合使用Autotools中的其他工具，
+    例如autoscan、aclocal、autoconf和autoheader。在下面的Automake构建流程中，能看到这些工具的身影。
+    1.autoscan：生成configure.scan
+    2.configure.in：将configure.scan重命名为configure.in后，修改内容。重点是AM_INIT_AUTOMAKE和AC_CONFIG_FILES两项，
+        如果没配置的话，下一步的aclocal是无法产生aclocal.m4的
+    3.aclocal：生成aclocal.m4
+    4.autoconf：生成configure
+    5.autoheader：生成config.h.in，使程序可移植
+    6.Makefile.am：手动编写Makefile.am。bin_PROGRAMS指定最终生成可执行文件的名称，helloworld_SOURCES指定所有源文件
+    7.NEWS AUTHORS README ChangeLog：手动创建
+    8.automake：执行automake -a生成Makefile.in
+    9.configure：执行./configure生成Makefile
+####cmake
+    前面我们已经见识了Automake的强大和复杂。现在我们重新用CMake生成Makefile，Automake中的9步被压缩到了只需要2步！
+    编写CMakeLists.txt
+    执行cmake .
 
 ##linux driver model:
 ###device_add()
@@ -1448,7 +1511,7 @@
     #define dprintf_info(fmt,args...) printf("\033[0;32m" fmt "\033[0m", ##args)
     dprintf_info("\rtest index:[%d]%5d [%c]", test_count, j, lable[j%4]);
 ####粗体斜体下划线闪烁
-https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethrough-color-background-and-size-i
+    https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethrough-color-background-and-size-i
     man console_codes
     echo -e "\e[1mbold\e[0m"
     echo -e "\e[3mitalic\e[0m"
@@ -1994,39 +2057,39 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
             return 0;
         }
 ###input_event处理流程
-                        +-----------+
-                        |program app|
-                        +-----^-----+
-                              |
-                              |
-                              |read
-                              |
-                              |
-      +------------+      +------------+                 user space
-+-----|device node0|------|device nodex|------------------------------+
-|     +------------+      +-^----------+                 kernel space |
-|                           |  |read opration will add wait queue     |
-|                           |  |           +----------+               |
-|    dev and handler match  |  +---------->|wait queue|               |
-|    then create input dev  |              +----^-----+               |
-|    node                   |                   |wake up              |
-|                           |       +-----------+                     |
-|                           |       |                                 |
-|                         +------------+                              |
-|              +--------->| input core |<------+                      |
-|              |          +------------+       |                      |
-|              |input_handler_register         |input_device_register |
-|              |                               |                      |
-|              |                               |                      |
-|          +-----------+                  +----+-------+              |
-|          |input event|                  |input device|              |
-|          +---^-------+                  +------------+              |
-|              |                               |                      |
-|              |                               |                      |
-|              +-------------------------------+                      |
-|               dev interrupt call handler.event                      |
-|               then event()->wake_up user app                        |
-+---------------------------------------------------------------------+
+                            +-----------+
+                            |program app|
+                            +-----^-----+
+                                  |
+                                  |
+                                  |read
+                                  |
+                                  |
+          +------------+      +------------+                 user space
+    +-----|device node0|------|device nodex|------------------------------+
+    |     +------------+      +-^----------+                 kernel space |
+    |                           |  |read opration will add wait queue     |
+    |                           |  |           +----------+               |
+    |    dev and handler match  |  +---------->|wait queue|               |
+    |    then create input dev  |              +----^-----+               |
+    |    node                   |                   |wake up              |
+    |                           |       +-----------+                     |
+    |                           |       |                                 |
+    |                         +------------+                              |
+    |              +--------->| input core |<------+                      |
+    |              |          +------------+       |                      |
+    |              |input_handler_register         |input_device_register |
+    |              |                               |                      |
+    |              |                               |                      |
+    |          +-----------+                  +----+-------+              |
+    |          |input event|                  |input device|              |
+    |          +---^-------+                  +------------+              |
+    |              |                               |                      |
+    |              |                               |                      |
+    |              +-------------------------------+                      |
+    |               dev interrupt call handler.event                      |
+    |               then event()->wake_up user app                        |
+    +---------------------------------------------------------------------+
 ###input subsystem与tty关系
     输入子系统是相对独立的，除了可以服务于tty/console之外，也可以通过设备文件服务于X Window等窗口管理器和用户程序
 
@@ -2446,7 +2509,7 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
     基本上都是来一个中断，中断唤醒一个workqueue，workqueue调work，work唤醒waitqueue或者semaphore
 
 ###所有内核线程的创建过程:
-(包括工作队列的工作者进程的创建):
+    (包括工作队列的工作者进程的创建):
     1,start_kernel->rest_init->kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES)----创建kthreadd进程
     2,kthread_create_on_node->__kthread_create_on_node->list_add_tail(&create->list, &kthread_create_list);---加到链表中
     wake_up_process(kthreadd_task);----唤醒kthreadd进程
@@ -2524,9 +2587,9 @@ https://askubuntu.com/questions/528928/how-to-do-underline-bold-italic-strikethr
 ####cpu开关核节点:
     /sys/devices/system/cpu/cpu1/online
 ###Linux CPU使用率
-https://segmentfault.com/a/1190000008322093
+    https://segmentfault.com/a/1190000008322093
 ###Linux OOM killer
-https://segmentfault.com/a/1190000008268803
+    https://segmentfault.com/a/1190000008268803
 ###gpio/pinctrl区别:
     1, gpio:
     2, pinctrl:
@@ -2688,7 +2751,7 @@ https://segmentfault.com/a/1190000008268803
             b) modify user group to sudo group
 
 ##linux Container容器
-https://segmentfault.com/a/1190000006908063
+    https://segmentfault.com/a/1190000006908063
     1,  跟我们常说的虚拟机这种虚拟化技术没有关系
     2,  容器就是一个或多个进程以及他们所能访问的资源的集合
     3,  容器和虚拟机的差别
@@ -2742,7 +2805,7 @@ https://segmentfault.com/a/1190000006908063
     namespace是为了隔离进程组之间的资源，而cgroup是为了对一组进程进行统一的资源监控和限制
 
 ##linux session and process group
-https://segmentfault.com/a/1190000009152815
+    https://segmentfault.com/a/1190000009152815
 ###session
     1,  session就是一组进程的集合，session id就是这个session中leader的进程ID。
     2,  session的特点
@@ -2806,10 +2869,10 @@ https://segmentfault.com/a/1190000009152815
     比如用鼠标双击一个文本文件启动gedit，其0->/dev/null 1,2->socket,这个socket会输出到/var/log/syslog中
 
 ##linux network
-https://segmentfault.com/blog/wuyangchun?page=1
+    https://segmentfault.com/blog/wuyangchun?page=1
 
 ##linux交换空间(swap space)
-https://segmentfault.com/a/1190000008125116
+    https://segmentfault.com/a/1190000008125116
     1,  由于系统会自动将不常用的内存数据移到swap上，对桌面程序来说，有可能会导致最小化一个程序后，再打开时小卡一下，
         因为需要将swap上的数据重新加载到内存中来。
     2,  为什么需要swap?
@@ -2935,27 +2998,27 @@ https://segmentfault.com/a/1190000008125116
 ####JTAG:
     https://blog.csdn.net/beingaz/article/details/7440507
 #####同事讲解
-               -----------------------------
-               |           SOC             |
-               |                           |
-               |  AHB    APB    CPU        |
-               |  / \    / \    / \        |
-               |   |      |      |         |
-               |   |      |   |--------|   |
-               |   |      |   |buffer  |   |
-               |   |      |   |register|   |
-               |   |      |   |--------|   |
-               |   |      |     / \        |
-               |   |      |      |         |
-               |------------     |         |
-               |   TAP     |------         |
-               |-----------|      |--------|  data
-       JTAG    |  DA | DP  |----->|trace32 |-------> trace32
-JLink--------->|     |     |      |ETM/ETB |
-               -----------------------------
-        1,  DA模块里有instruction(OPcode) and data register,这俩个是移位寄存器，负责和JLink通信通过JTAG协议；DA可以接受执行JTAG指令(不是cpu指令).
-        2   DP模块有AHB,APB master interface,可以直接发送总线请求，DP也可以直接给cpu一个信号，使其进入debug mode，
-            进入debug mode之后，两者通过buffer register通信.
+                   -----------------------------
+                   |           SOC             |
+                   |                           |
+                   |  AHB    APB    CPU        |
+                   |  / \    / \    / \        |
+                   |   |      |      |         |
+                   |   |      |   |--------|   |
+                   |   |      |   |buffer  |   |
+                   |   |      |   |register|   |
+                   |   |      |   |--------|   |
+                   |   |      |     / \        |
+                   |   |      |      |         |
+                   |------------     |         |
+                   |   TAP     |------         |
+                   |-----------|      |--------|  data
+           JTAG    |  DA | DP  |----->|trace32 |-------> trace32
+    JLink--------->|     |     |      |ETM/ETB |
+                   -----------------------------
+    1,  DA模块里有instruction(OPcode) and data register,这俩个是移位寄存器，负责和JLink通信通过JTAG协议；DA可以接受执行JTAG指令(不是cpu指令).
+    2   DP模块有AHB,APB master interface,可以直接发送总线请求，DP也可以直接给cpu一个信号，使其进入debug mode，
+        进入debug mode之后，两者通过buffer register通信.
 #####JTAG访问ARM通用寄存器
     下面演示的读取寄存器R0的例子，模拟的ARM指令为STR R0, [R0]，即把R0的值存储到R0为地址的内存，
     使用这条指令的目的是让R0的值出现在数据总线上。这条指令的执行需要两个执行周期，一是执行地址计算，二是把R0的值放在数据总线上。
@@ -3017,7 +3080,7 @@ JLink--------->|     |     |      |ETM/ETB |
     3, MBR结束标志：占MBR扇区最后2个字节，一直为“55 AA”
     4, MBR一共占用64个字节，其中每16个字节为一个分区表项
     也就是在MBR扇区中只能记录4个分区信息，可以是4个主分区，或者是3个主分区1个扩展分区。
-https://www.cnblogs.com/hwli/p/8633314.html:
+    https://www.cnblogs.com/hwli/p/8633314.html:
     5, 磁盘的第1个扇区叫做MBR扇区，一共有512B，主要有3个部分，引导信息、分区表、结束标志。
       5.1 0~0x1BD即为引导程序，占扇区前446字节,计算机在上电完成BIOS自检后，会将该主引导扇区加载到内存中并执行前面446字节的引导程序，
         引导程序首先会在分区表中查找活动分区，若存在活动分区，则根据活动分区的偏移量找到该活动分区上的引导扇区的地址，并将该引导扇区加载到内存中，
@@ -3340,7 +3403,7 @@ https://www.cnblogs.com/hwli/p/8633314.html:
     1, 如果有需要，编辑/etc/apt/sources.list，选择源服务器；
     2, 执行apt update，由所有源服务器提供的软件包资源，生成本地软件包索引；
     3, 执行apt install或upgrade，真正下载并安装软件包。
-tips:
+    tips:
     1, man:apt-get(8), apt-cache(8), sources.list(5), apt.conf(5), apt-config(8)
     2, apt-get install安装目录是包的维护者确定的，不是用户
         可以预配置的时候通过./configure --help看一下–prefix的默认值是什么，
