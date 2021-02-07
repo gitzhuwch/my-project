@@ -3013,12 +3013,13 @@
                    |------------     |         |
                    |   TAP     |------         |
                    |-----------|      |--------|  data
-           JTAG    |  DA | DP  |----->|trace32 |-------> trace32
+           JTAG    |  DP | AP  |----->|trace32 |-------> trace32
     JLink--------->|     |     |      |ETM/ETB |
                    -----------------------------
-    1,  DA模块里有instruction(OPcode) and data register,这俩个是移位寄存器，负责和JLink通信通过JTAG协议；DA可以接受执行JTAG指令(不是cpu指令).
-    2   DP模块有AHB,APB master interface,可以直接发送总线请求，DP也可以直接给cpu一个信号，使其进入debug mode，
-        进入debug mode之后，两者通过buffer register通信.
+    1,DP模块里有instruction(OPcode) and data register,这俩个是移位寄存器，负责和JLink通信通过JTAG协议；DA可以接受执行JTAG指令(不是cpu指令).
+    2,AP模块有AHB,APB master interface,可以直接发送总线请求，AP也可以直接给cpu一个信号，使其进入debug mode，
+      进入debug mode之后，两者通过buffer register通信.
+    3,DP: data port;    AP:access port
 #####JTAG访问ARM通用寄存器
     下面演示的读取寄存器R0的例子，模拟的ARM指令为STR R0, [R0]，即把R0的值存储到R0为地址的内存，
     使用这条指令的目的是让R0的值出现在数据总线上。这条指令的执行需要两个执行周期，一是执行地址计算，二是把R0的值放在数据总线上。
@@ -3038,7 +3039,6 @@
 #####JLink/Trace32配置文件
     JLink:xx.svd
     Trace32:xx.comm
-
 ###wafer/die/chip:
     1, wafer——晶圆
     2, die——晶粒,Wafer上的一个小块，就是一个晶片晶圆体，学名die，封装后就成为一个颗粒。
