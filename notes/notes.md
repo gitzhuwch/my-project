@@ -233,6 +233,8 @@
     注: -t html5 不使用latex转译引擎(因为一些字库的问题，暂未解决),使用html风格生成pdf，不能生成outline(待解决)
 ### markdown转成html带目录
     pandoc --toc -f markdown_github -s 1.md -o 1.html
+### editor
+    typora比retex好用
 
 ## tmux:
 ### 概念
