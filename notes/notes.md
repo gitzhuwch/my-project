@@ -216,13 +216,23 @@
     方法二:
         浏览器打开:acsiiflow.cn(比较好用)
         网页源码已下载到本地(没有网络时使用)，导出到vim时，vim粘贴不要用ctrl+shift+v，直接在normal模式下p就行
-### covert to html
+### convert to html
     vim自带转html功能插件.
     cmd: TOhtml
     可将notes.md转成html,再转成pdf
-### html covert to pdf
+### html convert to pdf
     sudo apt install -y wkhtmltopdf
     wkhtmltopdf xxx.html yyy.pdf
+
+## markdown
+### syntax
+#### 插入图片
+    ![](URL) //在firefox中preview能看到,用pandoc生成pdf后也能看到
+### markdown directly convert to pdf
+    pandoc -t html5 notes.md -o notes.pdf
+    注: -t html5 不使用latex转译引擎(因为一些字库的问题，暂未解决),使用html风格生成pdf，不能生成outline(待解决)
+### markdown转成html带目录
+    pandoc --toc -f markdown_github -s 1.md -o 1.html
 
 ## tmux:
 ### 概念
@@ -3636,3 +3646,5 @@
 #### tmux sub-cmd completion
     tmux在install时没有带completion脚本，在github上有人实现了，我把它下载放到$HOME目录下:.tmux-bash-completion，在.bashrc中
     source一下,就可以用TAB键补全了.
+### goldendict开机自启动
+    使用gnome-session-properties工具添加

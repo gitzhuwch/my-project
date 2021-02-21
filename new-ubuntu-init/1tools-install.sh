@@ -57,4 +57,5 @@ sudo apt -y install goldendict
 ##sudo aptitude -y install samba-common-bin
 ##sudo aptitude -y install samba
 ##sudo aptitude -y install samba-common
+sudo apt install -y pandoc #document format convert, eg: markdown to pdf
 sudo apt install -y wkhtmltopdf
