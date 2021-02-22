@@ -235,6 +235,12 @@
     pandoc --toc -f markdown_github -s 1.md -o 1.html
 ### editor
     typora比retex好用
+#### typora install
+    官网: https://typora.io/#linux
+    添加安装包密钥: wget -qO - https://typora.io/linux/public-key.asc | sudo apt-key add -
+    添加资源库: sudo add-apt-repository 'deb https://typora.io/linux ./'
+    更新源列表: sudo apt-get update
+    安装: sudo apt-get install typora
 
 ## tmux:
 ### 概念
