@@ -157,6 +157,7 @@ Plugin 'vim-airline/vim-airline-themes'
 "Plugin 'Molokai'
 Plugin 'nathanaelkane/vim-indent-guides'
 "Plugin 'Yggdroot/indentLine'
+Plugin 'junegunn/vim-easy-align'
 call vundle#end()
 filetype plugin indent on
 " Brief help
