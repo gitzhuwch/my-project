@@ -4,6 +4,7 @@ alias tag='ctags -R --fields=+lS && cscope -Rbq'
 alias cr='clear && reset'
 alias gcf='git cat-file'
 alias gcfp='git cat-file -p'
+alias gg='gcfp'
 PATH=~/bin/:$PATH
 export EDITOR=/usr/bin/vim
 export HISTTIMEFORMAT='%F %T '  # 设置历史记录的时间
@@ -22,15 +23,13 @@ function nn() {
     export PS1=${TITLE}${ORIG}
 }
 function lvim() {
-    rm -f ~/bin/vim.pro
     if [ "$1" != "" ]; then
         if [ -d ~/bin/$1.pro ]; then
+            rm -f ~/bin/vim.pro
             ln -sf ~/bin/$1.pro ~/bin/vim.pro
         fi
-    else
-        if [ -d ~/bin/vim-tools-demo.pro ]; then
-            ln -sf ~/bin/vim-tools-demo.pro ~/bin/vim.pro
-        fi
+    elif [ "$1" == "" ]; then
+        echo "current pro is `readlink ~/bin/vim.pro`"
     fi
 }
 source ~/.tmux-bash-completion
