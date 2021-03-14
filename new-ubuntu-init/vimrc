@@ -52,6 +52,9 @@ set sessionoptions="blank,globals,localoptions,tabpages,sesdir,folds,help,option
 highlight WhitespaceEOL ctermbg=red guibg=red
 match WhitespaceEOL /\s\+$/
 
+"au! BufNewFile,BufRead *.lds setf ld
+au BufNewFile,BufRead *.lds setf ld
+
 if has("autocmd")
     autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
 endif
