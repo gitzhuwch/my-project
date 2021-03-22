@@ -244,6 +244,14 @@ display all sub options
 2. -Ttext-segment=
 3. -e__start
 ## 重定位
+## specs file
+* Spec 文件(Spec files) 就是用来配置 SPEC 字符串的
+* gcc is gnu compiler collection
+* specs is control the compiler component:cpp,cc1,asm,linker...
+* when you use gcc's component single, the specs don't take effect. eg: "gcc -o" just invoke cpp,cc1,asm. don't invoke linker
+## spec string(specs)
+## info ld
+## info gcc
 # arm instruction set
 * bfi
 >Bitfield Insert copies a bitfield of <width> bits from the least significant bits of the source register
@@ -274,3 +282,37 @@ man 和 info 就像两个集合，它们有一个交集部分，但与 man 相�
 2. 只能用于for循环
 3. 循环中的数据没有依赖
 4. 有专门的库支持
+# centos default shell
+1. exec bash //在csh中执行bash，将其替换
+2. usermod改变用户的默认shell，创建用户时，也可指定默认shell //需要root权限
+# object-oriented programming
+1. 编写qspi test case中：对controller的属性的抽象要细化，分类抽象，比如DAC INDAC STIG 要分开抽象，
+对属性抽象的好坏决定方法实现的是否方便，决定方法能否有很高复用性
+2. 思考对象有哪些行为（方法）
+3. 每一种方法的多样化因素
+4. 思考对象有那些属性，包括上一条中的因素
+# printk根据函数地址打印函数名
+* %p：打印裸指针(raw pointer)
+* %pF可打印函数指针的函数名和偏移地址
+* %pf只打印函数指针的函数名，不打印偏移地址。
+* %pM打印冒号分隔的MAC地址
+* %pm打印MAC地址的16进制无分隔
+* %I4打印无前导0的IPv4地址，%i4打印冒号分隔的IPv4地址
+* %I6打印无前导0的IPv6地址，%i6打印冒号分隔的IPv6地址
+**总结:**
+![](./notes.dia/printk-addr-to-name.png)
+# Fourier transformation
+## application
+将原信号变换一下，变换后的信号在不同频率段做不同处理，例如某个频率段完全过滤掉，再变换回原信号）。
+对应声音来说，可能就是某个低频段的噪音被去掉了，原声音会更清楚。对于图像来说，看各个答主举得例子更直白。
+1. 声音降噪
+利用傅里叶，将信号拆分成多个频段的波形组，然后滤掉噪声频率段的波形
+2. 图像磨皮
+去除图像中的噪点
+3. 信号传输多载
+将多路不同频率的信号，利用傅里叶原理叠加在一起，传输出去，接收端再拆分出来
+* 一种是10-90上升时间，指信号从终值的10%跳变到90%所经历的时间。
+* 第二种定义方式是20-80上升时间，这是指从终值的20%跳变到80%所经历的时间
+* 下降时间通常要比上升时间短一些，这是由典型CMOS输出驱动器的设计造成的。
+## 频域
+* 频域最重要的性质是：它不是真实的，而是一个数学构造。时域是惟一客观存在的域，而频域是一个遵循特定规则的数学范畴。
