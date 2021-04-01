@@ -51,6 +51,7 @@ au BufNewFile,BufRead *.lds setf ld
 * :autocmd! 可以删除所有自动命令,此操作也将删除插件所定义的自动命令
 * 如果我们针对同样的文件和同样的事件定义了多条自动命令，那么当满足触发条件时将分别执行多条自动命令。
 因此，建议在自动命令组的开头增加:autocmd!命令，以确保没有重复的自动命令存在。
+
 # typora画流程图、时序图(顺序图)、甘特图
 [source page](https://jingyan.baidu.com/article/48b558e3035d9a7f38c09aeb.html)
 * 横向流程图源码格式：
@@ -252,6 +253,7 @@ display all sub options
 ## spec string(specs)
 ## info ld
 ## info gcc
+
 # arm instruction set
 * bfi
 >Bitfield Insert copies a bitfield of <width> bits from the least significant bits of the source register
@@ -269,28 +271,34 @@ uint32_t reserved31To20:        12;
 uint32_t all;
 } SGR5UartComps_t;
 ```
+
 # info and man
 info 来自自由软件基金会的 GNU 项目，是 GNU 的超文本帮助系统，能够更完整的显示出 GNU 信息。所以得到的信息当然更多
 man 和 info 就像两个集合，它们有一个交集部分，但与 man 相比，info 工具可显示更完整的　GNU　工具信息。若 man 页包
 含的某个工具的概要信息在 info 中也有介绍，那么 man 页中会有“请参考 info 页更详细内容”的字样。
+
 # VMA与LMA不一致
 发现stream中link.ld指定了data section的LMA，编译后，用arm-none-eabi-objdump -h stream读出来的data section的VMA与LMA不一致，
 运行时，去找data段中的数据，是按照VMA找的，Ozone加载data section时是按照LMA加载的,所以找data段里的数据会找错位置.
 如果VMA与LMA不一致，除非，自己将data section的数据搬到VMA指定的ram位置，而非LMA指定的ram位置，否则就必须让它俩一致
+
 # OpenMP
 1. OpenMP的指令
 2. 只能用于for循环
 3. 循环中的数据没有依赖
 4. 有专门的库支持
+
 # centos default shell
 1. exec bash //在csh中执行bash，将其替换
 2. usermod改变用户的默认shell，创建用户时，也可指定默认shell //需要root权限
+
 # object-oriented programming
 1. 编写qspi test case中：对controller的属性的抽象要细化，分类抽象，比如DAC INDAC STIG 要分开抽象，
 对属性抽象的好坏决定方法实现的是否方便，决定方法能否有很高复用性
 2. 思考对象有哪些行为（方法）
 3. 每一种方法的多样化因素
 4. 思考对象有那些属性，包括上一条中的因素
+
 # printk根据函数地址打印函数名
 * %p：打印裸指针(raw pointer)
 * %pF可打印函数指针的函数名和偏移地址
@@ -301,6 +309,7 @@ man 和 info 就像两个集合，它们有一个交集部分，但与 man 相�
 * %I6打印无前导0的IPv6地址，%i6打印冒号分隔的IPv6地址
 **总结:**
 ![](./notes.dia/printk-addr-to-name.png)
+
 # Fourier transformation
 ## application
 将原信号变换一下，变换后的信号在不同频率段做不同处理，例如某个频率段完全过滤掉，再变换回原信号）。
@@ -316,3 +325,122 @@ man 和 info 就像两个集合，它们有一个交集部分，但与 man 相�
 * 下降时间通常要比上升时间短一些，这是由典型CMOS输出驱动器的设计造成的。
 ## 频域
 * 频域最重要的性质是：它不是真实的，而是一个数学构造。时域是惟一客观存在的域，而频域是一个遵循特定规则的数学范畴。
+
+# linux统一账户认证方案
+## PAM
+```
+[service] module-type control-flag module-path [arguments]
+PAM 配置文件中的字段包括：
+* service： 指定服务/应用程序的名称，如 telnet、login、ftp 等（默认值为 OTHER）。
+* module-type： 为 service 字段中的服务/应用程序指定模块类型，模块类型有四种类型（auth/account/session/password）。
+* control-flag： 指定了"配置段"里的模块应该怎么相互作用，可以理解为对 PAM 认证的流程控制，它可以获取诸如 requisite、required、sufficient 和 optional 之类的值。
+* module-path： 指定实现模块的库对象的路径名称。最好使用绝对路径，缺省路径一般是/lib/security 或/lib64/security。
+* arguments：指定可以传递给服务模块的选项或参数（可选字段）。
+```
+## /proc/key-users
+## sssd(System Security Services Dameon)
+sssd是一款用以取代ldap和AD的软件，配置比较简单。
+``` bash
+id zhuwch@sic.com #从AD中获取域用户信息
+```
+本文介绍如何在ldap客户端部署sssd，来启用ldap认证。
+## ssl
+SSL(Secure Sockets Layer 安全套接字协议),及其继任者传输层安全（Transport Layer Security，TLS）是为网络通信提供安全及数据完整性的一种安全协议。TLS与SSL在传输层与应用层之间对网络连接进行加密。
+## nss
+## ldap(Light weight Directory Access Protocol)
+* 轻量级目录访问协议
+* 其前身是更为古老的DAP协议
+* client<--->ldap<--->db
+> LDAP Client指各种需要身份认证的软件，例如Apache、Proftpd和Samba等。LDAP Sever指的是实现LDAP协议的软件，
+> 例如OpenLDAP等。Datastorage指的是OpenLDAP的数据存储，如关系型数据库（MySQL）或查询效率更高的嵌入式数据库（BerkeleyDB），
+> 甚至是平面文本数据库（—个txt的文本文件）。可见，OpenLDAP软件只是LDAP协议的一种实现形式，并不包括后台数据库存储。
+> 但在很多时候管理员经常将LDAP Server和DataStorage放在同一台服务器，这样就产生了人们通常所说的“LDAP数据库”。
+> 虽然后台数据库（backend）可以是多种多样，但LDAP协议还规定了数据的存储方式。LDAP数据库是树状结构的，与DNS类似，
+###openldap
+是LDAP协议的实现，是一款开源应用
+## 单点登录（Single Sign On）
+简称为 SSO，是比较流行的企业业务整合的解决方案之一。SSO的定义是在多个应用系统中，用户只需要登录一次就可以访问所有相互信任的应用系统。
+## AD(active directory)
+目录是一类为了浏览和搜索数据而设计的特殊的数据库。例如，为人所熟知的微软公司的活动目录（active directory)就是目录数据库的一种。
+目录服务是按照树状形式存储信息的，目录包含基于属性的描述性信息，并且支持高级的过滤功能。
+
+# cpu/mem/disk info display
+| cat /proc/cpuinfo   | top                  |
+| cat /proc/meminfo   | free -lh             |
+| cat /proc/diskstats | cat /proc/partitions | df -lh |
+
+# hardware design
+* DFT: design for test
+* DUT: design under test
+* TB: test bench
+* simulation: software, 传统的仿真
+* emulation: hardware，可视为Simulator的补充（不是替代），软件仿真的硬件化，极大提高了仿真效率
+* verification
+* Cadence: Palladium
+* Synopsys: ZeBu
+* Mentor: veloce
+* EDA: Electronic Design Automation
+* CDA
+* CAD: Computer Aided Design
+* HDL: hardware discriptor luanguage
+* RTL: Register Transfer Level
+* ICE: In-Circuit Emulator(电路内仿真)
+## veloce emulation flow
+   tools                           process files
+1. vellib                      --> create libraties
+2. velmap                      --> map libraries
+3. create a veloce.config file
+4. velanalyze                  --> analyze RTL files
+5. velcomp                     --> compile DUT files
+6. velhvl or vlog              --> compile testbench files
+7. velrun or vsim              --> Run Emulation
+8. velview                     --> debug
+## linux HDL toolchains
+1. iverilog
+* compile
+   iverilog xx.v -->a.out
+* run
+   ./a.out-->a.vcd (实际是vpp解析a.out,生成vcd文件)
+* display wave
+   gtkwave a.vcd
+2. ghdl
+* compile
+   ghdl -a xx.vhd
+   ghdl -e xx
+* run
+   ghdl -r xx --vcd=xx.vcd
+* display wave
+   gtkwave xx.vcd
+3. gtkwave
+## 仿真器基本架构原理(前仿)
+   Verilog语言确实不是一种可执行语言 。 图2展示了利用Verilog源文件进行仿真的过程 。 绝大
+   多数仿真器都遵循这一思路 , 比如VCS 、 iVerilog 、 ModelSim 、 Vivado和Quartus等 。 首先 ,
+   准备Verilog源文件以及一些Verilog库文件(标准单元等) 。 仿真器接收这些Verilog文件并将
+   其转化为可执行的仿真源文件(C/C++等) 。 在这一过程中 , 仿真器解析Verilog文件的语法
+   结构 , 并且根据Verilog语法的规范 , 将语法结构转化为仿真器中的事件响应函数或代码段 。
+   这些函数和代码段与仿真器框架源文件一起成为可执行仿真程序的源文件 。 接下类这些源文
+   件经过编译得到可执行的仿真程序 。 VCS和iVerilog可以看到生成的可执行文件 。 ModelSim 、
+   Vivado和Quartus使用GUI管理设计流程 , 从而将这个可执行文件屏蔽了 , 使其对于用戶可
+   透明 。 用戶可以在工程中找到生成的可执行文件 。 最后 , 运行可执行的仿真程序 , 进行软件
+   仿真 。
+* 仿真程序通常采用基于事件的仿真架构,这些事件响应函数模拟硬件电路的行为 ，并且产生了新的事件
+* 通过“读出第一个事件-响应事件-插入新事件”的循环 ， 事件队列可以一直运行下去 ， 直到事件队列为空或者达到了仿真结束的时间
+* 在仿真开始的时候 ， 必须向事件队列中插入起始事件 ， 从而开始仿真循环
+## vim verilog plugin
+## RTL生成原理图(后仿)
+   Vivado可以查看综合或者布局布线后的原理图
+   也可以在完成 RTL 编码后查看 RTL 分析 （RTL ANALYSIS） 的原理图
+   在综合后的原理图中电路已经被映射到器件的 LUT 和 FF 中，并且经过了综合器的优化。相比原先的代码,可以说"面目全非”了。
+   而 RTL 分析的原理图用逻辑门，选择器以及触发器来表示电路，并尽量使用代码中的变量名表示，可以更清晰地和代码对应
+   这样一来，就知道自己的代码会变成怎样的电路器件，与门，非门，选择器，加法器等等。尽管我保证他们哪个在 FPGA 上都不存在。
+   不过，我们可以将他们映射到 LUT 上实现—— 一种 FPGA 上有的是的东西。
+   举个例子
+   一个计数器的电路就跃然纸上了，其实计数器和 CPU 都是一样的（真的）。
+   右键某个元件，在菜单中选择 Go to Source, 可以跳转到你代码中的相应部分。
+* Tool>>Netlist Viewers>>RTL Viewers
+* Quartus生成原理图在我们的工程创建完毕后，即vhd代码编写并保存完毕后，通过File→Create/Update→Create Symbol Files for Current File即可生成原理图。生成成功的话会提示：生成成功后，在工程的目录下，我们可以找到 实体名.bsf 文件
+1. RTL视图
+   编译通过后
+   Tools --> Netlist Viewers ----> RTL Viewer
+2. 框图的生成为:
+   File -- >Create/Update ---> Create Symbol Files for Current file

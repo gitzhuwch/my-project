@@ -163,7 +163,9 @@ Plugin 'vim-airline/vim-airline-themes'
 Plugin 'nathanaelkane/vim-indent-guides'
 "Plugin 'Yggdroot/indentLine'
 Plugin 'junegunn/vim-easy-align'
+Plugin 'vhda/verilog_systemverilog.vim'
 call vundle#end()
+runtime macros/matchit.vim
 filetype plugin indent on
 " Brief help
 " :PluginList       - lists configured plugins
