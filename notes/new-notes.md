@@ -331,3 +331,24 @@
        Tools --> Netlist Viewers ----> RTL Viewer
     2. 框图的生成为:
        File -- >Create/Update ---> Create Symbol Files for Current file
+
+##verilog
+### 位拼接
+### sv中CpuRead/CpuWrite实现
+    svExecuteMan("cpu", "cpu_cmd", pktload, pktloads, NULL);
+    task execute_man (....);自己实现一个task，在这个task中完成
+    最终，通过调用例化的axi或mem实例来完成
+### display与io_printf区别
+    display用在module中
+    io_printf用在task/func/program中?只能在sv中用?
+    you can use the io_printf function to get some diagnostics from your C code on to the simulator console
+### R5跑的程序怎么和sv-vip通信
+    R5访问的sram是通过sv例化的，在这个例化的sram中，找一块空间,当共享内存来与sv通信。
+    sv中可以直接调用sram实例
+
+## vcs,verdi
+### vcs
+### verdi
+    1. verdi的instance对话框中有俩列：
+        左边一列(Hierarchy): 是实例的层级结构图，在添加波形时，只能在实例中找到变量，然后ctrl-w，才可以添加
+        右边一列(Module):   是左边实例对应的类型名，在类型中是不能添加波形的，因为它没有实例化
