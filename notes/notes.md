@@ -2709,8 +2709,61 @@
     }
     subsys_initcall(param_sysfs_init);
 ## linux权限管理
-### Linux文件权限?
-### Linux进程权限?
+### Linux文件权限
+    1.  一个文件权限相关的属性:
+        1.  owner权限域(u)
+        2.  group权限域(g)
+        3.  other权限域(o)
+        4.  owner
+        5.  group
+        每一个权限域由3个标志位组合构成，每一位可取值如下:
+            r：可读取文件内容或目录结构
+            w：可修改文件的内容或目录的结构（但不包括删除）
+            x：文件可被系统执行或目录可被作文工作目录
+            s：文件在执行阶段具有文件所有者的权限   //这个是sudo等程序实现,提升程序运行权限的底层原理
+            t：使一个目录既能够让任何用户写入文档，又不让用户删除这个目录下他人的文档
+    2.  修改文件权限相关属性的工具
+        chown：修改文件所有者
+        chgrp：修改文件所属组
+        chmod：修改文件权限
+### Linux进程权限
+    1.  进程权限相关的属性
+        reaal user id(ruid)：进程执行者的user id，一般情况下就是用户登录时的
+        user ideffective user id(euid)：进程文件owner的user id，决定进程是否对某个文件有操作权限，默认为ruid，
+            sudo这个程序文件的权限有s，并且sudo文件的owner是root，所以sudo执行起来后，euid是root用户的id，
+            所以由sudo fork出来的子进程会继承sudo的euid（猜测），或者sudo可以调用seteuid()系统调用，来设置子进程的euid。
+### sudo 原理
+    1.  查看sudo文件权限(发现sudo拥有s权限)
+        ll /usr/bin/sudo
+        -rwsr-xr-x 1 root root 166056 Jan 19 22:21 /usr/bin/sudo*
+    1.  Linux提供了一个seteuid的函数，可以更改进程的euid。函数声明在头文件<unistd.h>里:int seteuid(uid_t euid);
+        但是，如果一个进程本身没有root权限，也就是说euid不是0，是无法通过调用seteuid将进程的权限提升的，调用seteuid会出现错误.
+    2.  该怎么把进程的euid该为root的id：0呢？
+        那就是通过s权限。
+        2.1     如果一个文件拥有x权限，表示这个文件可以被执行。shell执行命令或程序的时候，先fork一个进程，再通过exec函数族执行这个命令或程序，
+                这样的话，执行这个文件的进程的ruid和euid就是当前登入shell的用户id。
+        2.2     当这个文件拥有x权限和s权限时，在shell进行fork后调动exec函数族执行这个文件的时候，这个进程的euid将被系统更改为这个文件的拥有者id。
+                所以，shell中执行sudo时，sudo的euid不是shell设的，是linux内核设的。sudo再fork子进程的euid是谁设的呢？还是继承父进程的呢？
+### linux认证机制
+    1.  linux认证机制是应用程序实现的，和内核无关，内核只提供文件权限和进程权限管理机制，就是说linux会限制某个进程能访问哪些资源（主要是文件资源）.
+    2.  内核中的文件和进程虽然有userid，groupid等属性，但是内核并不管理user，group等数据，只是在创建file和process时，可以填充这些属性，
+        并且在内核里会使用这些属性进行权限管理。
+    3.  内核会使用文件/进程的权限数据，但不管理这些数据。这些数据由上层app创建和管理。
+    4.  sudo的密码认证机制就是由sudo自己实现，可以从本地读取密码数据进行验证，也可以发送到远程server进行验证。
+    5.  sudo/vsftp/httpd等app的认证机制通常会调用业界通用的库完成，比如PAM(pluggable authentication modules)，
+        LDAP(Light weight Directory Access Protocol)等，通过配置文件，调用不同的库，可以改变认证策略(本地认证/远程认证等)
+    6.  配置文件:
+        PAM:    /etc/pam.d/*
+        LDAP:   /etc/openldap/*
+    7.  LDAP Client指各种需要身份认证的软件，例如Apache、Proftpd和Samba等。
+        LDAP Sever指的是实现LDAP协议的软件，例如OpenLDAP等。
+        Datastorage指的是OpenLDAP的数据存储，如关系型数据库（MySQL）
+    8.  OpenLDAP是server端，并不是client端，所以在寿终端中看不到ldap相关的daemon进程
+    9.  如果要改变ssh/sudo等应用程序的认证策略，估计需要修改/etc下对应的配置文件,默认的认证策略估计是PAM
+#### git认证机制
+    git本身没有实现认证机制，git支持file/http/ssh/git等传输协议，其中http/ssh会带有认证机制，
+    比如git clone http://ip:port时,就会通过指定的端口号，向server端的httpd进程发送请求，httpd带有认证机制，
+    认证通过后，就会通过http协议传送git数据了
 ### Linux accounts management:
     1, su - username (Provide an environment similar to what the user would expect had the user logged in directly)
     2, users: print the user names of users currently logged in to the current host
