@@ -692,6 +692,33 @@
 #### hooks script从哪来?
     man git-init:
         /usr/share/git-core/templates
+#### git submodule
+##### 使用
+    1.  create main_project repository
+    2.  git submodule add
+    3.  git add/commit/push
+    4.  git clone --recursive main_project
+##### 原理
+    1.  在主库中记录子库的URL，子库在主库中的path，子库的某一刻的commit id
+    2.  URL和path记录在主库的.gitmodules中
+    3.  子库的某一刻commit信息记录在主库的.git/objects/里。
+    4.  主库的提交信息解析:
+        4.1
+            gg 3a9c945b0e2d0369e340202642061b210d9a544f
+                tree 2892adbab3c367743f98507944aed6116108cd22 --->tree SHA-1
+                parent 7ce60683a6910de6612441f217c284da9d6efcbe
+                author zhuwch <zhuwch@starsmicrosystem.com> 1619335224 +0800
+                committer zhuwch <zhuwch@starsmicrosystem.com> 1619335224 +0800
+                build ok
+        4.2
+            gg 2892adbab3c367743f98507944aed6116108cd22 --->cat tree object
+                100644 blob 96b4eb09cc5a3aa33f7becf2069f2457cc698c96	.gitmodules
+                100755 blob 395a7cf058c85c0d2183dc0b62cfa0b9bb8e5891	config.sh
+                100755 blob 77b839a89921d3d0d8b8bb0a9afe2d39cf5ec8cc	main.c
+                160000 commit 4e8b7bd386472bcc3b1003292bcb2c687b02717c	qspi_test --->一般tree只包含blob,在submodule里,tree中还包含子库的某一次commit info
+                160000 commit b440e5b315bb580c6411bcd65cc9c735d0b11b83	test_feima
+                160000 commit 5a3ea17ce9b09cb248060be7f764eab33b72fe54	timer_test
+                160000 commit 5f02e0ed91d29e9175a24cf2028c5e9fa137f015	uart_test
 ### repo:
     1, sudo apt -y install repo
     2, vim /usr/bin/repo

@@ -6,6 +6,7 @@ alias gcf='git cat-file'
 alias gcfp='git cat-file -p'
 alias gg='gcfp'
 PATH=~/bin/:$PATH
+PATH=~/bin/vim.pro:$PATH
 export EDITOR=/usr/bin/vim
 export HISTTIMEFORMAT='%F %T '  # 设置历史记录的时间
 export MINICOM='-c on'
@@ -24,9 +25,10 @@ function nn() {
 }
 function lvim() {
     if [ "$1" != "" ]; then
-        if [ -d ~/bin/$1.pro ]; then
+        if [ -d ~/bin/$1 ]; then
             rm -f ~/bin/vim.pro
-            ln -sf ~/bin/$1.pro ~/bin/vim.pro
+            ln -sf ~/bin/$1 ~/bin/vim.pro
+            ls ~/bin/vim.pro -l
         fi
     elif [ "$1" == "" ]; then
         echo "current pro is `readlink ~/bin/vim.pro`"
