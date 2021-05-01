@@ -24,13 +24,13 @@
     every day
     将两个单词都转变为全大写
     :s/\(.*\) \(.*\)/\U\1 \2/
-
     转变结果为：
     EVERY DAY
 
     将上面的文字转变为EVERY day
     :s/\(.*\) \(.*\)/\U\1\e \2/
     上面的四个转义序列将在其被显式停止前，对跟在其后的内容持续作用；如果要停止，需要使用'\e'来中断。
+
     注:
     \u （将分组第一个字母转换成大写）
     \U （将整个分组转换成大写）
@@ -216,21 +216,26 @@
     频域最重要的性质是：它不是真实的，而是一个数学构造。时域是惟一客观存在的域，而频域是一个遵循特定规则的数学范畴。
 
 # linux统一账户认证方案
-## PAM
-    [service] module-type control-flag module-path [arguments]
-    PAM 配置文件中的字段包括：
-        service： 指定服务/应用程序的名称，如 telnet、login、ftp 等（默认值为 OTHER）。
-        module-type： 为 service 字段中的服务/应用程序指定模块类型，模块类型有四种类型（auth/account/session/password）。
-        control-flag： 指定了"配置段"里的模块应该怎么相互作用，可以理解为对 PAM 认证的流程控制，它可以获取诸如 requisite、required、sufficient 和 optional 之类的值。
-        module-path： 指定实现模块的库对象的路径名称。最好使用绝对路径，缺省路径一般是/lib/security 或/lib64/security。
-        arguments：指定可以传递给服务模块的选项或参数（可选字段）。
+## linux su命令认证方式的修改(使用PAM)
+    1.  PAM(Pluggable Authentication Modules for Linux)
+    2.  config infomation format
+        [service] module-type control-flag module-path [arguments]
+        PAM 配置文件中的字段包括：
+            service： 指定服务/应用程序的名称，如 telnet、login、ftp 等（默认值为 OTHER）。
+            module-type： 为 service 字段中的服务/应用程序指定模块类型，模块类型有四种类型（auth/account/session/password）。
+            control-flag： 指定了"配置段"里的模块应该怎么相互作用，可以理解为对 PAM 认证的流程控制，它可以获取诸如 requisite、required、sufficient 和 optional 之类的值。
+            module-path： 指定实现模块的库对象的路径名称。最好使用绝对路径，缺省路径一般是/lib/security 或/lib64/security。
+            arguments：指定可以传递给服务模块的选项或参数（可选字段）。
+    3.  Linux-PAM（即linux可插入认证模块）是一套共享库,使本地系统管理员可以随意选择程序的认证方式。
+        换句话说，不用重新编译一个包含PAM功能的应用程序，就可以改变它使用的认证机制，这种方式下，就算升级本地认证机制,也不用修改程序。
 ## /proc/key-users
 ## sssd(System Security Services Dameon)
     sssd是一款用以取代ldap和AD的软件，配置比较简单。
     id zhuwch@sic.com #从AD中获取域用户信息
     本文介绍如何在ldap客户端部署sssd，来启用ldap认证。
 ## ssl
-    SSL(Secure Sockets Layer 安全套接字协议),及其继任者传输层安全（Transport Layer Security，TLS）是为网络通信提供安全及数据完整性的一种安全协议。TLS与SSL在传输层与应用层之间对网络连接进行加密。
+    SSL(Secure Sockets Layer 安全套接字协议),及其继任者传输层安全（Transport Layer Security，TLS）是为网络通信提供安全及数据完整性的一种安全协议。
+    TLS与SSL在传输层与应用层之间对网络连接进行加密。
 ## nss
 ## ldap(Light weight Directory Access Protocol)
     轻量级目录访问协议
@@ -325,7 +330,8 @@
     一个计数器的电路就跃然纸上了，其实计数器和 CPU 都是一样的（真的）。
     右键某个元件，在菜单中选择 Go to Source, 可以跳转到你代码中的相应部分。
         Tool>>Netlist Viewers>>RTL Viewers
-        Quartus生成原理图在我们的工程创建完毕后，即vhd代码编写并保存完毕后，通过File→Create/Update→Create Symbol Files for Current File即可生成原理图。生成成功的话会提示：生成成功后，在工程的目录下，我们可以找到 实体名.bsf 文件
+        Quartus生成原理图在我们的工程创建完毕后，即vhd代码编写并保存完毕后，
+        通过File→Create/Update→Create Symbol Files for Current File即可生成原理图。生成成功的话会提示：生成成功后，在工程的目录下，我们可以找到 实体名.bsf 文件
     1. RTL视图
        编译通过后
        Tools --> Netlist Viewers ----> RTL Viewer
@@ -352,3 +358,14 @@
     1. verdi的instance对话框中有俩列：
         左边一列(Hierarchy): 是实例的层级结构图，在添加波形时，只能在实例中找到变量，然后ctrl-w，才可以添加
         右边一列(Module):   是左边实例对应的类型名，在类型中是不能添加波形的，因为它没有实例化
+    2. Drive/Load按钮
+        可以看一个信号由哪些信号驱动的，和有哪些负载
+### HDL vs HVL
+    HDL --> Hardware description language --> Used to design digital logic Eg: VHDL, Verilog
+    HVL --> Hardware Verification language --> Used to Functionally verify the digital logic designed using a HDL Eg: e, vera, system-C, system-Verilog
+    HDL is used for RTL design.
+    HVL is used for RTL Verification(Random Verification).
+## voloce
+    1. Run emulation with the following command in the same directory as your veloce.config file.
+    • Use velrun for C, C++, and SystemC testbenches as described in the table below.
+    • Use vsim for SystemVerilog testbenches. (See Questa documentation.)
