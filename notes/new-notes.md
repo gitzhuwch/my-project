@@ -259,6 +259,25 @@
     | cat /proc/meminfo   | free -lh             |
     | cat /proc/diskstats | cat /proc/partitions | df -lh |
 
+# hexdump/xxd/od
+## hexdump
+    1. A format unit contains up to three items: an iteration count, a byte count, and a format.
+    2. The iteration count is an optional positive integer, which defaults to one.  Each format is applied iteration count times.
+    3. The byte count is an optional positive integer.  If specified it defines the number of bytes to be interpreted by each iteration of the format.
+    将elf转换成bin文件再转换成hex文件，就需要用到hexdump
+    1. 迭代次数为1，迭代后输出"\n"，指针步进单位为4(按word打印)，printf格式为"%08x"(8位十六进制对齐，不够补0)
+        hexdump -n 100 -v -e '1/4 "%08x" "\n"' stars_freertos_v1.bin
+    2. 迭代次数为4，迭代后输出"\n"，指针步进单位为1(按byte打印)，printf格式为"%02x"(2位十六进制对齐，不够补0)
+        hexdump -n 100 -v -e '4/1 "%02x" "\n"' stars_freertos_v1.bin
+    3. 迭代次数为2，迭代后输出"\n"，指针步进单位为2(按short打印)，printf格式为"%04x"(4位十六进制对齐，不够补0)
+        hexdump -n 100 -v -e '2/2 "%04x" "\n"' stars_freertos_v1.bin
+## xxd
+    1. xxd -ps和-e选项冲突，即纯十六进制平坦模式输出和小端模式输出不能同时使用
+    2. xxd -ps选项不能用printf格式化输出，只能一个字节一个字节输出，所以不能正确打印小端数据
+    3. xxd -r选项能将修改的十六进制数转成二进制存储，这为直接编辑二进制文件提供条件
+## od
+    很少用
+
 # hardware design
     DFT: design for test
     DUT: design under test
@@ -351,21 +370,187 @@
 ### R5跑的程序怎么和sv-vip通信
     R5访问的sram是通过sv例化的，在这个例化的sram中，找一块空间,当共享内存来与sv通信。
     sv中可以直接调用sram实例
-
-## vcs,verdi
-### vcs
-### verdi
-    1. verdi的instance对话框中有俩列：
-        左边一列(Hierarchy): 是实例的层级结构图，在添加波形时，只能在实例中找到变量，然后ctrl-w，才可以添加
-        右边一列(Module):   是左边实例对应的类型名，在类型中是不能添加波形的，因为它没有实例化
-    2. Drive/Load按钮
-        可以看一个信号由哪些信号驱动的，和有哪些负载
 ### HDL vs HVL
     HDL --> Hardware description language --> Used to design digital logic Eg: VHDL, Verilog
     HVL --> Hardware Verification language --> Used to Functionally verify the digital logic designed using a HDL Eg: e, vera, system-C, system-Verilog
     HDL is used for RTL design.
     HVL is used for RTL Verification(Random Verification).
+## verilog仿真器
+### 解释型仿真器
+    解释型仿真器将verilog语言转化成脚本，然后解释执行，生成波形数据
+#### iverilog
+### 编译型仿真器
+    编译型仿真器将verilog语言转化成c/c++语言，然后用gcc/g++编译，生成elf文件，最后运行生成波形数据
+#### vcs
+    1. vcs是一个shell脚本文件，由/bin/sh解释执行
+    2. vcs -h //查看帮助信息
+##### 编译
+    1. vcs -f  xx.f -R -debug_all -ucli
+        1.1 -R表示编译完成后，立即运行
+        1.2 -ucli实际上是传给simv的，是运行时的参数,不是编译参数
+    2.
+        2.1 -debug*：旧版选项，粗控制
+            -debug_access+*：新版选项，细控制
+        2.2 -debug/-debug_all/-debug_pp will enable UCLI/GUI debugging
+    3. 编译完成后，默认生成simv ELF文件
+##### 仿真
+    1. 一般design flow是:编辑-编译-run(simulation)-dbg(wave view). 其中run过程一般不需要交互，也不需要单步调试的，
+    但是，vcs提供了UCLI/GUI交互式debug功能，在需要单步debug时非常有用.
+    2. VCS仿真可以分成两步法或三步法， 对Mix language(混合语言)， 必须用三步法。
+    仿真前要配置好synopsys_sim.setup文件，里边有lib mapping等信息。设置环境变量'setenv SYNOPSYS_SIM_SETUP /xxx/xxx/synopsys_sim.setup'.
+###### 运行仿真
+    ./simv [args]
+###### debug仿真
+    1. UCLI(cmdline interface)
+        UCLI: user command line interface
+        UCLI是基于command line的交互方式
+        前提:
+            编译时，enable debug功能，即加上-debug/-debug_all/-debug_pp等编译选项
+        命令行:
+            ./simv -ucli [args]
+            启动后会停在0s位置，等待交互
+        交互命令:
+            * help //显示帮助信息
+            * command -h //显示command的help info
+            * stop -line num -file /path/filename //在filename:num处加断点
+            * get var // display var value
+            * run //运行到断点处停下来
+            * finish //结束仿真
+            * show -h // display show help infomation
+            * show -nid(hierarchical path name)
+            * show -id(id=instances/scopes/signals...) //能查看当前scope中的instances，这样就可以用scope <instance>进行层级切换了
+            * scope //change hierarchy
+    2. DVE/VERDI(GUI interface)
+        DVE and VERDI是基于gui的交互工具，可查看波形
+        前提:
+            编译时加:-deubg/-debug_all/-debug_pp/-debug_access+all/-kdb
+        先运行simv,再启动gui:
+            * ./simv [args] [-sml=verdi] -ucli2Proc -ucli
+            进入ucli交互后，输入:start_verdi即可启动verdi simulation debug界面
+            verdi调试界面有一个console窗口，可以输入调试命令，用法和ucli一样
+            * ./simv -verdi [args]
+            会报错:libXss.so.1: cannot open shared object file
+            * ./simv -gui=verdi [args]
+            会报错:libXss.so.1: cannot open shared object file
+            * ./simv -gui=dve [args]
+            会报错:licence error
+        先启动gui,再运行simv,或者attach运行中的simv:
+            * verdi &
+            * 点击Simulation按钮
+            * Invoke Simulator
+            * verdi会执行simv [args] -sml=verdi -ucli2Proc -ucli
+##### 看波形dve/verdi
+    VCS对应的waveform工具有DVE和Verdi， DVE因为是原生的，所以VCS对DVE非常友好。但DVE已经过时了,
+    其对uvm等新feature支持的不好。Verdi是Debussy公司的产品，现在已被Synopsys收购并着力发展，
+    所以Verdi是未来的潮流。但由于其原来是Synopsys第三方产品，所以VCS对其支持并不是很友好。
+    如果要支持Verdi，需要设置好NOVAS_LIB_PATH的环境变量，并且在命令行中添加-kdb的option，knowledge database（kdb）
+    是VCS支持Verdi时的重要概念。另外，VCS支持vpd和fsdb两个格式的dump wave。 fsdb的文件相对比较小。
+    1. verdi -ssf xxx.fsdb &
+    2. verdi的instance对话框中有俩列：
+        左边一列(Hierarchy): 是实例的层级结构图，在添加波形时，只能在实例中找到变量，然后ctrl-w，才可以添加
+        右边一列(Module):   是左边实例对应的类型名，在类型中是不能添加波形的，因为它没有实例化
+    3. Drive/Load按钮
+        可以看一个信号由哪些信号驱动的，和有哪些负载
+## 各种波形文件
+    https://blog.csdn.net/limanjihe/article/details/49910779
+### VCD （Value Change Dump）
+    是一个通用的格式。 VCD文件是IEEE1364标准(Verilog HDL语言标准)中定义的一种ASCII文件。
+    它主要包含了头信息，变量的预定义和变量值的变化信息。
+    因为VCD是 Verilog HDL语言标准的一部分，因此所有的verilog的仿真器都能够查看该文件，允许用户在verilog代码中通过系统函数来dump VCD文件。
+    通过Verilog HDL的系统函数dumpfile来生成波形，通过dumpvars的参数来规定我们抽取仿真中某些特定模块和信号的数据。
+    示例如下：
+        // 在testbench中加入以下内容
+        initial
+        begin
+        $dumpfile("*.vcd");
+        $dumpvars(0,**);
+        end
+    正是因为VCD记录了信号的完整变化信息，我们还可以通过VCD文件来估计设计的功耗，
+    而这一点也是其他波形文件所不具备的。 Encounter 和 PrimeTime PX （Prime Power）都可以通过输入网表文件，
+    带功耗信息的库文件以及仿真后产生的VCD文件来实现功耗分析。
+### FSDB (Fast Signal DataBase)
+    Spring Soft （Novas）公司 Debussy / Verdi 支持的波形文件，一般较小，使用较为广泛，
+    其余仿真工具如ncsim，modlesim 等可以通过加载Verdi 的PLI （一般位于安装目录下的share/pli 目录下）
+    而直接dump fsdb文件。 fsdb文件是verdi使用一种专用的数据格式，类似于VCD，但是它是只提出了仿真过程中信号的有用信息，
+    除去了VCD中信息冗余，就 像对VCD数据进行了一次huffman编码。因此fsdb数据量小，而且会提高仿真速度。
+    我们知道VCD文件使用verilog内置的系统函数来实现 的，fsdb是通过verilog的PLI接口来实现的，例如fsdbDumpfile,
+    fsdbDumpvars等。示例如下：
+        // Testbench中加入以下内容
+        initial
+        begin
+        $fsdbDumpfile("*.fsdb");  //*代表生成的fsdb的文件名
+        $fsdbDumpvars(0,**);    //**代表测试文件名
+        end
+### WLF (Wave Log File)
+    Mentor Graphics 公司Modelsim支持的波形文件。
+    在modelsim波形窗口观察波形时，仿真结束时都会生成一个*.wlf的文件(默认是vsim.wlf)，可以用modelsim直接打开，命令如下：
+    vsim -view vsim.wlf -do run.do
+    其中，run.do中的内容为要查看的波形信号。
+    这个wlf文件只能由modelsim来生成，也只能通过modelsim来显示。不是一个通用的文件格式。
+### shm
+    Cadence公司 NC verilog 和Simvision支持的波形文件，实际上 .shm是一个目录，其中包含了.dsn和.trn两个文件。
+    使用NC Verilog 对同一testcase和相同dump波形条件的比较，产生shm文件的时间最短（废话，本来就是一个公司的），
+    产生vcd文件的时间数倍于产生shm和 fsdb的时间。在笔者测试的例子中，产生的fsdb文件为十几MB，shm文件为几十MB，而vcd文件则要几个GB的大小。
+### vpd
+    Synopsys公司 VCS DVE支持的波形文件，可以用$vcdpluson产生。
+### 其余波形文件
+    就是各家不同的仿真或调试工具支持的文件类型，互不通用，但基本都可以由VCD文件转换而来
+    （其实就是VCD文件的压缩版，因为只取仿真调试需要的数据，所以文件大小要远小于原始VCD文件），
+    有的还提供与VCD文件的互转换功能。
 ## voloce
     1. Run emulation with the following command in the same directory as your veloce.config file.
     • Use velrun for C, C++, and SystemC testbenches as described in the table below.
     • Use vsim for SystemVerilog testbenches. (See Questa documentation.)
+## AMBA
+### APB
+    Signal	    Description
+    PCLK	    时钟。APB协议里所有的数据传输都在PCLK上升沿进行
+    PRESETn	    复位。低电平有效
+    PADDR	    APB地址总线。最大宽度为32位
+    PSELx	    选通。APB master会将此信号生成给每个slave。它指示已选择的slave，并且需要进行数据传输。 每个slave都有一个PSELx信号。
+    PENABLE	    使能。当它为高时，表示数据有效
+    PWRITE	    读写控制。为高时表示写操作，为低时表示读操作
+    PWDATA	    写数据。master通过PWDATA将数据写到slave，该总线最大宽度为32位
+    PRDATA	    读数据。master通过PRDATA将数据从slave读取回来，该总线最大宽度为32位
+    1. read
+        总结一下：一开始我们就说到，APB数据传输至少需要两个周期，也就是T1-T3。其实很简单，第一个周期做准备工作（把PADDR,PWRITE,PSEL发送到总线），
+        第二个周期进行传输读或写的data（PENABLE拉高，表面当前时刻，数据有效，是master想要的数据！）
+    2. write
+        通过读写操作的时序图，我们可以看到，无论是读还是写，都是两个周期。在第一个周期，PSEL为高，PENABLE为低，这个时候为data的传输做准备工作；
+        第二个周期里，PSEL和PENABLE同时为高，进行data的传输。
+## 计算机减法的实现
+    1. CPU只有加法器，没有减法器，所有减法运算都转化成加法运算；
+    2. 在做减法运算时，比如8-6，CPU执行一条sub指令，该指令首先将减数符号位加1，然后取补码，
+       然后再用补码与被减数相加；
+    3. sub (-8)-(6)，再编译时，-8已经转化成补码，不需CPU转化，CPU对减数取补码；
+### timer回绕问题
+    void main()
+    {
+        unsigned char a = 20;
+        unsigned char b = 129;
+        char c = (char)b-(char)a;
+        printf("    unsigned char   char\n");
+        printf("a   0x%x              %d\n", (unsigned char)a, (char)a);
+        printf("b   0x%x              %d\n", (unsigned char)b, (char)b);
+        printf("c   0x%x              %d\n", (unsigned char)c, (char)c);
+
+        a = 20;
+        b = 159;
+        c = (char)b-(char)a;
+        printf("    unsigned char   char\n");
+        printf("a   0x%x              %d\n", (unsigned char)a, (char)a);
+        printf("b   0x%x              %d\n", (unsigned char)b, (char)b);
+        printf("c   0x%x              %d\n", (unsigned char)c, (char)c);
+    }
+    结果:
+        unsigned char   char
+    a   0x14            20
+    b   0x81            -127
+    c   0x6d            109
+        unsigned char   char
+    a   0x14            20
+    b   0x9f            -97
+    c   0x8b            -117
+    结论:
+        当无符号char型a和b之间的距离超过无符号char型所能表示最大数的一半时(即:128),
+        b-a就不大于零，就不能解决回绕
