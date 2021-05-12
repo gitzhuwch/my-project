@@ -259,6 +259,25 @@
     | cat /proc/meminfo   | free -lh             |
     | cat /proc/diskstats | cat /proc/partitions | df -lh |
 
+# hexdump/xxd/od
+## hexdump
+    1. A format unit contains up to three items: an iteration count, a byte count, and a format.
+    2. The iteration count is an optional positive integer, which defaults to one.  Each format is applied iteration count times.
+    3. The byte count is an optional positive integer.  If specified it defines the number of bytes to be interpreted by each iteration of the format.
+    将elf转换成bin文件再转换成hex文件，就需要用到hexdump
+    1. 迭代次数为1，迭代后输出"\n"，指针步进单位为4(按word打印)，printf格式为"%08x"(8位十六进制对齐，不够补0)
+        hexdump -n 100 -v -e '1/4 "%08x" "\n"' stars_freertos_v1.bin
+    2. 迭代次数为4，迭代后输出"\n"，指针步进单位为1(按byte打印)，printf格式为"%02x"(2位十六进制对齐，不够补0)
+        hexdump -n 100 -v -e '4/1 "%02x" "\n"' stars_freertos_v1.bin
+    3. 迭代次数为2，迭代后输出"\n"，指针步进单位为2(按short打印)，printf格式为"%04x"(4位十六进制对齐，不够补0)
+        hexdump -n 100 -v -e '2/2 "%04x" "\n"' stars_freertos_v1.bin
+## xxd
+    1. xxd -ps和-e选项冲突，即纯十六进制平坦模式输出和小端模式输出不能同时使用
+    2. xxd -ps选项不能用printf格式化输出，只能一个字节一个字节输出，所以不能正确打印小端数据
+    3. xxd -r选项能将修改的十六进制数转成二进制存储，这为直接编辑二进制文件提供条件
+## od
+    很少用
+
 # hardware design
     DFT: design for test
     DUT: design under test
