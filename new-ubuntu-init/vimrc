@@ -31,7 +31,7 @@ set autoindent
 set cindent
 set smartindent
 "set cinoptions={0,1s,t0,n-2,p2s,(03s,=.5s,>1s,=1s,:1s
-set cinoptions=:0
+set cinoptions=:0,+8
 set ruler
 "set title
 "set visualbell
@@ -212,7 +212,7 @@ let g:NERDAltDelims_c = 1 "设置c语言的单行注释风格为1(代表用//注
 let g:NERDAltDelims_asm = 1
 "modify the commenter delimiters of asm filetype, default is ';' and '#'
 let g:NERDCustomDelimiters = { 'asm': { 'left': '//', 'leftAlt': '/*', 'rightAlt': '*/' }}
-
+let g:NERDSpaceDelims = 1
 "-------------------------plugin-configs-----------------------
 "添加函数原型说明
 nmap <Leader>d :Dox<CR>
