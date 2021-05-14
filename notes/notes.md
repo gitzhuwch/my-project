@@ -1147,6 +1147,15 @@
     编写CMakeLists.txt
     执行cmake .
 
+## linux boot
+    1. uboot 中没有开MMU
+    2. zImage 自解压过程
+    3. head.S 中准备page table和enable MMU是关键
+### 开MMU注意事项
+    1. 这里是实验记录:notes/linux-memory/*
+    2. 最主要一条:开MMU之后的指令和数据的虚拟地址要和开MMU之前的物理地址要相同;
+       这就要求，页表中，有一段地址空间和物理空间是一一映射的
+
 ## linux driver model:
 ### device_add()
     drivers/base/core.c::device_add----这里会创建设备在sys下的所有节点和链接文件，也会在devtmpfs下创建节点
