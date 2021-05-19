@@ -55,6 +55,21 @@
         objcopy -O ihex xxx.bin xxx.ihex
     srec(s-recored)
         objcopy -O srec xxx.bin xxx.srec
+## hexdump与sed配合生成hex文件
+    输出要求:
+        1. 一行16个字节，按俩个word分割，每个word按小尾端出：
+            hexdump -n 100 -v -e '2/4 "%08x" "\n"' s1961.bin
+        2. file size为16字节对齐时，一行16个字节，按俩个word分割，整个16个字节按小尾端输出：
+            1.1. hexdump -n 100 -v -e '2/4 "%08x" "\n"' s1961.bin | sed  's/\(\S\{8\}\)\(\S\{8\}\)/\2\1/'
+            1.2. hexdump -n 100 -v -e '2/4 "%08x" "\n"' s1961.bin | sed  's/\([[:alnum:]]\{8\}\)\([[:alnum:]]\{8\}\)/\2\1/'
+            上述俩种方法等效
+        3. file size非16字节对齐时，一行16个字节，按俩个word分割，整个16个字节按小尾端输出：
+            1.1. hexdump -n 100 -v -e '2/4 "%08x" "\n"' s1961.bin | sed  -e 's/\(.\{8\}\)\(.\{8\}\)/\2\1/' -e 's/\s/0/g'
+            1.2. hexdump -n 100 -v -e '2/4 "%08x" "\n"' s1961.bin | sed  -e 's/\([[:alnum:]]\{8\}\)\([[:alnum:]]\{8\}\)/\2\1/' -e 's/\s/0/g'
+            上述俩种方法等效;
+            -e 's/\s/0/g'--->补0对齐
+        4. hexdump -n 12 -v -e '2/4 "%08" "\n"': 当输入缺少1个word时，用空格补齐
+        5. hexdump -n 10 -v -e '2/4 "%08" "\n"': 当输入缺少1-3个byte时，用0补齐
 ## link script
     info ld: 比"man"的信息全
 ### sections
@@ -277,7 +292,24 @@
     3. xxd -r选项能将修改的十六进制数转成二进制存储，这为直接编辑二进制文件提供条件
 ## od
     很少用
-
+# shell
+    1. 单引号直接输出后面的字符串，而双引号可以引入变量
+# sed(stream editor)
+# TCL(tool command language)
+    1. 类似bash build-in command; 也类似uboot中的cmdline原理
+    2. Tcl是一个库包，可以被嵌入应用程序，Tcl的库包含了一个分析器、用于执行内建命令的例程和可以使你扩充(定义新的过程)的库函数。
+    3. 可定制build-in command
+    4. 应用程序可以产生Tcl命令并执行，命令可以由用户产生，也可以从用户接口的一个输入中读取（按钮或菜单等）。
+       但Tcl库收到命令后将它分解并执行内建的命令，经常会产生递归的调用。
+    5. Tcl数据类型简单。对Tcl来说，它要处理的数据只有一种——字符串。
+    6. 内嵌的Tk（toolkit）图形工具可以提供简单而又丰富的图形功能，让用户可以轻松的创建简单的图形界面。
+    7. Tcl的执行是交互式的，Tcl提供了交互式命令界面，界面有两种：tclsh和wish。tclsh只支持Tcl命令，wish支持Tcl和Tk命令。
+       通过交互界面，我们就可以象执行UNIX shell命令一样，逐条命令执行，并即时得到执行结果。
+    8. 以;或换行分隔命令
+    9. 大多数EDA(vcs,verdi,velrun)工具都集成TCL功能,可以添加内建命令，可以将多条命令写到脚本中，执行脚本进行批处理
+# 参数长选项/短选项
+    1. -sh == -s -h(short option)
+    2. --sh == --sh(long option)
 # hardware design
     DFT: design for test
     DUT: design under test
@@ -306,6 +338,10 @@
     6. velhvl or vlog              --> compile testbench files
     7. velrun or vsim              --> Run Emulation
     8. velview                     --> debug
+### veloce run
+    1. Run emulation with the following command in the same directory as your veloce.config file.
+    • Use velrun for C, C++, and SystemC testbenches as described in the table below.
+    • Use vsim for SystemVerilog testbenches. (See Questa documentation.)
 ## linux HDL toolchains
     1. iverilog
         compile
@@ -413,8 +449,9 @@
             * help //显示帮助信息
             * command -h //显示command的help info
             * stop -line num -file /path/filename //在filename:num处加断点
-            * get var // display var value
             * run //运行到断点处停下来
+            * stack //显示调用栈,跟踪调用流程很有用
+            * get var // display var value
             * finish //结束仿真
             * show -h // display show help infomation
             * show -nid(hierarchical path name)
@@ -497,10 +534,6 @@
     就是各家不同的仿真或调试工具支持的文件类型，互不通用，但基本都可以由VCD文件转换而来
     （其实就是VCD文件的压缩版，因为只取仿真调试需要的数据，所以文件大小要远小于原始VCD文件），
     有的还提供与VCD文件的互转换功能。
-## voloce
-    1. Run emulation with the following command in the same directory as your veloce.config file.
-    • Use velrun for C, C++, and SystemC testbenches as described in the table below.
-    • Use vsim for SystemVerilog testbenches. (See Questa documentation.)
 ## AMBA
 ### APB
     Signal	    Description
