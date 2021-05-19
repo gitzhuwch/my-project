@@ -2799,7 +2799,7 @@
 ### Linux进程权限
     1.  进程权限相关的属性
         reaal user id(ruid)：进程执行者的user id，一般情况下就是用户登录时的
-        user ideffective user id(euid)：进程文件owner的user id，决定进程是否对某个文件有操作权限，默认为ruid，
+        effective user id(euid)：进程文件owner的user id，决定进程是否对某个文件有操作权限，默认为ruid，
             sudo这个程序文件的权限有s，并且sudo文件的owner是root，所以sudo执行起来后，euid是root用户的id，
             所以由sudo fork出来的子进程会继承sudo的euid（猜测），或者sudo可以调用seteuid()系统调用，来设置子进程的euid。
 ### sudo 原理
