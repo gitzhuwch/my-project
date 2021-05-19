@@ -347,7 +347,7 @@
         compile
          iverilog xx.v -->a.out
         run
-         ./a.out-->a.vcd (实际是vpp解析a.out,生成vcd文件)
+         ./a.out-->a.vcd (实际是vvp解析a.out,生成vcd文件)
         display wave
          gtkwave a.vcd
     2. ghdl
@@ -394,6 +394,44 @@
        File -- >Create/Update ---> Create Symbol Files for Current file
 
 ##verilog
+### 仿真原理
+    1. 通过strace vvp和gdb vvp，发现仿真跑起来后，只有一个主线程；并且git clone iverilog的源码，发现vvp中的
+       线程的概念不是linux线程的概念；vvp中创建线程是这样的:
+       vthread_t vthread_new(vvp_code_t pc, __vpiScope*scope)
+       {
+             vthread_t thr = new struct vthread_s;
+             thr->pc     = pc;
+           //thr->bits4  = vvp_vector4_t(32);
+             thr->parent = 0;
+             thr->parent_scope = scope;
+             thr->wait_next = 0;
+             thr->wt_context = 0;
+             thr->rd_context = 0;
+
+             thr->i_am_joining  = 0;
+             thr->i_am_detached = 0;
+             thr->i_am_waiting  = 0;
+             thr->i_am_in_function = 0;
+             thr->is_scheduled  = 0;
+             thr->i_have_ended  = 0;
+             thr->i_was_disabled = 0;
+             thr->delay_delete  = 0;
+             thr->waiting_for_event = 0;
+             thr->event  = 0;
+             thr->ecount = 0;
+
+             thr->flags[0] = BIT4_0;
+             thr->flags[1] = BIT4_1;
+             thr->flags[2] = BIT4_X;
+             thr->flags[3] = BIT4_Z;
+             for (int idx = 4 ; idx < 8 ; idx += 1)
+               thr->flags[idx] = BIT4_X;
+
+             scope->threads .insert(thr);
+             return thr;
+       }
+    2. initial,always语句会创建线程
+    3. iverilog -pfileline=1 counter.v能将源码嵌入到输出文件中，便于理解verilog编译前后的区别
 ### 位拼接
 ### sv中CpuRead/CpuWrite实现
     svExecuteMan("cpu", "cpu_cmd", pktload, pktloads, NULL);
@@ -476,6 +514,17 @@
             * 点击Simulation按钮
             * Invoke Simulator
             * verdi会执行simv [args] -sml=verdi -ucli2Proc -ucli
+###### 结束仿真
+    方法1:
+        1. 运行仿真:./simv [args]
+        2. DUT中的CPU执行完程序后，向约定地址写入约定值，然后主动进入死循环
+        3. testbench中,事先写一个进程，轮询该地址是否被写入约定值，当被写入约定值后，调用verilog系统任务$finish，结束并退出仿真
+    方法2:
+        1. 运行仿真:./simv [args] -ucli
+        2. 进入ucli交互命令行，输入:run，开始仿真
+        3. DUT中的CPU执行完程序后，向约定地址写入约定值，然后主动进入死循环
+        4. testbench中,事先写一个进程，轮询该地址是否被写入约定值，当被写入约定值后，调用verilog系统任务$stop，暂停仿真
+        5. 输入命令: finish/quit结束并退出仿真
 ##### 看波形dve/verdi
     VCS对应的waveform工具有DVE和Verdi， DVE因为是原生的，所以VCS对DVE非常友好。但DVE已经过时了,
     其对uvm等新feature支持的不好。Verdi是Debussy公司的产品，现在已被Synopsys收购并着力发展，
