@@ -3727,6 +3727,32 @@
     3,  volatile 结构体
         volatile struct xxx{};
 ### bash
+#### help
+    显示所有bash build-in commands
+    help command: print command help infomation
+    有了这个帮助信息，再也不用死记if,for,while等命令的用法了
+#### help if
+    显示if命令的help infomation
+        if: if COMMANDS; then COMMANDS; [ elif COMMANDS; then COMMANDS; ]... [ else COMMANDS; ] fi
+            Execute commands based on conditional.
+
+            The `if COMMANDS' list is executed.  If its exit status is zero, then the
+            `then COMMANDS' list is executed.  Otherwise, each `elif COMMANDS' list is
+            executed in turn, and if its exit status is zero, the corresponding
+            `then COMMANDS' list is executed and the if command completes.  Otherwise,
+            the `else COMMANDS' list is executed, if present.  The exit status of the
+            entire construct is the exit status of the last command executed, or zero
+            if no condition tested true.
+
+            Exit Status:
+            Returns the status of the last command executed.
+#### help [
+    显示[命令的help infomation
+        [: [ arg... ]
+        Evaluate conditional expression.
+
+        This is a synonym for the "test" builtin, but the last argument must
+        be a literal `]', to match the opening `['.
 #### bash_history隐私
     第一种靠谱的解决方案：
         第1步：设置 HISTCONTROL 环境变量：export HISTCONTROL=ignorespace。
