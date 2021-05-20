@@ -513,7 +513,15 @@
     2,  remote: Manipulate files on the remote system.
         Transfer files to and from the remote target system.
     3,  monitor: Send a command to the remote monitor (remote targets only).
-
+#### gdb trace syscall
+    catch exec/fork/vfork/syscall...
+#### set program runtime args
+    1. gdb --args a.out arg1 args2...
+    2. gdb a.out
+       run args
+    3. gdb a.out
+       set args "xxx"
+       run
 ### GCC:
     GNU Compiler Collection
 #### gcc specifications file
