@@ -347,7 +347,7 @@
         compile
          iverilog xx.v -->a.out
         run
-         ./a.out-->a.vcd (实际是vpp解析a.out,生成vcd文件)
+         ./a.out-->a.vcd (实际是vvp解析a.out,生成vcd文件)
         display wave
          gtkwave a.vcd
     2. ghdl
