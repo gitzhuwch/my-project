@@ -223,6 +223,19 @@
 ### html convert to pdf
     sudo apt install -y wkhtmltopdf
     wkhtmltopdf xxx.html yyy.pdf
+### vim marks
+    1. add mark
+    normal mode: ma(add a mark named a)
+    2. jump mark line head
+    normal mode: 'a
+    3. jump mark column
+    normal mode: `a
+    4. show all marks
+    command mode: marks
+    5. delete marks a b c
+    command mode: delmarks a b c
+    6. delete all marks
+    command mode: delmarks!
 
 ## markdown
 ### syntax
@@ -295,9 +308,11 @@
 
 ## kernel debug methods:
 ### qemu32-arm:
-    1, sudo apt -y install qemu-system-arm
-    2, sudo apt -y install gcc-arm-linux-gnueabi //has no arm-gdb
-    3,
+    1. install qemu
+        sudo apt -y install qemu-system-arm
+    2. install gcc toolchains
+        sudo apt -y install gcc-arm-linux-gnueabi //has no arm-gdb
+    3. install gdb
         3.1 get arm-linux-gnueabi-gdb for arm
         https://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabi/
         3.2 sudo apt -y install gdb-multiarch
@@ -306,16 +321,22 @@
             firstly: sudo apt -y install gdb=8.1-0ubuntu3
             then:    sudo apt -y install gdb-multiarch
         }
-    4, git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+    4. get kernel source code and build
+        git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
         //也可以从gitee下载,速度更快:git clone https://gitee.com/mirrors/linux.git
         cd linux
         vim Makefile
+        add:
             CROSS_COMPILE := arm-linux-gnueabi-
+        modify:
             ARCH ?= arm
         //do not modify gcc -O0 that will compiling error!! gcc -O can work, but need add local #pragma GCC optimize(O2) for gpu driver code.
         make vexpress_defconfig
         make zImage -j2
-    5, git clone --depth=1 git://busybox.net/busybox.git
+    5. build dts
+        make dtbs
+    6. build busybox
+        git clone --depth=1 git://busybox.net/busybox.git
         //也可设置为nfs的挂载目录，直接通过网络文件系统进行挂载，便于开发。
         cd busybox
         vim Makefile
@@ -342,14 +363,16 @@
         最后:
         find . | cpio -o -H newc > rootfs.cpio
         gzip -c rootfs.cpio > rootfs.cpio.gz
-    6,  #qemu-system-arm -kernel ./arch/arm64/boot/Image -append "console=ttyAMA0" -m 2048M -smp 4 -M virt -cpu cortex-a57 -nographic
+    7. run qemu
+        #qemu-system-arm -kernel ./arch/arm64/boot/Image -append "console=ttyAMA0" -m 2048M -smp 4 -M virt -cpu cortex-a57 -nographic
         #qemu-system-arm -M vexpress-a9 -m 128M -kernel ./arch/arm/boot/zImage -dtb ./arch/arm/boot/dts/vexpress-v2p-ca9.dtb -nographic -append "console=ttyAMA0"
         qemu-system-arm -M vexpress-a9 -smp 4 -m 1024M -kernel ./arch/arm/boot/zImage -initrd rootfs.cpio.gz -append "rdinit=/linuxrc console=ttyAMA0 loglevel=8" -dtb arch/arm/boot/dts/vexpress-v2p-ca9.dtb -nographic -s -S
         #must be zImage, Image and vmlinux can't bootup
-    7, ctrl+a+x --> exit qemu-system-arm
+    8. qemu shutcut
+        ctrl+a+x --> exit qemu-system-arm
         ctrl+x+a --> open/close gdb layout
         gdb: layout --> open gdb layout
-    8,
+    9. gdb connect qemu
         gdb-multiarch vmlinux
         target remote localhost:1234
 
@@ -727,6 +750,34 @@
                 160000 commit b440e5b315bb580c6411bcd65cc9c735d0b11b83	test_feima
                 160000 commit 5a3ea17ce9b09cb248060be7f764eab33b72fe54	timer_test
                 160000 commit 5f02e0ed91d29e9175a24cf2028c5e9fa137f015	uart_test
+#### upstream
+    1. stream:溪，河
+    2. upstream:上流，源头，
+    3. git中用upstream比喻一个分支的源头
+    4. 设置一个分支的upstream有以下方式
+        4.1 git branch --set-upstream-to=origin/dev
+        4.2 git branch -u origin/dev
+        4.3 git push -u origin master
+        4.4 git branch -u origin/dev dev //为非当前分支设置dev设置upstream
+        4.5 git branch --unset-upstream //取消当前分支upstream
+        4.6 git branch --unset-upstream <branch-name> //取消指定分支upstream
+        4.7 查看upstream: cat .git/config
+            [branch "master"]
+                remote = origin
+                merge = refs/heads/master
+            或者git remote show origin github
+#### git remote show origin
+    git remote show origin
+        * remote origin
+          Fetch URL: https://gitee.com/gitzhuwch/my-project
+          Push  URL: https://gitee.com/gitzhuwch/my-project
+          HEAD branch: master
+          Remote branches:
+            master                            tracked
+            refs/remotes/origin/origin/master stale (use 'git remote prune' to remove) //将这个去掉
+          Local ref configured for 'git push':
+            master pushes to master (up to date)
+    git remote prune origin //就会去掉origin中的stale分支
 ### repo:
     1, sudo apt -y install repo
     2, vim /usr/bin/repo
@@ -1162,7 +1213,7 @@
 ### 开MMU注意事项
     1. 这里是实验记录:notes/linux-memory/*
     2. 最主要一条:开MMU之后的指令和数据的虚拟地址要和开MMU之前的物理地址要相同;
-       这就要求，页表中，有一段地址空间和物理空间是一一映射的
+       这就要求，页表中，有一段虚拟空间和物理空间是一一映射的
 
 ## linux driver model:
 ### device_add()
@@ -1459,7 +1510,7 @@
     man console_codes //Linux console escape and control sequences
     本质上是发送端和接收端的"控制协议"，发送端发送控制序列，接收端(包括tty driver和终端仿真器)来决定和执行什么样的行为。
     即:由源端发送控制序列，tty driver和仿真器来解析。
-#### 内核解析部分控制字符代码
+#### 内核n_tty解析部分控制字符代码
 ##### 输入字符解析
     drivers/tty/n_tty.c:
         n_tty_receive_char_special()
@@ -1467,9 +1518,69 @@
 ##### 输出字符解析
         do_output_char()
             转换\r,\n,\t,\b等字符
-#### 内核终端仿真器解析部分代码
+#### 内核vt(终端仿真器)解析部分代码
 ##### 输入字符解析
     grep "033" drivers/tty/vt/* -rn
+#### n_tty回显方向键问题
+    1. 当方向键键值到达n_tty层时，如果echo打开，则将方向键转化成以^开头的可显示的字符，输出到
+       终端仿真器中;
+    2. bash在读取字符时，会将pts设置成非阻塞、关回显状态，所以在bash的命令行中按方向键不会回显
+       出来，bash读到方向键后，会向pts发送'\10'(backspace)，到终端仿真器中，终端仿真器会移动光标;
+    3. 当pts打开回显，执行echo -en '\e[D' > pts/n,n_tty层不会转化该控制命令，直接将该字符串送到ptm,
+       终端仿真器从ptm中读出，再解析,执行向左移动光标动作
+    总结: echo对方向键等不可显示字符进行处理，以^为前缀打印出来；
+    echo -en '\e[D' > /pts/n不对命令处理，原样写入ptm，最终到达vt(或终端仿真器)；
+    相关内核代码:
+        1. drivers/tty/n_tty.c:__process_echoes()
+        2. drivers/tty/vt/defkeymap.c:func_buf[]
+        3. drivers/tty/vt/keyboard.c：vt_do_kdgkb_ioctl()
+#### bash频繁开关echo
+    https://blog.csdn.net/u011279649/article/details/9833585
+#####现象
+    在bash中我们输入一个tty不识别的组合键，例如 CTRL+G，
+    发现bash并没有回显为CTRL+G，但是通过我们自定义的程序就可以。
+    简单测试程序
+    [tsecer@Harry read]$ cat Read.c
+        #include <stdio.h>
+        int main()
+        {
+            char buf[0x10];
+            int readed =0 ;
+            readed = read(0,buf,sizeof(buf));
+            return 0;
+        }
+    执行效果
+    [tsecer@Harry read]$ ./a.out
+    ^H^T^P^P^P^P^P^Pafsdfsfsdfsdfsdfsdfsfswaf^A^B
+    [tsecer@Harry read]$ dfsdfsdfsdfsfswaf
+    bash: dfsdfsdfsdfsfswaf: command not found
+    可以看到，它回显了我的Ctrl+H组合键，
+    但是在bash中按这个按键却没有回显(这不是正常现象，
+    因为bash和a.out用得是相同的终端，应该有相同的配置和行为)。
+##### 看一下bash的内部实现
+    读取命令的时候是通过readline库实现的，其中读取一行的处理为:
+    tiop->c_lflag &= ~(ICANON | ECHO);这里bash在读入一行之前，
+            会强制关掉tty的一行读取方式，并且关掉回显。
+    ......
+    tiop->c_cc[VMIN] = 1;这里也很重要，要求tty在没收到一个字符都
+            直接将从tty中读入字符的任务唤醒，从而可以执行即使的处理。
+            而bash的功能键也就是这么实现的，可以使用bash的bind -p
+            显示bash当前所有的功能及绑定情况。
+    然后在读入一行之后再通过前面的rl_deprep_term_function函数恢复tty设置，
+    这样在不同的任务看来的确是不同的。也就是bash读取的时候和读取结束之后，
+    子进程执行的时候的tty设置是不同的，是动态变化的。
+##### 关于这一点的内核处理路径：
+    static void n_tty_receive_buf(struct tty_struct *tty, const unsigned char *cp,
+             char *fp, int count)
+    ......
+     if (!tty->icanon && (tty->read_cnt >= tty->minimum_to_wake)) { 可以看到，
+            bash中这里的icanon是被清零的，而且其中的minimum_to_wake被设置为1，
+            也就是每个字符都会导致从tty中读取的函数返回。
+            然后bash自己决定自己读入的字符是否回显。
+      kill_fasync(&tty->fasync, SIGIO, POLL_IN);
+      if (waitqueue_active(&tty->read_wait))
+        wake_up_interruptible(&tty->read_wait);
+     }
 #### 改变终端仿真器的标题:
 ##### 改变用户空间的gnome-terminal的标题
     使用转义序列来实现的，向ptsn端发送转义序列，监听在ptmx端的gnome-terminal收到后，
@@ -1654,8 +1765,15 @@
         echo -en "\e[?7h\e[3;1H\e[maaaaaaaaaaaaaaaaabbbbbbbbbbccddfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffddddddddddddddddddhhhhhhhhhhhhjjjjjjj\r\n\e[94m" > /dev/pts/0
     这种wrap是由终端模拟器完成的
 ### stty/tty工具
-    1,  tty:显示当前终端设备文件
+#### tty
+    显示当前终端设备文件
 #### stty常见的TTY配置
+    参数前加'-'表示取消，不加'-'表示设置
+##### getc不需要回车就能返回
+    1. 使用select
+    2. stty -icanon //一完整读入
+    3. stty cbreak
+    4. stty raw
 ##### 怎么禁止换行
     1,  好像不行.用转义控制序列可实现
     2,  systemctl -l --no-pager status xx.service
@@ -1957,11 +2075,19 @@
         3, launches bash as subprocess
         3, The std input, output and error of the bash will be set to be the pty slave.
         4, XTerm listens for keyboard events and sends the characters to the pty master
-        5, The line discipline gets the character and buffers them. It copies them to the slave only when you press enter. It also writes back its input to the master (echoing back). Remember the terminal is dumb, it will only show stuff on the screen if it comes from the pty master. Thus, the line discipline echoes back the character so that the terminal can draw it on the video, allowing you to see what you just typed.
-        6, When you press enter, the TTY driver (it's 'just' a kernel module) takes care of copying the buffered data to the pty slave
-        7, bash (which was waiting for input on standard input) finally reads the characters (for example 'ls -la'). Again, remember that bash standard input is set to be the PTY slave.
+        5, The line discipline gets the character and buffers them. It copies them to
+           the slave only when you press enter. It also writes back its input to the
+           master (echoing back). Remember the terminal is dumb, it will only show stuff
+           on the screen if it comes from the pty master. Thus, the line discipline
+           echoes back the character so that the terminal can draw it on the video,
+           allowing you to see what you just typed.
+        6, When you press enter, the TTY driver (it's 'just' a kernel module) takes care
+           of copying the buffered data to the pty slave
+        7, bash (which was waiting for input on standard input) finally reads the characters
+           (for example 'ls -la'). Again, remember that bash standard input is set to be the PTY slave.
         8, At this points bash interprets the character and figures it needs to run 'ls'
-        9, It forks the process and runs 'ls' in it. The forked process will have the same stdin, stdout and stderr used by bash, which is the PTY slave.
+        9, It forks the process and runs 'ls' in it. The forked process will have
+           the same stdin, stdout and stderr used by bash, which is the PTY slave.
         10, ls runs and prints to standard output (once again, this is the pty slave)
         11, the tty driver copies the characters to the master(no, the line discipline does not intervene on the way back)
         12, XTerm reads in a loop the bytes from the pty master and redraws the UI
@@ -1985,13 +2111,14 @@
     |                          +----------|is applied here)|--------+         |
     |                                     +----------------+                  |
     +-------------------------------------------------------------------------+
-    注意:   上图中，如果是使用ptm/pts的terminal emulator，则在应用层使用GUI画字符界面，
-            如果是使用ttyn(比如按ctrl+alt+fn)的真实终端，则在kernel层使用vt driver直接画字符界面.
+    注意:上图中，如果是使用ptm/pts的terminal emulator，则在应用层使用GUI画字符界面，
+         如果是使用ttyn(比如按ctrl+alt+fn)的真实终端，则在kernel层使用vt driver直接画字符界面.
 #### How can a program control the terminal?
     The way for programs to control the terminal is standardized by the ANSI escape codes.
     Want to change the color of the text from your program?
     Just print to standard out the ANSI escape code for coloring the text.
-    Standard out is the PTY slave, TTY driver copies the character to the PTY master, terminal gets the code and understands it needs to set the color to print the text on the screen. Voilà'!'
+    Standard out is the PTY slave, TTY driver copies the character to the PTY master,
+    terminal gets the code and understands it needs to set the color to print the text on the screen. Voilà'!'
 #### How can I "mirror" everything that's happening on one terminal to another?
     m1,
         pacman -Syyu | tee /dev/tty1
@@ -2154,6 +2281,22 @@
     +---------------------------------------------------------------------+
 ### input subsystem与tty关系
     输入子系统是相对独立的，除了可以服务于tty/console之外，也可以通过设备文件服务于X Window等窗口管理器和用户程序
+### 按键处理流程
+    以方向键向左键按下为例
+#### 涉及三个对象:vt\tty\bash
+    1. 处理普通字符还好，处理控制字符，需要三方协调完成；
+    2. stty -a只显示和设置tty的配置信息，不设置vt(终端仿真器)的信息，也不配置bash处理字符的方式；
+    3. tty回显部分控制字符(比如方向键)是以^开头，不会导致vt(或终端仿真器)产生动作;
+    4. tty在接收到delete等键时，会导致vt产生动作;
+#### input子系统处理
+    将方向键的键值发给用户程序，假如是gterminal
+    gterminal向ptm设备写入"\e[D"三字符
+#### tty driver lds处理
+    tty driver接收到"\e[D"，转发给bash，并回显(如果开回显)
+#### bash处理
+    bash从pts端接收到"\e[D"，解析后，向pts发送'\10'(backspace)
+#### 终端仿真器处理
+    仿真器接收到'\10'，向左移动光标
 
 ## VT(virtual terminal)
 ### VT中的键盘输入流程
@@ -2188,33 +2331,33 @@
     最终将方向键转化成终端控制序列，发给用户程序，用户程序再发给终端仿真器，终端仿真器解析后实现显示效果
 ### VT中的屏幕输出流程
     基于framebuffer实现的:drivers/tty/vt/vt.c
-                          drivers/video/fbdev/core/fbcon.c
-                            static const struct consw fb_con = {
-                                .owner          = THIS_MODULE,
-                                .con_startup        = fbcon_startup,
-                                .con_init       = fbcon_init,
-                                .con_deinit         = fbcon_deinit,
-                                .con_clear      = fbcon_clear,
-                                .con_putc       = fbcon_putc,
-                                .con_putcs      = fbcon_putcs, ------>显示函数
-                                .con_cursor         = fbcon_cursor,
-                                .con_scroll         = fbcon_scroll,
-                                .con_switch         = fbcon_switch,
-                                .con_blank      = fbcon_blank,
-                                .con_font_set       = fbcon_set_font,
-                                .con_font_get       = fbcon_get_font,
-                                .con_font_default   = fbcon_set_def_font,
-                                .con_font_copy      = fbcon_copy_font,
-                                .con_set_palette    = fbcon_set_palette,
-                                .con_scrolldelta    = fbcon_scrolldelta,
-                                .con_set_origin     = fbcon_set_origin,
-                                .con_invert_region  = fbcon_invert_region,
-                                .con_screen_pos     = fbcon_screen_pos,
-                                .con_getxy      = fbcon_getxy,
-                                .con_resize             = fbcon_resize,
-                                .con_debug_enter    = fbcon_debug_enter,
-                                .con_debug_leave    = fbcon_debug_leave,
-                            };
+    drivers/video/fbdev/core/fbcon.c
+      static const struct consw fb_con = {
+          .owner          = THIS_MODULE,
+          .con_startup        = fbcon_startup,
+          .con_init       = fbcon_init,
+          .con_deinit         = fbcon_deinit,
+          .con_clear      = fbcon_clear,
+          .con_putc       = fbcon_putc,
+          .con_putcs      = fbcon_putcs, ------>显示函数
+          .con_cursor         = fbcon_cursor,
+          .con_scroll         = fbcon_scroll,
+          .con_switch         = fbcon_switch,
+          .con_blank      = fbcon_blank,
+          .con_font_set       = fbcon_set_font,
+          .con_font_get       = fbcon_get_font,
+          .con_font_default   = fbcon_set_def_font,
+          .con_font_copy      = fbcon_copy_font,
+          .con_set_palette    = fbcon_set_palette,
+          .con_scrolldelta    = fbcon_scrolldelta,
+          .con_set_origin     = fbcon_set_origin,
+          .con_invert_region  = fbcon_invert_region,
+          .con_screen_pos     = fbcon_screen_pos,
+          .con_getxy      = fbcon_getxy,
+          .con_resize             = fbcon_resize,
+          .con_debug_enter    = fbcon_debug_enter,
+          .con_debug_leave    = fbcon_debug_leave,
+      };
 #### ftrace log
     fbcon_putcs() {
      get_color() {
@@ -2351,6 +2494,25 @@
         return err;
     }
     默认没有挂载；kernel起来后可以手动挂载
+### automount
+#### autofs
+    为userspace提供自动挂载机制?
+#### autofs server
+    需要时自动挂载，不用时自动卸载
+    But Autofs mounts the file systems on user’s demand. Bydefault the mount point’s configured
+    in Autofs is in unmounted state till the user access the mount point, once user try to
+    access the mount point it will mount automatically and if user dont use the mount point for
+    some time then it will automatically go to unmount state.
+#### fstab
+    开机时自动挂载
+#### debugfs_create_automount()
+    principle: 在debufs_root dentry下创建一个子dentry and inode, 并inode->i_flags |= S_AUTOMOUNT;
+    这样在file path行走时就会检查该dentry是否被挂载，是否自动挂载.
+    syscall_definesn(open...)
+    ...
+    __traverse_mounts
+    follow_automount
+    ...
 
 ## linux memory management:
     https://www.cnblogs.com/arnoldlu/p/8051674.html
@@ -2623,6 +2785,37 @@
         }
 
 ## linux interrupt subsystem:
+### smp interrupt
+#### smp中断嵌套问题
+    1. Linux 中的中断处理程序是无须重入的。当给定的中断处理程序正在执行的时候，
+       其中断线在所有的处理器上都会被屏蔽掉，以防在同一个中断线上又接收到另一
+       个新的中断。通常情况下，除了该中断的其他中断都是打开的，也就是说其他的
+       中断线上的中断都能够被处理，但是当前的中断线总是被禁止的，故，同一个中
+       断处理程序是绝对不会被自己嵌套的.
+    2. 通过其状态标志（IRQ_PENDING和 IRQ_INPROGRESS）可以防止同种类型的中断函
+       数执行（注意：是防止handle_IRQ_event被重入， 而不是防止do_IRQ函数被重入）
+    3. 当handle_IRQ_event返回时检查IRQ_PENDING标志，发现存在这个标志，说明handle_IRQ_event
+       执行过程中被中断过，存在未处理的同类中断，因此再次循环执行handle_IRQ_event函数。
+       直到不存在IRQ_PENDING标志为止。
+### 中断上下文不能睡眠的原因
+    1. 中断处理的时候,不应该发生进程切换，因为在中断context中，唯一能打断当前
+       中断handler的只有更高优先级的中断，它不会被进程打断，如果在 中断context
+       中休眠，则没有办法唤醒它，因为所有的wake_up_xxx都是针对某个进程而言的，
+       而在中断context中，没有进程的概念，没 有一个task_struct（这点对于softirq
+       和tasklet一样），因此真的休眠了，比如调用了会导致block的例程，内核几乎肯定会死。
+    2. schedule()在切换进程时，保存当前的进程上下文（CPU寄存器的值、进程的状态
+       以及堆栈中的内容），以便以后恢复此进程运行。中断发生后，内核会先保存当
+       前被中断的进程上下文（在调用中断处理程序后恢复）；
+       但在中断处理程序里，CPU寄存器的值肯定已经变化了吧（最重要的程序计数器PC、
+       堆栈SP等），如果此时因为睡眠或阻塞操作调用了schedule()，则保存的进程上下
+       文就不是当前的进程context了.所以不可以在中断处理程序中调用schedule()。
+    3. 内核中schedule()函数本身在进来的时候判断是否处于中断上下文:
+       if(unlikely(in_interrupt()))
+       BUG();
+       因此，强行调用schedule()的结果就是内核BUG。
+    4. 中断handler会使用被中断的进程内核堆栈，但不会对它有任何影响，因为handler
+       使用完后会完全清除它使用的那部分堆栈，恢复被中断前的原貌。
+    5. 处于中断context时候，内核是不可抢占的。因此，如果休眠，则内核一定挂起。
 ### interrupt bottom:
 #### softirq:
 
@@ -2691,6 +2884,16 @@
     2, pinctrl:
 ### arm smp多核使能:
     1, edit smp_init
+    2. uboot下只要有一个core工作就可以了，然而整个soc上电复位后，一般两个core都会开始执行代码，
+    3. 首先判断当前cpu是不是主cpu，判断的依据是mpidr_el1寄存器，master core和slave core该寄存器的值是不一样的
+    4. 如果是主core，直接跳到main函数中执行就可以了
+    6. 如果是slave core，则执行指令wfe(wait for event),进入idle
+    7. slave core循环读地址CPU_RELEASE_ADDR的内容，直到该地址的内容为非0，就以此内容为跳转地址，跳转过去。
+    8. 那么这个地址的内容靠谁来写入呢？很明显，只有master core，master core在启动到一定阶段后，
+       将某个地址写到CPU_RELEASE_ADDR，slave cpu就会直接跳转过去。在选择CPU_RELEASE_ADDR的时候就需要十分注意，保证代码执行不会误写该地址。
+    9. 主核写完secondary cpu boot address,然后执行sev(send event)指令，唤醒seconedary cpu
+    10. 上面说了pin-table的多核启动方式,现在基本上arm64平台上使用多核启动方式都是psci。下面我们来揭开他神秘的面纱，
+        其实理解了spin-table的启动方式,psci并不难（说白了也是需要主处理器给从处理器一个启动地址，然后从处理器从这个地址执行指令，实际上比这要复杂的多）。
 ### linux I/O model:
     阻塞IO      (blocking IO)
     非阻塞IO    (nonblocking IO)
@@ -3066,13 +3269,29 @@
     --------------------------------------------------------------------------------------
 ### grub给kernel传参修改网络设备名eth0:
     1, 修改/boot/grub/grub.cfg,在linux参数项中加net.ifnames=0 biosdevname=0
-
 ## ABI/API/POSIX
-    1,  POSIX 标准啊，C99 标准啊，都是对 API 的规定
+    1.  POSIX 标准啊，C99 标准啊，都是对 API 的规定
         Linux 上面的 ABI 标准似乎只有 Linux Foundation 提供的一些标准
-    2,  API: POSIX (编译前的源代码) ABI: APPLICATION BINARY INTERFACE (编译后的二进制文件，linux & windows不兼容)
+    2.  API: POSIX (编译前的源代码) ABI: APPLICATION BINARY INTERFACE (编译后的二进制文件，linux & windows不兼容)
         POSIX表示可移植操作系统接口（Portable Operating System Interface of UNIX，缩写为 POSIX ），POSIX标准定义了操作系统应该为应用程序提供的接口标准
-
+### ABI
+    1. 数据类型、大小和对齐;
+    2. 调用约定（控制着函数的参数如何传送以及如何接受返回值）；
+    3. 系统调用的编码和一个应用如何向操作系统进行系统调用；
+    4. 在一个完整的操作系统ABI中，目标文件的二进制格式、程序库等等。
+    5. 一个完整的ABI，像Intel二进制兼容标准 (iBCS)[1] ，允许支持它的操作系统上的程序不经修改在其他支持此ABI的操作体统上运行。
+    6. ABI 标准化细节包括 C++ 名称修饰[2] ,和同一个平台上的编译器之间的调用约定[3]，但是不包括跨平台的兼容性.
+    7. ABI允许编译好的目标代码在使用兼容ABI的系统中无需改动就能运行。
+    8. 另一种比较特殊的 ABI 是像 /proc，/sys 目录下面导出的文件，它们虽然不是直接的二进制形式，
+       但也会影响编译出来的二进制，如果它里面使用到它们的话，因此这些“接口”也是一种 ABI。
+### API
+    1. API定义了源代码和库之间的接口，因此同样的代码可以在支持这个API的任何系统中编译
+### summary
+    好了，从上面我们可以看出，其实保持一个稳定的 ABI 要比保持稳定的 API 要难得多。
+    比如，在内核中 int register_netdevice(struct net_device *dev) 这个内核函数原型基本上是不会变的，
+    所以保持这个 API 稳定是很简单的，但它的 ABI 就未必了，就算是这个函数定义本身没变，即 API 没变，
+    而 struct net_device 的定义变了，里面多了或者少了某一个字段，它的 ABI 就变了，
+    你之前编译好的二进制模块就很可能会出错了，必须重新编译才行。
 ## 计算机顶层设计中的一些概念
 ### 计算机体系结构与组成原理与微机原理
     1，计算机体系结构:  指软、硬件的系统结构，研究计算机由哪些功能组成
@@ -3208,6 +3427,98 @@
 ### 开发板种类(EVB/REF):
     1, EVB(Evaluation Board) 开发板：软件/驱动开发人员使用EVB开发板验证芯片的正确性，进行软件应用开发
     2, REF(reference Board) 开发板：参考板
+
+## 数据一致性问题
+### 本质
+    各个硬件module看到的数据不一样，这里把CPU也当作一个module.
+    数据不一致，并不是软件或各进程看到的数据不一样，而是硬件看到的数据不一样.
+    因为软件或者各个进程看到的数据不一样，本质是各个CPU看到的数据不一样，或者一个CPU
+    在不同时刻看到的数据不一样.
+### cpu和qspi数据一致性问题
+    cpu执行一个for循环，往qspi的fifo中写64 word数据,fifo挂载AHB bus上.
+    cpu执行了64次写操作，但qspi只接收到了10次.这是典型的CPU/cache与IP数据不一致问题.
+    将fifo地址映射属性由normal,noncacheable改成device,noncacheable，即可解决问题.
+    本质原因是cpu执行写的指令很快，但数据到达module慢一些，由于配置原因(多数为了提高性能),
+    cpu没有等数据真正到达module就执行下一条写指令了，所以要通过配置，要让cpu等.
+### 原子指令
+### 独占访问
+### 锁的原理
+    https://blog.csdn.net/itworld123/article/details/113835210
+#### Futex
+    Fast Userspace Mutexes
+    1. futex 同步机制和futex系统调用
+    1.1 Futex 同步机制
+        所有的 futex 同步操作都应该从用户空间开始，首先创建一个 futex 同步变量，也就是位于共享内存的一个整型计数器。
+        当进程尝试持有锁或者要进入互斥区的时候，对 futex 执行"down"操作，即原子性的给 futex 同步变量减 1。
+        如果同步变量变为 0，则没有竞争发生， 进程照常执行。如果同步变量是个负数，则意味着有竞争发生，
+        需要调用 futex 系统调用的 futex_wait 操作休眠当前进程。
+    1.2 futex系统调用
+        int futex (int *uaddr, int op, int val, const struct timespec *timeout,int *uaddr2, int val3);
+        #define __NR_futex              240
+        op 存放着操作类型。定义的有 5 种，这里我简单的介绍一下两种:
+            * FUTEX_WAIT：原子性的检查 uaddr 中计数器的值是否为 val，如果是则让进程休眠，
+              直到 FUTEX_WAKE 或者超时（time-out）。也就是把进程挂到 uaddr 相对应的等待队列上去.
+            * FUTEX_WAKE：最多唤醒 val 个等待在 uaddr 上进程
+        可见 FUTEX_WAIT 和 FUTEX_WAKE 只是用来挂起或者唤醒进程，当然这部分工作也只能在内核态下完成。
+    2. futex的原子性加减通常是用 CAS（Compare and Swap）完成的,与平台相关
+       CAS的基本形式是：CAS（addr、old、new），当 addr 中存放的值等于 old 时，用 new 对其替换。
+       在 x86 平台上有专门的一条指令来完成它：cmpxchg
+    3. 小结
+        * Futex 变量的特征：1）位于共享的用户空间中；2）是一个32位的整型；3）对它的操作是原子的。
+        * Futex 在程序 low-contention 的时候能获得比传统同步机制更好的性能。
+        * 不要直接使用 Futex 系统调用。
+        * Futex 同步机制可以用于进程间同步，也可以用于线程间同步。
+### cache与memory同步
+### MESI(缓存一致性协议)
+    是以缓存行（缓存的基本数据单位，在 Intel 的 CPU 上一般是 64 字节）的几个状态来命名的
+    （全名是 Modified、Exclusive、 Share、Invalid）。该协议要求在每个缓存行上维护两个状态位，
+    使得每个数据单位可能处于 M、E、S 和 I 这四种状态之一，各种状态含义如下：
+    M：被修改的。处于这一状态的数据，只在本CPU中有缓存数据，而其他CPU中没有。同时其状态相对于内存中的值来说，
+       是已经被修改的，且没有更新到内存中。
+    E：独占的。处于这一状态的数据，只有在本CPU中有缓存，且其数据没有修改，即与内存中一致。
+    S：共享的。处于这一状态的数据在多个CPU中都有缓存，且与内存一致。
+    I：无效的。本CPU中的这份缓存已经无效。
+### DMA与cache同步
+### write through映射
+### noncache映射
+### register,write buffer,cache,mem数据同步
+### 多核中MMU与TLB
+#### 每个cpu都有自己的MMU和TLB
+#### 每个进程都有自己的PAGE TABLE
+#### 多核中数据一致性
+##### 多核中cache一致性
+##### 多核中memory一致性
+### cache是使用VA还是PA
+#### cache同时使用VA的低位和MMU将VA的高位转换成的TAG来查找
+#### 准确的讲cache使用的时PA
+#### cpu会同时将VA给到MMU和cache
+### 指令流水
+#### 指令乱序执行
+##### 执行乱序
+    如果前一条指令访问memory时可能需要等多个cycles才能执行完成，这是就会执行下一条指令，导致乱序.
+    相邻俩条访存指令，如果第一条要访问的数据在memory中，第二条要访问的数据在cache中，那么第二条指令会先执行完成，导致乱序.
+##### 编译乱序
+#### 内存屏障
+### 多核cache一致性
+    在一台 PC 上只有一个 CPU 和一份内部缓存，那么所有进程和线程看到的数据都是缓存里的数据，不会存在问题；
+    但现在服务器通常是多 CPU，更普遍的是，每块 CPU 里有多个内核，而每个内核都维护了自己的缓存，
+    那么这时候多线程并发就会存在缓存不一致性，这会导致严重问题。
+#### 解决方案
+##### 总线锁机制
+    1. 前端总线（也叫CPU总线）是所有CPU与芯片组连接的主干道，负责CPU与外界所有部件的通信，
+       包括高速缓存、内存、北桥。其控制总线向各个部件发送控制信号、通过地址总线发送地址信号指定
+       其要访问的部件、通过数据总线双向传输数据。在 CPU1 要做 i++ 操作的时候，其在总线上发出
+       一个 LOCK# 信号，其他处理器就不能操作缓存了该共享变量内存地址的缓存，也就是阻塞了其他CPU，
+       使该处理器可以独享此共享内存。
+    2. 但我们只需要对此共享变量的操作是原子就可以了，而总线锁定把CPU和内存的通信给锁住了，使得在锁定期间，
+       其他处理器不能操作其他内存地址的数据，从而开销较大，所以后来的 CPU 都提供了缓存一致性机制，
+       Intel 的奔腾 486 之后就提供了这种优化。
+##### 缓存一致性
+    缓存一致性机制就整体来说，是当某块 CPU 对缓存中的数据进行操作了之后，就通知其他 CPU 放弃储存在它们内部的缓存，
+    或者从主内存中重新读取，用MESI阐述原理如下:
+    MESI协议：是以缓存行（缓存的基本数据单位，在 Intel 的 CPU 上一般是 64 字节）的几个状态来命名的
+    （全名是 Modified、Exclusive、 Share、Invalid）。该协议要求在每个缓存行上维护两个状态位，
+    使得每个数据单位可能处于 M、E、S 和 I 这四种状态之
 
 ## 字节序:
 ### 大小端:
@@ -3813,3 +4124,23 @@
     source一下,就可以用TAB键补全了.
 ### goldendict开机自启动
     使用gnome-session-properties工具添加
+### printk/printf/logMsg
+    问题:
+        1. 如何做到多线程同时打印log时，log不错乱；
+        2. 打印log时，允不允许休眠，允许休眠就不能在中断上下文中使用；
+        3. 串口速率很慢，如何实现快速打印，如何实现非阻塞打印；
+        4. 打印时是否需要关抢占；
+    1. printk
+        1.1 printk使用print_buf and log_buf;
+        1.2 在register_console之前,将log存放在log_buf中，注册之后一次性输出；
+        1.3 多线程调用printk时，后调线程会获取console_lock失败，将log存放到log_buf之后，立即返回，
+            先调线程在返回前将log_buf输出干净；
+        1.4 vprintk_emit在返回前，调用wake_up_klogd()，唤醒用户klogd守护进程，将log_buf中新log取走；
+        1.5 printk不会休眠，所以可以在中断等任何上下文中用；
+    2. printf
+        2.1 printf会将数据送到tty层的发送队列中，并唤醒内核中的发送任务处理线程；
+        2.2 多进程同时printf时，tty层会做互斥机制，用户进程可能会休眠；
+    3. logMsg
+        3.1 logMsg是vxworks的一种log输出方案；
+        3.2 logMsg使用单独的一个task处理打印;
+        3.3 logMsg会将log内容放到message queue中，然后唤醒log task，log task负责输出log；

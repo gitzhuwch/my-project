@@ -38,6 +38,7 @@ set ruler
 set clipboard=unnamed,unnamedplus "*号和+号reg都和系统剪切板关联
 "set cursorline
 "set cursorcolumn
+"set cc=120
 set nowrap
 set completeopt=menu
 syntax enable
@@ -92,7 +93,8 @@ nmap <F2> :!<CR>
 nmap <F3> <Esc><F4><F5>
 imap <F3> <Esc><F4><F5>
 "Add an extra <CR> to the shortcut using as confirming when quit
-nmap <F4> :wa<CR>:!~/bin/vim.pro/vim-make<CR><CR>
+"nmap <F4> :wa<CR>:!~/bin/vim.pro/vim-make<CR><CR>
+nmap <F4> :wa<CR>:!~/bin/vim.pro/vim-make<CR>
 nmap <F5> :!~/bin/vim.pro/vim-debug<CR><CR>
 nmap <F8> M:call Myfunc()<CR>:%s/\s\+$//ge<CR>:wa<CR>
 function! Myfunc()
