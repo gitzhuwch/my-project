@@ -223,6 +223,19 @@
 ### html convert to pdf
     sudo apt install -y wkhtmltopdf
     wkhtmltopdf xxx.html yyy.pdf
+### vim marks
+    1. add mark
+    normal mode: ma(add a mark named a)
+    2. jump mark line head
+    normal mode: 'a
+    3. jump mark column
+    normal mode: `a
+    4. show all marks
+    command mode: marks
+    5. delete marks a b c
+    command mode: delmarks a b c
+    6. delete all marks
+    command mode: delmarks!
 
 ## markdown
 ### syntax
