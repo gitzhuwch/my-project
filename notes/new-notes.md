@@ -48,6 +48,11 @@
     :autocmd! 可以删除所有自动命令,此操作也将删除插件所定义的自动命令
     如果我们针对同样的文件和同样的事件定义了多条自动命令，那么当满足触发条件时将分别执行多条自动命令。
     因此，建议在自动命令组的开头增加:autocmd!命令，以确保没有重复的自动命令存在。
+## 粘贴模式下粘贴代码注释换行不缩进
+    取消
+    :set paste
+    恢复
+    :set paste!
 
 # toolchain
 ## hex file formats
@@ -449,6 +454,9 @@
     HVL --> Hardware Verification language --> Used to Functionally verify the digital logic designed using a HDL Eg: e, vera, system-C, system-Verilog
     HDL is used for RTL design.
     HVL is used for RTL Verification(Random Verification).
+### 打印文件名和行号
+    `__FILE__, `__LINE__
+    $display("Internal error: null handle at %s, line %d.", `__FILE__, `__LINE__);
 ## verilog仿真器
 ### 解释型仿真器
     解释型仿真器将verilog语言转化成脚本，然后解释执行，生成波形数据
@@ -467,6 +475,18 @@
             -debug_access+*：新版选项，细控制
         2.2 -debug/-debug_all/-debug_pp will enable UCLI/GUI debugging
     3. 编译完成后，默认生成simv ELF文件
+    4. 宏定义，可以加载vcs命令行中，也可以加载filelist中
+      4.1 commandline 中加宏定义
+      eg:
+        vcs [args] +define+FEIMA_XPHY_X16_GUC_NEWSEMI_STUB \
+        +define+FEIMA_XPHY_X16_GUC_WRAP_USE_STUB \
+        +define+FEIMA_XPHY_X4_WRAP_USE_STUB \
+      4.2 filelist 中添加宏定义
+      eg:
+        echo "`define FEIMA_XPHY_X16_GUC_NEWSEMI_STUB" >> feima_sim.f
+        echo "`define FEIMA_XPHY_X16_GUC_WRAP_USE_STUB" >> feima_sim.f
+        echo "`define FEIMA_XPHY_X4_WRAP_USE_STUB" >> feima_sim.f
+        vcs -f feima_sim.f [args]
 ##### 仿真
     1. 一般design flow是:编辑-编译-run(simulation)-dbg(wave view). 其中run过程一般不需要交互，也不需要单步调试的，
     但是，vcs提供了UCLI/GUI交互式debug功能，在需要单步debug时非常有用.
