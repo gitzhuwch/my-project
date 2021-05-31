@@ -180,7 +180,55 @@
         } reg;
         uint32_t all;
         } SGR5UartComps_t;
-
+# arm regsters
+    * r0 to  r13 are orthogonal general purpose register.
+    * R13 (stack pointer) and stores the top of the stack in the current processor mode.
+    * R14(LR) Link Register where the core puts the return address on executing a subroutine.
+    * R15(PC) Program counter stores the address of next instruction to be executed.
+    * CPSR: Current Processor Status Register
+      bit[4:0] Mode bits(0x12 = IRQ mode)
+      bit[5] thumb state bit
+      bit[6] F- Fast interrupt request Disable	 If set fast interrupt request channel is disabled
+      bit[7] I- Interrupt request Disable	If set interrupt request channel is disabled
+      bit[8] A- Disables imprecise data aborts when it is set
+      bit[9] E-
+      bit[23:10] reserved
+      bit[24] jazelle state bit
+      bit[26:25] reserved
+      bit[27] sticky overflow
+      bit[28] overflow
+      bit[29] carry/borrow/extend
+      bit[30] zero
+      bit[31] negative/less than
+    * SPSR: Save Program Status Register
+      Suppose Processor is in USER mode of operation and if IRQ request arrives then processor has
+      to switch itself to IRQ mode of operation but at the same after serving IRQ mode processor
+      should return to USER mode and should resume its working.
+      So current processor status is copied into SPSR from CPSR in order to resume back.
+# linux/freertos最小系统
+## 最小系统应具备条件
+### clock
+### timer
+### interrupt
+## vcs调试最小系统
+    最近再搞一个，vcs下跑一个最小os，废了些周折，总结一下.
+    rtl环境说明:
+        tube.v:
+            用来检测0x2e2ffffc地址，若cpu往这个地址写可显示字符，就将这个字符用$display()/$write()打印出来;
+            若写入0xf0，就调用$stop()停止仿真.
+    cpu代码环境:
+        head.S:
+            1. 程序的最开头是异常向量表，cpu进入exception时，就根据不同的exception type，跳到该处+相应的offset；
+               其中offset=0x18是外设中断入口。异常向量表，每一项占4Byte，存放的是一条跳转指令，跳转到具体的处理函数；
+               当来外设中断后，cpu会disable cpsr的i位，就是关闭cpu的中断总开关，然后取offset=0x18处的指令执行，这是一条
+               跳转指令，跳转后，第一件事情是保存现场，然后调用下一级处理函数(在这里要清相应外设的中断位，否则会一直触发),
+               回来后恢复现场(这里的栈是中断特有的栈)
+            2. disable cpsr的a/i/f位
+            3. 初始化cpu各种mode下的stack基址，比如进入IRQ mode, 如果没有配置stack，cpu就hang住了(这里踩过坑，
+               具体什么原因不清楚)，事先把IRQ mode的stack配置好，就可以正常跑了.
+            4. 初始化pll/clock
+            5. branch到main函数
+        main.c:
 # info and man
     info 来自自由软件基金会的 GNU 项目，是 GNU 的超文本帮助系统，能够更完整的显示出 GNU 信息。所以得到的信息当然更多
     man 和 info 就像两个集合，它们有一个交集部分，但与 man 相比，info 工具可显示更完整的　GNU　工具信息。若 man 页包
