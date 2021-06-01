@@ -182,7 +182,7 @@
         } SGR5UartComps_t;
 # arm regsters
     * r0 to  r13 are orthogonal general purpose register.
-    * R13 (stack pointer) and stores the top of the stack in the current processor mode.
+    * R13(stack pointer) and stores the top of the stack in the current processor mode.
     * R14(LR) Link Register where the core puts the return address on executing a subroutine.
     * R15(PC) Program counter stores the address of next instruction to be executed.
     * CPSR: Current Processor Status Register
@@ -447,6 +447,40 @@
        File -- >Create/Update ---> Create Symbol Files for Current file
 
 ##verilog
+### module
+### port
+    端口是一组信号， 用作特定模块的输入和输出， 并且是与之通信的主要方式
+### parameter
+    1.参数传递方法1
+        module trans
+        #(parameter para1=50,para2=80)
+        (
+        input   clk,
+        input	rst_n
+        );
+        endmodule
+        //例化传参
+        trans trans
+        #(.para1(20),.para2(30))
+        (
+        . clk(clk),
+        . rst_n(rst_n)
+        );
+    2.参数传递方法2
+        module trans(
+        input   clk,
+        input	rst_n
+        );
+        parameter para1=50,para2=80;
+        endmodule
+        defparam  trans.para1=20;
+        defparam  trans.para2=30;
+    3.参数传递方法3
+        宏定义传参，必须包含头文件
+        #define   para1  30
+### task
+### function
+### for
 ### 仿真原理
     1. 通过strace vvp和gdb vvp，发现仿真跑起来后，只有一个主线程；并且git clone iverilog的源码，发现vvp中的
        线程的概念不是linux线程的概念；vvp中创建线程是这样的:
@@ -485,18 +519,72 @@
        }
     2. initial,always语句会创建线程
     3. iverilog -pfileline=1 counter.v能将源码嵌入到输出文件中，便于理解verilog编译前后的区别
-### 位拼接
+### {}迭代连接运算符
+    连接功能：将若干个寄存器类型/线网类型的变量首尾连接，形成一个更大位宽的变量；
+    如：
+        a = 2'b10;
+        b = 3'b010;
+       有{a,b} = 5'b10010;
+    迭代功能：把一个变量复制多次，首尾连接组成一个更大位宽的变量；（实际仍为连接功能的一个特例：连接元素相同）
+    如：
+       a = 2'b10;
+       有{4{a}}，即{a,a,a,a}
+    注意：
+    要保证迭代的完整性：{ {4{a}}，b}   （{4{a}}为迭代功能，括号不能少；即不能写为{ 4{a}，b} ）
+    迭代连接运算符还可用于常量操作：{ {4{1'b1}}，2'b10}
+### 逻辑操作符
+    逻辑与 &&
+    逻辑或 ||
+    逻辑非 ！
+### 位操作符
+    一元非 ~
+    二元与 &
+    二元或 |
+    二元异或 ^
+### 归约操作符/缩位运算符（单目运算符）
+    与归约 &
+    或归约 |
+    异或归约 ^
+### 逻辑移位运算符与数字移位运算符
+    列举：
+        << 逻辑左移运算符；<<< 数字左移运算符；
+        >> 逻辑右移运算符；>>> 数字右移运算符；
+    区别：
+        逻辑移位运算符不关心符号位；逻辑左移右端补零，逻辑右移左端补零；
+        数字左移位运算符不关心符号位，与逻辑左移一样；数字右移运算符关心符号位，左端补符号位；
 ### sv中CpuRead/CpuWrite实现
     svExecuteMan("cpu", "cpu_cmd", pktload, pktloads, NULL);
-    task execute_man (....);自己实现一个task，在这个task中完成
+    task execute_man (....);自己实现一个task，在这个task中完成;
     最终，通过调用例化的axi或mem实例来完成
 ### display与io_printf区别
     display用在module中
     io_printf用在task/func/program中?只能在sv中用?
     you can use the io_printf function to get some diagnostics from your C code on to the simulator console
-### R5跑的程序怎么和sv-vip通信
+### CPU吐log,仿真器接收并打印
+    DV/DE都是通过实现一个module，来不停地检测某个地址，来实现打印的
+#### DV实现的方式
+    R5跑的程序怎么和sv-vip通信
     R5访问的sram是通过sv例化的，在这个例化的sram中，找一块空间,当共享内存来与sv通信。
     sv中可以直接调用sram实例
+#### DE实现的方式
+    实现一个tube module，由一个always块调用一个task tubewrite，task tubewrite中调用$display()系统函数来打印；
+    tube module例化:
+        Tube u_tube
+        (
+        //outputs
+        .HRDATA  ( ),
+        .HREADY  ( ),
+        .HRESP   ( ),
+        //inputs
+        .HCLK    ( `NOC_SUBSYS_HIE.i_ahb_clk),
+        .HCLKEN  ( 1'b1),
+        .HSEL    ( `NOC_SUBSYS_HIE.ecm_HSel &&
+                   `NOC_SUBSYS_HIE.expf_HWrite &&
+                  (`NOC_SUBSYS_HIE.expf_HAddr == 32'h2e2f_fffc)), // CPU只有往这个地址write data,tube才会print
+        .HWRITE  ( `NOC_SUBSYS_HIE.expf_HWrite),
+        .HTRANS  ( `NOC_SUBSYS_HIE.expf_HTrans[1:0]),
+        .HWDATA  ( `NOC_SUBSYS_HIE.expf_HWData[31:0])
+        );
 ### HDL vs HVL
     HDL --> Hardware description language --> Used to design digital logic Eg: VHDL, Verilog
     HVL --> Hardware Verification language --> Used to Functionally verify the digital logic designed using a HDL Eg: e, vera, system-C, system-Verilog

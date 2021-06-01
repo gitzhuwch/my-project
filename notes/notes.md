@@ -1667,8 +1667,15 @@
         echo -en "\e[?7h\e[3;1H\e[maaaaaaaaaaaaaaaaabbbbbbbbbbccddfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffddddddddddddddddddhhhhhhhhhhhhjjjjjjj\r\n\e[94m" > /dev/pts/0
     这种wrap是由终端模拟器完成的
 ### stty/tty工具
-    1,  tty:显示当前终端设备文件
+#### tty
+    显示当前终端设备文件
 #### stty常见的TTY配置
+    参数前加'-'表示取消，不加'-'表示设置
+##### getc不需要回车就能返回
+    1. 使用select
+    2. stty -icanon //一完整读入
+    3. stty cbreak
+    4. stty raw
 ##### 怎么禁止换行
     1,  好像不行.用转义控制序列可实现
     2,  systemctl -l --no-pager status xx.service
