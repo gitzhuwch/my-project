@@ -53,7 +53,7 @@
     :set paste
     恢复
     :set paste!
-
+## vim verilog plugin
 # toolchain
 ## hex file formats
     ihex
@@ -346,7 +346,8 @@
 ## od
     很少用
 # shell
-    1. 单引号直接输出后面的字符串，而双引号可以引入变量
+## 'and"(单引号/双引号)
+    单引号直接输出后面的字符串，而双引号可以引入变量
 # sed(stream editor)
 # TCL(tool command language)
     1. 类似bash build-in command; 也类似uboot中的cmdline原理
@@ -360,7 +361,7 @@
        通过交互界面，我们就可以象执行UNIX shell命令一样，逐条命令执行，并即时得到执行结果。
     8. 以;或换行分隔命令
     9. 大多数EDA(vcs,verdi,velrun)工具都集成TCL功能,可以添加内建命令，可以将多条命令写到脚本中，执行脚本进行批处理
-# 参数长选项/短选项
+# 参数长选项和短选项
     1. -sh == -s -h(short option)
     2. --sh == --sh(long option)
 # hardware design
@@ -426,7 +427,6 @@
     仿真程序通常采用基于事件的仿真架构,这些事件响应函数模拟硬件电路的行为 ，并且产生了新的事件
     通过“读出第一个事件-响应事件-插入新事件”的循环 ， 事件队列可以一直运行下去 ， 直到事件队列为空或者达到了仿真结束的时间
     在仿真开始的时候 ， 必须向事件队列中插入起始事件 ， 从而开始仿真循环
-## vim verilog plugin
 ## RTL生成原理图(后仿)
     Vivado可以查看综合或者布局布线后的原理图
     也可以在完成 RTL 编码后查看 RTL 分析 （RTL ANALYSIS） 的原理图
@@ -445,8 +445,70 @@
        Tools --> Netlist Viewers ----> RTL Viewer
     2. 框图的生成为:
        File -- >Create/Update ---> Create Symbol Files for Current file
-
-##verilog
+## PLI和DPI
+### PLI
+    1. PLI1.0
+        1.1 TF(task/function) interface
+        1.2 ACC(access) interface
+    2. PLI2.0
+        VPI(Verilog Procedural Interface)
+    PLI1.0 已经在IEEE 1364-2005(IEEE 1364就是verilog std)中被删除。
+### DPI
+    1. PLI很强大，几乎无所不能，那么为什么在2003年的时候，会出现一个叫DPI的家伙呢？
+        1.1 写PLI例程，是件痛苦的事情，不仅需要好几个步骤，更让人头痛的是PLI三个库中提供的一大堆难记的标准例程名字。
+        写完了，还必须再用checktf例程，calltf例程包一层，才能在verilog中调用。
+        1.2 另外一个问题， 就是谁来负责写这些PLI例程，通常情况下，不管是设计者还是验证人员通常都不需要了解
+        仿真器生成的verilog数据结构。我们只是使用者，不是生产者.
+        1.3 编写PLI应用程序很难
+            * 必须学习奇怪的PLI术语
+            * 必须了解PLI库中的内容
+            * 必须创建checktf例程，calltf例程等
+        1.4 将PLI应用程序链接到仿真器很难
+            * 涉及多个步骤
+            * 每个仿真器都不同
+            * 谁链接…
+                * 设计工程师？
+                * EDA工具管理员？
+            * 管理多个PLI应用程序很困难
+            * PLI代码很少与二进制兼容
+            * 必须为每个仿真器重新编译
+        综上所述，PLI有以上痛点，它严重阻碍着设计者和验证者使用更高级的语言来加强verilog语言的功力，
+        尤其是日益复杂的设计和验证工作迫切需要一种新的编程语言接口，为我们提供强大的生产力的时候。
+    2. DPI横空出世
+            在2003年IEEE 1800 SV LRM 3.1a中提出了一种直接的编程语言接口DPI。
+        SystemVerilog DPI（直接编程接口）是将SystemVerilog与外部语言连接的一个接口。
+        理论上外部语言可以是C，C ++，SystemC以及其他语言。
+        但是，现在，SystemVerilog仅为C语言定义了一个外部语言层。
+            DPI标准源自两个专有接口，一个来自Synopsys公司的VCS DirectC接口，
+        另一个是来自Co-Design公司（已被Synopsys公司收购）的SystemSim Cblend接口。
+        这两个专有接口起初是为他们各自的仿真器专门开发的， 而不是一个能够工作在任何仿真器上的标准。
+        后来Synopsys公司将这两个技术捐献给了Accellera组织，Accellera的SystemVerilog标准委员会把这两个捐献技术合并在一起，
+        并定义了DPI接口的语义，使得DPI能够与任何Verilog仿真器一起工作。
+            DPI标准源自两个专有接口，一个来自Synopsys公司的VCS DirectC接口，
+        另一个是来自Co-Design公司（已被Synopsys公司收购）的SystemSim Cblend接口。
+### PLI和DPI两者之间的关系
+    DPI绝不是PLI（或VPI）的替代品。相反，他们的角色是互补的。 PLI和VPI将来会继续存在并蓬勃发展，这主要有两个原因。
+    1. PLI和VPI是经过时间考验的方法确保了对仿真器数据库的保护。
+    PLI和VPI将继续提供访问设计数据的安全机制，同时保持仿真器数据库的完整性。
+    2. 对于许多人来说，PLI在未来几年仍将是首选接口语言。有许多应用程序使用PLI和VPI编写。将维护这些遗留应用程序，
+    创建新的附加组件，并且将出现全新的应用程序 - 全部使用PLI和VPI。在Accellera决定对整个SystemVerilog语言提供完整的VPI支持时，
+    PLI也就证明了其顽强的生命力。你熟悉和喜爱的VPI方法现在将适用于SystemVerilog的整个对象集。
+    3. 所以我们同时需要Verilog PLI和SystemVerilog DPI
+    * 使用PLI
+    * 访问仿真数据结构中任何位置的任何对象
+    * 同步到仿真事件队列
+    * 阻塞赋值，非阻塞赋值等
+    * 与仿真事件同步
+    * 仿真的开始，停止，完成，保存，重启，复位等
+## verilog and system verilog
+### difference between Verilog and SystemVerilog
+    1. Verilog is a Hardware Description Language, while SystemVerilog is a Hardware
+        Description and Hardware Verification Language based on Verilog.
+    2. Hardware Description Language (HDL) is a computer language that is used to describe
+        the structure and behaviour of electronic circuits. Hardware Verification Language is
+        a programming language that is used to verify the electronic circuits written in a Hardware
+        Description Language. Verilog is an HDL while SystemVerilog is an HDL as well as HVL.
+        Overall, SystemVerilog is a superset of Verilog.
 ### module
 ### port
     端口是一组信号， 用作特定模块的输入和输出， 并且是与之通信的主要方式
@@ -585,14 +647,27 @@
         .HTRANS  ( `NOC_SUBSYS_HIE.expf_HTrans[1:0]),
         .HWDATA  ( `NOC_SUBSYS_HIE.expf_HWData[31:0])
         );
-### HDL vs HVL
+### HDL and HVL
     HDL --> Hardware description language --> Used to design digital logic Eg: VHDL, Verilog
-    HVL --> Hardware Verification language --> Used to Functionally verify the digital logic designed using a HDL Eg: e, vera, system-C, system-Verilog
+    HVL --> Hardware Verification language --> Used to Functionally verify the digital
+        logic designed using a HDL Eg: e, vera, system-C, system-Verilog
     HDL is used for RTL design.
     HVL is used for RTL Verification(Random Verification).
 ### 打印文件名和行号
     `__FILE__, `__LINE__
     $display("Internal error: null handle at %s, line %d.", `__FILE__, `__LINE__);
+### testbench
+### VIP
+    Verification IP (VIP) blocks are inserted into the testbench for a design to check
+    the operation of protocols and interfaces, both discretely and in combination
+### sv/svh files
+    .sv 文件与.svh文件没有本质区别。通常，需要被include 到package的文件定义为.svh类型， 其他的文件定义为.sv类型。
+    .svh后缀的文件即systemverilog include文件。
+    Class templates that are declared within the scope of a package should be separated out into individual
+    files with a .svh extension. These files should be included in the package in the order in which they
+    need to be compiled. The package file is the only place where includes should be used, there should be
+    no further `include statements inside the included files. Justification: Having the classes declared in
+    separate files makes them easier to maintain, and it also makes it clearer what the package content is.
 ## verilog仿真器
 ### 解释型仿真器
     解释型仿真器将verilog语言转化成脚本，然后解释执行，生成波形数据
@@ -600,9 +675,25 @@
 ### 编译型仿真器
     编译型仿真器将verilog语言转化成c/c++语言，然后用gcc/g++编译，生成elf文件，最后运行生成波形数据
 #### vcs
-    1. vcs是一个shell脚本文件，由/bin/sh解释执行
-    2. vcs -h //查看帮助信息
 ##### 编译
+    1. vcs是一个shell脚本文件，由/bin/sh解释执行, 会调/tools/sysnopsys/vcs-mx/2018.09-sp2/linux/bin/vcs1,
+       vcs1是一个ELF可执行文件
+    2. vcs -h //查看帮助信息
+###### vcs -V
+    enables the verbose mode
+    这个选项打开，可以看到vcs编译的细节
+###### c/c++/sv/v混合编译
+###### 增量编译
+###### VCS动态加载PLI shared lib，
+　　1)在VCS编译时，加入-P pli.tab等指定。
+　　2)在runtime时，每个lib加load选项，simv -load ./pli1.so -load ./pli2.so
+###### 动态链接
+###### -top
+    -top xxxx 不在top下各层的例化的文件,就算编译有错也不会停下编译
+    在最后一步 vcs elaboration中需要指定top file
+###### 预编译宏定义
+    +define+macro=value+
+###### other options
     1. vcs -f  xx.f -R -debug_all -ucli
         1.1 -R表示编译完成后，立即运行
         1.2 -ucli实际上是传给simv的，是运行时的参数,不是编译参数
@@ -623,6 +714,8 @@
         echo "`define FEIMA_XPHY_X16_GUC_WRAP_USE_STUB" >> feima_sim.f
         echo "`define FEIMA_XPHY_X4_WRAP_USE_STUB" >> feima_sim.f
         vcs -f feima_sim.f [args]
+    5. -y <dir> add search path
+    6. +libext.+v search file's extern name
 ##### 仿真
     1. 一般design flow是:编辑-编译-run(simulation)-dbg(wave view). 其中run过程一般不需要交互，也不需要单步调试的，
     但是，vcs提供了UCLI/GUI交互式debug功能，在需要单步debug时非常有用.
@@ -642,17 +735,31 @@
         交互命令:
             * help //显示帮助信息
             * command -h //显示command的help info
-            * stop -line num -file /path/filename //在filename:num处加断点
-            * run //运行到断点处停下来
             * stack //显示调用栈,跟踪调用流程很有用
             * get var // display var value
             * finish //结束仿真
+            * show 显示当前顶层模块的信号以及子模块
+            * show 信号 –value -radix hex/bin/dec 显示信号的值 以特定的进制显示
             * show -h // display show help infomation
             * show -nid(hierarchical path name)
             * show -id(id=instances/scopes/signals...) //能查看当前scope中的instances，这样就可以用scope <instance>进行层级切换了
-            * scope //change hierarchy
+            * scope 显示当前的顶层模块
+            * scope u1 就表示进入到当前顶层模块的u1模块，同时将u1模块设置为顶层模块
+            * scope –up 回到目前顶层模块的上一层
+            * stop 显示断点
+            * stop -line num -file /path/filename //在filename:num处加断点
+            * stop –posedge 信号 在信号的上升沿设置断点
+            * stop -negedge 信号 在信号的下降沿设置断点
+            * stop -condition {信号表达式} 信号表达式为真的地方设置断点
+            * stop -delete 断点值 删除断点值的断点
+            * run 一直运行，直到遇到$stop或者设置的断点
+            * run time 运行多少时间停止（不推荐）
+            * run -posedge 信号 运行到信号的上升沿停止
+            * run -negedge 信号 运行到信号的下降沿停止
+            * run -change 信号 信号有变化时停止
+            * restart 重新开启ucli调试模式
     2. DVE/VERDI(GUI interface)
-        DVE and VERDI是基于gui的交互工具，可查看波形
+        DVE(Discovery Visual Environment) and VERDI是基于gui的交互工具，可查看波形
         前提:
             编译时加:-deubg/-debug_all/-debug_pp/-debug_access+all/-kdb
         先运行simv,再启动gui:
@@ -693,9 +800,12 @@
         右边一列(Module):   是左边实例对应的类型名，在类型中是不能添加波形的，因为它没有实例化
     3. Drive/Load按钮
         可以看一个信号由哪些信号驱动的，和有哪些负载
+##### VCS/VCS_MX
+    VCS_MX为mixed hdl仿真器，支持vhdl+verilog+sv的混合仿真。vcs则是纯verilog的。
+    当然，目前vcs也是有sv支持的。它们在feature上唯一的区别在于对vhdl的支持。
 ## 各种波形文件
     https://blog.csdn.net/limanjihe/article/details/49910779
-### VCD （Value Change Dump）
+### VCD(Value Change Dump)
     是一个通用的格式。 VCD文件是IEEE1364标准(Verilog HDL语言标准)中定义的一种ASCII文件。
     它主要包含了头信息，变量的预定义和变量值的变化信息。
     因为VCD是 Verilog HDL语言标准的一部分，因此所有的verilog的仿真器都能够查看该文件，允许用户在verilog代码中通过系统函数来dump VCD文件。
@@ -710,7 +820,7 @@
     正是因为VCD记录了信号的完整变化信息，我们还可以通过VCD文件来估计设计的功耗，
     而这一点也是其他波形文件所不具备的。 Encounter 和 PrimeTime PX （Prime Power）都可以通过输入网表文件，
     带功耗信息的库文件以及仿真后产生的VCD文件来实现功耗分析。
-### FSDB (Fast Signal DataBase)
+### FSDB(Fast Signal DataBase)
     Spring Soft （Novas）公司 Debussy / Verdi 支持的波形文件，一般较小，使用较为广泛，
     其余仿真工具如ncsim，modlesim 等可以通过加载Verdi 的PLI （一般位于安装目录下的share/pli 目录下）
     而直接dump fsdb文件。 fsdb文件是verdi使用一种专用的数据格式，类似于VCD，但是它是只提出了仿真过程中信号的有用信息，
@@ -723,17 +833,17 @@
         $fsdbDumpfile("*.fsdb");  //*代表生成的fsdb的文件名
         $fsdbDumpvars(0,**);    //**代表测试文件名
         end
-### WLF (Wave Log File)
+### WLF(Wave Log File)
     Mentor Graphics 公司Modelsim支持的波形文件。
     在modelsim波形窗口观察波形时，仿真结束时都会生成一个*.wlf的文件(默认是vsim.wlf)，可以用modelsim直接打开，命令如下：
     vsim -view vsim.wlf -do run.do
     其中，run.do中的内容为要查看的波形信号。
     这个wlf文件只能由modelsim来生成，也只能通过modelsim来显示。不是一个通用的文件格式。
-### shm
+### SHM
     Cadence公司 NC verilog 和Simvision支持的波形文件，实际上 .shm是一个目录，其中包含了.dsn和.trn两个文件。
     使用NC Verilog 对同一testcase和相同dump波形条件的比较，产生shm文件的时间最短（废话，本来就是一个公司的），
     产生vcd文件的时间数倍于产生shm和 fsdb的时间。在笔者测试的例子中，产生的fsdb文件为十几MB，shm文件为几十MB，而vcd文件则要几个GB的大小。
-### vpd
+### VPD(vcd plus dump)
     Synopsys公司 VCS DVE支持的波形文件，可以用$vcdpluson产生。
 ### 其余波形文件
     就是各家不同的仿真或调试工具支持的文件类型，互不通用，但基本都可以由VCD文件转换而来
@@ -792,3 +902,11 @@
     结论:
         当无符号char型a和b之间的距离超过无符号char型所能表示最大数的一半时(即:128),
         b-a就不大于零，就不能解决回绕
+## Difference Between AHB and AXI
+    1. AHB is Advanced High-performance Bus and AXI is Advanced eXtensible Interface.
+    2. When the Advanced High-performance Bus is a single channel Bus, the Advanced eXtensible Interface is a multi- channel Bus.
+    3. In AHB, each of the bus masters will connect to a single-channel shared bus. On the other hand, the bus master in AXI will connect to a Read data channel, Read address channel, Write data channel, Write address channel and Write response channel.
+    4. The AHB is also a shared Bus whereas the AXI is a read/write optimized bus.
+    5. Bus latencies in AHB starts lower than the AXI.
+    6. The Advanced eXtensible Interface uses around 50 per cent more power, which means that AHB has an edge over it.
+    7. AHB Bus utilization is higher than AXI utilization
