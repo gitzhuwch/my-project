@@ -166,10 +166,10 @@
 ## info gcc
 
 # arm instruction set
-    bfi
-        Bitfield Insert copies a bitfield of <width> bits from the least significant bits of the source register
-        to bit position <lsb> of the destinationregister, leaving the other destination bits unchanged
-        BFI <Wd>, <Wn>, #<lsb>, #<width>
+## bfi
+    Bitfield Insert copies a bitfield of <width> bits from the least significant bits of the source register
+    to bit position <lsb> of the destinationregister, leaving the other destination bits unchanged
+    BFI <Wd>, <Wn>, #<lsb>, #<width>
     当操作结构体位域时，会自动生成bfi类似指令，该指令效率很高，建议以后驱动中使用结构体位域格式化寄存器.
     注意:为避免出错，如果是32位架构，结构体中所有成员使用unsigned int型
         typedef union {
@@ -180,6 +180,10 @@
         } reg;
         uint32_t all;
         } SGR5UartComps_t;
+## DSB/ISB/DMB
+    1. DSB:数据同步屏障是一种特殊类型的内存屏障。 只有当此指令执行完毕后，才会执行程序中位于此指令后的指令.
+    2. ISB:指令同步屏障可刷新处理器中的管道，因此可确保在 ISB 指令完成后，才从高速缓存或内存中提取位于该指令后的其他所有指令.
+    3. DMB:数据同步屏障是一种特殊类型的内存屏障。 只有当此指令执行完毕后，才会执行程序中位于此指令后的指令.
 # arm regsters
     * r0 to  r13 are orthogonal general purpose register.
     * R13(stack pointer) and stores the top of the stack in the current processor mode.
@@ -316,7 +320,7 @@
     虽然后台数据库（backend）可以是多种多样，但LDAP协议还规定了数据的存储方式。LDAP数据库是树状结构的，与DNS类似，
 ### openldap
     是LDAP协议的实现，是一款开源应用
-## 单点登录（Single Sign On）
+## 单点登录(Single Sign On)
     简称为 SSO，是比较流行的企业业务整合的解决方案之一。SSO的定义是在多个应用系统中，用户只需要登录一次就可以访问所有相互信任的应用系统。
 ## AD(active directory)
     目录是一类为了浏览和搜索数据而设计的特殊的数据库。例如，为人所熟知的微软公司的活动目录（active directory)就是目录数据库的一种。
