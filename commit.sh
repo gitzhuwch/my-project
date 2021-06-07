@@ -7,6 +7,6 @@ git commit -m "fixed"
 
 # while true; do git push github; if [ $? == 0 ]; then break; fi; done
 
-git push --force-with-lease https://gitee.com/gitzhuwch/my-project master:master
+git push --set-upstream https://gitee.com/gitzhuwch/my-project master:master
 
-while true; do git push --force-with-lease https://github.com/gitzhuwch/my-project master:master; if [ $? == 0 ]; then break; fi; done
+while true; do git push --set-upstream https://github.com/gitzhuwch/my-project master:master; if [ $? == 0 ]; then break; fi; done
