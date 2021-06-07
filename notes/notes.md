@@ -755,6 +755,19 @@
             [branch "master"]
                 remote = origin
                 merge = refs/heads/master
+            或者git remote show origin github
+#### git remote show origin
+    git remote show origin
+        * remote origin
+          Fetch URL: https://gitee.com/gitzhuwch/my-project
+          Push  URL: https://gitee.com/gitzhuwch/my-project
+          HEAD branch: master
+          Remote branches:
+            master                            tracked
+            refs/remotes/origin/origin/master stale (use 'git remote prune' to remove) //将这个去掉
+          Local ref configured for 'git push':
+            master pushes to master (up to date)
+    git remote prune origin //就会去掉origin中的stale分支
 ### repo:
     1, sudo apt -y install repo
     2, vim /usr/bin/repo
