@@ -740,6 +740,21 @@
                 160000 commit b440e5b315bb580c6411bcd65cc9c735d0b11b83	test_feima
                 160000 commit 5a3ea17ce9b09cb248060be7f764eab33b72fe54	timer_test
                 160000 commit 5f02e0ed91d29e9175a24cf2028c5e9fa137f015	uart_test
+#### upstream
+    1. stream:溪，河
+    2. upstream:上流，源头，
+    3. git中用upstream比喻一个分支的源头
+    4. 设置一个分支的upstream有以下方式
+        4.1 git branch --set-upstream-to=origin/dev
+        4.2 git branch -u origin/dev
+        4.3 git push -u origin master
+        4.4 git branch -u origin/dev dev //为非当前分支设置dev设置upstream
+        4.5 git branch --unset-upstream //取消当前分支upstream
+        4.6 git branch --unset-upstream <branch-name> //取消指定分支upstream
+        4.7 查看upstream: cat .git/config
+            [branch "master"]
+                remote = origin
+                merge = refs/heads/master
 ### repo:
     1, sudo apt -y install repo
     2, vim /usr/bin/repo
