@@ -184,6 +184,20 @@
     1. DSB:数据同步屏障是一种特殊类型的内存屏障。 只有当此指令执行完毕后，才会执行程序中位于此指令后的指令.
     2. ISB:指令同步屏障可刷新处理器中的管道，因此可确保在 ISB 指令完成后，才从高速缓存或内存中提取位于该指令后的其他所有指令.
     3. DMB:数据同步屏障是一种特殊类型的内存屏障。 只有当此指令执行完毕后，才会执行程序中位于此指令后的指令.
+    指令名      功能描述
+    DMB         数据存储器隔离。DMB 指令保证： 仅当所有在它前面的存储器访问操作都执行完毕后，才提交(commit)在它后面的存储器访问操作。
+    DSB         数据同步隔离。比 DMB 严格： 仅当所有在它前面的存储器访问操作都执行完毕后，才执行在它后面的指令（亦即任何指令都要等待存储器访 问操作——译者注）
+    ISB         指令同步隔离。最严格：它会清洗流水线，以保证所有它前面的指令都执行完毕之后，才执行它后面的指令。ISB 指令看起来似乎最强悍
+## 原子指令
+    1. ldrex/strex //exclusive access instructions; lock address bus
+    2. ARMv8.1平台下新添加原子操作指令
+        加原子操作
+        置位原子操作
+        清除位原子操作
+        异或原子操作
+        比较存储原子操作
+        交换原子操作
+        比较交换原子操作
 # arm regsters
     * r0 to  r13 are orthogonal general purpose register.
     * R13(stack pointer) and stores the top of the stack in the current processor mode.
