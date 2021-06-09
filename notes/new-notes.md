@@ -198,6 +198,12 @@
         比较存储原子操作
         交换原子操作
         比较交换原子操作
+### ldrex/strex独占读写
+    1. ldrex会set monitor exclusive bit，strex会clear, 这个信号不会给到ddr
+    2. 每一个处理器内部都有一个本地监视器（Local Monitor）
+    3. 整个系统范围内还有一个全局监视器（Global Monitor）
+    4. 对于本地监视器来说，它只标记了本处理器对某段内存的独占访问，在调用LDREX指令时设置独占访问标志，在调用STREX指令时清除独占访问标志。
+    5. 更新内存的操作不一定非要是STREX指令，任何其它存储指令都可以。但如果不是STREX的话，则没法保证独占访问性
 # arm regsters
     * r0 to  r13 are orthogonal general purpose register.
     * R13(stack pointer) and stores the top of the stack in the current processor mode.
@@ -247,6 +253,11 @@
             4. 初始化pll/clock
             5. branch到main函数
         main.c:
+# c language
+## 全局变量可不可以定义在可被多个.C文件包含的头文件中
+    1. 可以在不同的C文件中声明同名的全局变量，前提是其中只能有一个C文件中对此变量赋初值
+    2. 可以用引用头文件的方式，也可以用extern关键字，如果用引用头文件方式来引用某个在头文件中声明的全局变理，
+    假定你将那个变写错了，那么在编译期间会报错，如果你用extern方式引用时，假定你犯了同样的错误，那么在编译期间不会报错，而在连接期间报错。
 # info and man
     info 来自自由软件基金会的 GNU 项目，是 GNU 的超文本帮助系统，能够更完整的显示出 GNU 信息。所以得到的信息当然更多
     man 和 info 就像两个集合，它们有一个交集部分，但与 man 相比，info 工具可显示更完整的　GNU　工具信息。若 man 页包
@@ -928,3 +939,54 @@
     5. Bus latencies in AHB starts lower than the AXI.
     6. The Advanced eXtensible Interface uses around 50 per cent more power, which means that AHB has an edge over it.
     7. AHB Bus utilization is higher than AXI utilization
+## uart model.sv
+    module LightUartTransactor
+    (
+    input           clk,
+    input           cts,
+    output reg      rts,
+    input           rxd,
+    output reg      txd,
+    input [31:0]    DBR
+    );
+    localparam CHARACTER_WIDTH = 8;
+    localparam POLLING_INTERVAL = 117;
+    localparam RTS_VALUE = 0;
+    ...
+    bit [15:0]  clocksPerBit = 217; // 25MHz/115200
+    ...
+    // model's tx
+    always begin
+        @(txFlag);
+        @(posedge clk);
+        repeat(pollingInterval - 1) @(posedge clk);
+        txd = txBuffer[0];
+        repeat(clocksPerBit) @(posedge clk);
+        repeat(CHARACTER_WIDTH + 3) begin
+            txBuffer = txBuffer >> 1;
+            txd = txBuffer[0];
+            repeat(clocksPerBit) @(posedge clk);
+        end
+        txLock = 0;
+    end
+    // model's rx
+    initial begin
+        @(posedge clk);
+        rxData = 0;
+        forever begin
+            @(posedge clk);
+            while (rxd != 0) @(posedge clk);
+            // ref clk和采样点之间的关系及调节原理,联想qspi的timing调节原理
+            // 一般在ref/2时刻采样,也可根据需要调节,调节单位为ref clk
+            repeat(clocksPerBit + clocksPerbit / 2) @(posedge clk);
+            rxData[0] = rxd;
+            for (i = 1; i < CHARACTER_WIDTH; i++) begin
+                repeat(clocksPerBit) @(posedge clk);
+                rxData[i] = rxd;
+            end
+            sendRxToXterm(rxData);
+            repeat(clocksPerBit) @(posedge clk);
+        end
+    end
+    ...
+    endmodule
