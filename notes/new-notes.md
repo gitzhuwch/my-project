@@ -165,8 +165,9 @@
 ## info ld
 ## info gcc
 
-# arm instruction set
-## bfi
+#arm architecture
+## arm instruction sets
+### bfi
     Bitfield Insert copies a bitfield of <width> bits from the least significant bits of the source register
     to bit position <lsb> of the destinationregister, leaving the other destination bits unchanged
     BFI <Wd>, <Wn>, #<lsb>, #<width>
@@ -180,7 +181,7 @@
         } reg;
         uint32_t all;
         } SGR5UartComps_t;
-## DSB/ISB/DMB
+### DSB/ISB/DMB
     1. DSB:数据同步屏障是一种特殊类型的内存屏障。 只有当此指令执行完毕后，才会执行程序中位于此指令后的指令.
     2. ISB:指令同步屏障可刷新处理器中的管道，因此可确保在 ISB 指令完成后，才从高速缓存或内存中提取位于该指令后的其他所有指令.
     3. DMB:数据同步屏障是一种特殊类型的内存屏障。 只有当此指令执行完毕后，才会执行程序中位于此指令后的指令.
@@ -188,7 +189,7 @@
     DMB         数据存储器隔离。DMB 指令保证： 仅当所有在它前面的存储器访问操作都执行完毕后，才提交(commit)在它后面的存储器访问操作。
     DSB         数据同步隔离。比 DMB 严格： 仅当所有在它前面的存储器访问操作都执行完毕后，才执行在它后面的指令（亦即任何指令都要等待存储器访 问操作——译者注）
     ISB         指令同步隔离。最严格：它会清洗流水线，以保证所有它前面的指令都执行完毕之后，才执行它后面的指令。ISB 指令看起来似乎最强悍
-## 原子指令
+### 原子指令
     1. ldrex/strex //exclusive access instructions; lock address bus
     2. ARMv8.1平台下新添加原子操作指令
         加原子操作
@@ -198,14 +199,21 @@
         比较存储原子操作
         交换原子操作
         比较交换原子操作
-### ldrex/strex独占读写
+#### ldrex/strex独占读写
     1. ldrex会set monitor exclusive bit，strex会clear, 这个信号不会给到ddr
     2. 每一个处理器内部都有一个本地监视器（Local Monitor）
     3. 整个系统范围内还有一个全局监视器（Global Monitor）
     4. 对于本地监视器来说，它只标记了本处理器对某段内存的独占访问，在调用LDREX指令时设置独占访问标志，在调用STREX指令时清除独占访问标志。
     5. 更新内存的操作不一定非要是STREX指令，任何其它存储指令都可以。但如果不是STREX的话，则没法保证独占访问性
-# arm regsters
-    * r0 to  r13 are orthogonal general purpose register.
+### interrupt return instruction
+    For example, an interrupt handler that wishes to store its return link on the stack might use instructions of
+    the following form at its entry point:
+        SUB R14, R14, #4
+        STMFD SP!, {<other_registers>, R14}
+    and return using the instruction:
+        LDMFD SP!, {<other_registers>, PC}^ //必须加^符号
+## arm regsters
+    * r0 to r12 are orthogonal general purpose register.
     * R13(stack pointer) and stores the top of the stack in the current processor mode.
     * R14(LR) Link Register where the core puts the return address on executing a subroutine.
     * R15(PC) Program counter stores the address of next instruction to be executed.
