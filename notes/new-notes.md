@@ -165,6 +165,30 @@
 ## info ld
 ## info gcc
 
+# 多核存储一致性
+## cpu0 register file
+## cpu0 store buffer
+## cpu0 cache
+## cpu 乱序执行
+    假设，global a = 0; b = 0;
+    1. cpu0执行如下程序
+    {
+        a = 1;
+        b = 1;
+    }
+    在cpu的指令流水线中，a = 1先执行，如果a在cache中没命中，则a写入store buffer中，
+    继续执行b = 1；如果b在cache中命中，则将1写入cache中。
+    所以虽然a = 1先执行，但b的值有可能先被写入cache或mem中。
+    2. cpu1执行如下程序
+    {
+        while (1) {
+            if (b == 1) //如1所示，如果b = 1先写入cache中，则这里就执行结果就是c = a = 0；与意图不符
+                c = a;
+        }
+    }
+## memory barrier
+    解决cpu乱序执行带来的问题
+
 #arm architecture
 ## arm instruction sets
 ### bfi
