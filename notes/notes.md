@@ -1203,7 +1203,7 @@
 ### 开MMU注意事项
     1. 这里是实验记录:notes/linux-memory/*
     2. 最主要一条:开MMU之后的指令和数据的虚拟地址要和开MMU之前的物理地址要相同;
-       这就要求，页表中，有一段地址空间和物理空间是一一映射的
+       这就要求，页表中，有一段虚拟空间和物理空间是一一映射的
 
 ## linux driver model:
 ### device_add()
@@ -3272,6 +3272,33 @@
 ### 开发板种类(EVB/REF):
     1, EVB(Evaluation Board) 开发板：软件/驱动开发人员使用EVB开发板验证芯片的正确性，进行软件应用开发
     2, REF(reference Board) 开发板：参考板
+
+## 数据一致性问题
+### 原子指令
+### 独占访问
+### 锁的原理
+### cache与memory同步
+### DMA与cache同步
+### write through映射
+### noncache映射
+### register,write buffer,cache,mem数据同步
+### 多核中MMU与TLB
+#### 每个cpu都有自己的MMU和TLB
+#### 每个进程都有自己的PAGE TABLE
+#### 多核中数据一致性
+##### 多核中cache一致性
+##### 多核中memory一致性
+### cache是使用VA还是PA
+#### cache同时使用VA的低位和MMU将VA的高位转换成的TAG来查找
+#### 准确的讲cache使用的时PA
+#### cpu会同时将VA给到MMU和cache
+### 指令流水
+#### 指令乱序执行
+##### 执行乱序
+    如果前一条指令访问memory时可能需要等多个cycles才能执行完成，这是就会执行下一条指令，导致乱序.
+    相邻俩条访存指令，如果第一条要访问的数据在memory中，第二条要访问的数据在cache中，那么第二条指令会先执行完成，导致乱序.
+##### 编译乱序
+#### 内存屏障
 
 ## 字节序:
 ### 大小端:
