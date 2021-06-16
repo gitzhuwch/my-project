@@ -2404,6 +2404,10 @@
     为userspace提供自动挂载机制?
 #### autofs server
     需要时自动挂载，不用时自动卸载
+    But Autofs mounts the file systems on user’s demand. Bydefault the mount point’s configured
+    in Autofs is in unmounted state till the user access the mount point, once user try to
+    access the mount point it will mount automatically and if user dont use the mount point for
+    some time then it will automatically go to unmount state.
 #### fstab
     开机时自动挂载
 #### debugfs_create_automount()
