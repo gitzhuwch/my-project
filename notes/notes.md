@@ -2399,6 +2399,21 @@
         return err;
     }
     默认没有挂载；kernel起来后可以手动挂载
+### automount
+#### autofs
+    为userspace提供自动挂载机制?
+#### autofs server
+    需要时自动挂载，不用时自动卸载
+#### fstab
+    开机时自动挂载
+#### debugfs_create_automount()
+    principle: 在debufs_root dentry下创建一个子dentry and inode, 并inode->i_flags |= S_AUTOMOUNT;
+    这样在file path行走时就会检查该dentry是否被挂载，是否自动挂载.
+    syscall_definesn(open...)
+    ...
+    __traverse_mounts
+    follow_automount
+    ...
 
 ## linux memory management:
     https://www.cnblogs.com/arnoldlu/p/8051674.html
