@@ -3293,6 +3293,17 @@
     2, REF(reference Board) 开发板：参考板
 
 ## 数据一致性问题
+### 本质
+    各个硬件module看到的数据不一样，这里把CPU也当作一个module.
+    数据不一致，并不是软件或各进程看到的数据不一样，而是硬件看到的数据不一样.
+    因为软件或者各个进程看到的数据不一样，本质是各个CPU看到的数据不一样，或者一个CPU
+    在不同时刻看到的数据不一样.
+### cpu和qspi数据一致性问题
+    cpu执行一个for循环，往qspi的fifo中写64 word数据,fifo挂载AHB bus上.
+    cpu执行了64次写操作，但qspi只接收到了10次.这是典型的CPU/cache与IP数据不一致问题.
+    将fifo地址映射属性由normal,noncacheable改成device,noncacheable，即可解决问题.
+    本质原因是cpu执行写的指令很快，但数据到达module慢一些，由于配置原因(多数为了提高性能),
+    cpu没有等数据真正到达module就执行下一条写指令了，所以要通过配置，要让cpu等.
 ### 原子指令
 ### 独占访问
 ### 锁的原理
