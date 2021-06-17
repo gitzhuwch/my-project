@@ -2758,6 +2758,16 @@
     2, pinctrl:
 ### arm smp多核使能:
     1, edit smp_init
+    2. uboot下只要有一个core工作就可以了，然而整个soc上电复位后，一般两个core都会开始执行代码，
+    3. 首先判断当前cpu是不是主cpu，判断的依据是mpidr_el1寄存器，master core和slave core该寄存器的值是不一样的
+    4. 如果是主core，直接跳到main函数中执行就可以了
+    6. 如果是slave core，则执行指令wfe(wait for event),进入idle
+    7. slave core循环读地址CPU_RELEASE_ADDR的内容，直到该地址的内容为非0，就以此内容为跳转地址，跳转过去。
+    8. 那么这个地址的内容靠谁来写入呢？很明显，只有master core，master core在启动到一定阶段后，
+       将某个地址写到CPU_RELEASE_ADDR，slave cpu就会直接跳转过去。在选择CPU_RELEASE_ADDR的时候就需要十分注意，保证代码执行不会误写该地址。
+    9. 主核写完secondary cpu boot address,然后执行sev(send event)指令，唤醒seconedary cpu
+    10. 上面说了pin-table的多核启动方式,现在基本上arm64平台上使用多核启动方式都是psci。下面我们来揭开他神秘的面纱，
+        其实理解了spin-table的启动方式,psci并不难（说白了也是需要主处理器给从处理器一个启动地址，然后从处理器从这个地址执行指令，实际上比这要复杂的多）。
 ### linux I/O model:
     阻塞IO      (blocking IO)
     非阻塞IO    (nonblocking IO)
@@ -3308,6 +3318,7 @@
 ### 独占访问
 ### 锁的原理
 ### cache与memory同步
+### MESI(缓存一致性协议)
 ### DMA与cache同步
 ### write through映射
 ### noncache映射
