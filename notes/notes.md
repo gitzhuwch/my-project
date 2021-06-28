@@ -1500,7 +1500,7 @@
     man console_codes //Linux console escape and control sequences
     本质上是发送端和接收端的"控制协议"，发送端发送控制序列，接收端(包括tty driver和终端仿真器)来决定和执行什么样的行为。
     即:由源端发送控制序列，tty driver和仿真器来解析。
-#### 内核解析部分控制字符代码
+#### 内核n_tty解析部分控制字符代码
 ##### 输入字符解析
     drivers/tty/n_tty.c:
         n_tty_receive_char_special()
@@ -1508,9 +1508,69 @@
 ##### 输出字符解析
         do_output_char()
             转换\r,\n,\t,\b等字符
-#### 内核终端仿真器解析部分代码
+#### 内核vt(终端仿真器)解析部分代码
 ##### 输入字符解析
     grep "033" drivers/tty/vt/* -rn
+#### n_tty回显方向键问题
+    1. 当方向键键值到达n_tty层时，如果echo打开，则将方向键转化成以^开头的可显示的字符，输出到
+       终端仿真器中;
+    2. bash在读取字符时，会将pts设置成非阻塞、关回显状态，所以在bash的命令行中按方向键不会回显
+       出来，bash读到方向键后，会向pts发送'\10'(backspace)，到终端仿真器中，终端仿真器会移动光标;
+    3. 当pts打开回显，执行echo -en '\e[D' > pts/n,n_tty层不会转化该控制命令，直接将该字符串送到ptm,
+       终端仿真器从ptm中读出，再解析,执行向左移动光标动作
+    总结: echo对方向键等不可显示字符进行处理，以^为前缀打印出来；
+    echo -en '\e[D' > /pts/n不对命令处理，原样写入ptm，最终到达vt(或终端仿真器)；
+    相关内核代码:
+        1. drivers/tty/n_tty.c:__process_echoes()
+        2. drivers/tty/vt/defkeymap.c:func_buf[]
+        3. drivers/tty/vt/keyboard.c：vt_do_kdgkb_ioctl()
+#### bash频繁开关echo
+    https://blog.csdn.net/u011279649/article/details/9833585
+#####现象
+    在bash中我们输入一个tty不识别的组合键，例如 CTRL+G，
+    发现bash并没有回显为CTRL+G，但是通过我们自定义的程序就可以。
+    简单测试程序
+    [tsecer@Harry read]$ cat Read.c
+        #include <stdio.h>
+        int main()
+        {
+            char buf[0x10];
+            int readed =0 ;
+            readed = read(0,buf,sizeof(buf));
+            return 0;
+        }
+    执行效果
+    [tsecer@Harry read]$ ./a.out
+    ^H^T^P^P^P^P^P^Pafsdfsfsdfsdfsdfsdfsfswaf^A^B
+    [tsecer@Harry read]$ dfsdfsdfsdfsfswaf
+    bash: dfsdfsdfsdfsfswaf: command not found
+    可以看到，它回显了我的Ctrl+H组合键，
+    但是在bash中按这个按键却没有回显(这不是正常现象，
+    因为bash和a.out用得是相同的终端，应该有相同的配置和行为)。
+##### 看一下bash的内部实现
+    读取命令的时候是通过readline库实现的，其中读取一行的处理为:
+    tiop->c_lflag &= ~(ICANON | ECHO);这里bash在读入一行之前，
+            会强制关掉tty的一行读取方式，并且关掉回显。
+    ......
+    tiop->c_cc[VMIN] = 1;这里也很重要，要求tty在没收到一个字符都
+            直接将从tty中读入字符的任务唤醒，从而可以执行即使的处理。
+            而bash的功能键也就是这么实现的，可以使用bash的bind -p
+            显示bash当前所有的功能及绑定情况。
+    然后在读入一行之后再通过前面的rl_deprep_term_function函数恢复tty设置，
+    这样在不同的任务看来的确是不同的。也就是bash读取的时候和读取结束之后，
+    子进程执行的时候的tty设置是不同的，是动态变化的。
+##### 关于这一点的内核处理路径：
+    static void n_tty_receive_buf(struct tty_struct *tty, const unsigned char *cp,
+             char *fp, int count)
+    ......
+     if (!tty->icanon && (tty->read_cnt >= tty->minimum_to_wake)) { 可以看到，
+            bash中这里的icanon是被清零的，而且其中的minimum_to_wake被设置为1，
+            也就是每个字符都会导致从tty中读取的函数返回。
+            然后bash自己决定自己读入的字符是否回显。
+      kill_fasync(&tty->fasync, SIGIO, POLL_IN);
+      if (waitqueue_active(&tty->read_wait))
+        wake_up_interruptible(&tty->read_wait);
+     }
 #### 改变终端仿真器的标题:
 ##### 改变用户空间的gnome-terminal的标题
     使用转义序列来实现的，向ptsn端发送转义序列，监听在ptmx端的gnome-terminal收到后，
@@ -2005,11 +2065,19 @@
         3, launches bash as subprocess
         3, The std input, output and error of the bash will be set to be the pty slave.
         4, XTerm listens for keyboard events and sends the characters to the pty master
-        5, The line discipline gets the character and buffers them. It copies them to the slave only when you press enter. It also writes back its input to the master (echoing back). Remember the terminal is dumb, it will only show stuff on the screen if it comes from the pty master. Thus, the line discipline echoes back the character so that the terminal can draw it on the video, allowing you to see what you just typed.
-        6, When you press enter, the TTY driver (it's 'just' a kernel module) takes care of copying the buffered data to the pty slave
-        7, bash (which was waiting for input on standard input) finally reads the characters (for example 'ls -la'). Again, remember that bash standard input is set to be the PTY slave.
+        5, The line discipline gets the character and buffers them. It copies them to
+           the slave only when you press enter. It also writes back its input to the
+           master (echoing back). Remember the terminal is dumb, it will only show stuff
+           on the screen if it comes from the pty master. Thus, the line discipline
+           echoes back the character so that the terminal can draw it on the video,
+           allowing you to see what you just typed.
+        6, When you press enter, the TTY driver (it's 'just' a kernel module) takes care
+           of copying the buffered data to the pty slave
+        7, bash (which was waiting for input on standard input) finally reads the characters
+           (for example 'ls -la'). Again, remember that bash standard input is set to be the PTY slave.
         8, At this points bash interprets the character and figures it needs to run 'ls'
-        9, It forks the process and runs 'ls' in it. The forked process will have the same stdin, stdout and stderr used by bash, which is the PTY slave.
+        9, It forks the process and runs 'ls' in it. The forked process will have
+           the same stdin, stdout and stderr used by bash, which is the PTY slave.
         10, ls runs and prints to standard output (once again, this is the pty slave)
         11, the tty driver copies the characters to the master(no, the line discipline does not intervene on the way back)
         12, XTerm reads in a loop the bytes from the pty master and redraws the UI
@@ -2033,13 +2101,14 @@
     |                          +----------|is applied here)|--------+         |
     |                                     +----------------+                  |
     +-------------------------------------------------------------------------+
-    注意:   上图中，如果是使用ptm/pts的terminal emulator，则在应用层使用GUI画字符界面，
-            如果是使用ttyn(比如按ctrl+alt+fn)的真实终端，则在kernel层使用vt driver直接画字符界面.
+    注意:上图中，如果是使用ptm/pts的terminal emulator，则在应用层使用GUI画字符界面，
+         如果是使用ttyn(比如按ctrl+alt+fn)的真实终端，则在kernel层使用vt driver直接画字符界面.
 #### How can a program control the terminal?
     The way for programs to control the terminal is standardized by the ANSI escape codes.
     Want to change the color of the text from your program?
     Just print to standard out the ANSI escape code for coloring the text.
-    Standard out is the PTY slave, TTY driver copies the character to the PTY master, terminal gets the code and understands it needs to set the color to print the text on the screen. Voilà'!'
+    Standard out is the PTY slave, TTY driver copies the character to the PTY master,
+    terminal gets the code and understands it needs to set the color to print the text on the screen. Voilà'!'
 #### How can I "mirror" everything that's happening on one terminal to another?
     m1,
         pacman -Syyu | tee /dev/tty1
@@ -2202,6 +2271,22 @@
     +---------------------------------------------------------------------+
 ### input subsystem与tty关系
     输入子系统是相对独立的，除了可以服务于tty/console之外，也可以通过设备文件服务于X Window等窗口管理器和用户程序
+### 按键处理流程
+    以方向键向左键按下为例
+#### 涉及三个对象:vt\tty\bash
+    1. 处理普通字符还好，处理控制字符，需要三方协调完成；
+    2. stty -a只显示和设置tty的配置信息，不设置vt(终端仿真器)的信息，也不配置bash处理字符的方式；
+    3. tty回显部分控制字符(比如方向键)是以^开头，不会导致vt(或终端仿真器)产生动作;
+    4. tty在接收到delete等键时，会导致vt产生动作;
+#### input子系统处理
+    将方向键的键值发给用户程序，假如是gterminal
+    gterminal向ptm设备写入"\e[D"三字符
+#### tty driver lds处理
+    tty driver接收到"\e[D"，转发给bash，并回显(如果开回显)
+#### bash处理
+    bash从pts端接收到"\e[D"，解析后，向pts发送'\10'(backspace)
+#### 终端仿真器处理
+    仿真器接收到'\10'，向左移动光标
 
 ## VT(virtual terminal)
 ### VT中的键盘输入流程
@@ -2236,33 +2321,33 @@
     最终将方向键转化成终端控制序列，发给用户程序，用户程序再发给终端仿真器，终端仿真器解析后实现显示效果
 ### VT中的屏幕输出流程
     基于framebuffer实现的:drivers/tty/vt/vt.c
-                          drivers/video/fbdev/core/fbcon.c
-                            static const struct consw fb_con = {
-                                .owner          = THIS_MODULE,
-                                .con_startup        = fbcon_startup,
-                                .con_init       = fbcon_init,
-                                .con_deinit         = fbcon_deinit,
-                                .con_clear      = fbcon_clear,
-                                .con_putc       = fbcon_putc,
-                                .con_putcs      = fbcon_putcs, ------>显示函数
-                                .con_cursor         = fbcon_cursor,
-                                .con_scroll         = fbcon_scroll,
-                                .con_switch         = fbcon_switch,
-                                .con_blank      = fbcon_blank,
-                                .con_font_set       = fbcon_set_font,
-                                .con_font_get       = fbcon_get_font,
-                                .con_font_default   = fbcon_set_def_font,
-                                .con_font_copy      = fbcon_copy_font,
-                                .con_set_palette    = fbcon_set_palette,
-                                .con_scrolldelta    = fbcon_scrolldelta,
-                                .con_set_origin     = fbcon_set_origin,
-                                .con_invert_region  = fbcon_invert_region,
-                                .con_screen_pos     = fbcon_screen_pos,
-                                .con_getxy      = fbcon_getxy,
-                                .con_resize             = fbcon_resize,
-                                .con_debug_enter    = fbcon_debug_enter,
-                                .con_debug_leave    = fbcon_debug_leave,
-                            };
+    drivers/video/fbdev/core/fbcon.c
+      static const struct consw fb_con = {
+          .owner          = THIS_MODULE,
+          .con_startup        = fbcon_startup,
+          .con_init       = fbcon_init,
+          .con_deinit         = fbcon_deinit,
+          .con_clear      = fbcon_clear,
+          .con_putc       = fbcon_putc,
+          .con_putcs      = fbcon_putcs, ------>显示函数
+          .con_cursor         = fbcon_cursor,
+          .con_scroll         = fbcon_scroll,
+          .con_switch         = fbcon_switch,
+          .con_blank      = fbcon_blank,
+          .con_font_set       = fbcon_set_font,
+          .con_font_get       = fbcon_get_font,
+          .con_font_default   = fbcon_set_def_font,
+          .con_font_copy      = fbcon_copy_font,
+          .con_set_palette    = fbcon_set_palette,
+          .con_scrolldelta    = fbcon_scrolldelta,
+          .con_set_origin     = fbcon_set_origin,
+          .con_invert_region  = fbcon_invert_region,
+          .con_screen_pos     = fbcon_screen_pos,
+          .con_getxy      = fbcon_getxy,
+          .con_resize             = fbcon_resize,
+          .con_debug_enter    = fbcon_debug_enter,
+          .con_debug_leave    = fbcon_debug_leave,
+      };
 #### ftrace log
     fbcon_putcs() {
      get_color() {
