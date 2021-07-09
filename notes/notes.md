@@ -308,9 +308,11 @@
 
 ## kernel debug methods:
 ### qemu32-arm:
-    1, sudo apt -y install qemu-system-arm
-    2, sudo apt -y install gcc-arm-linux-gnueabi //has no arm-gdb
-    3,
+    1. install qemu
+        sudo apt -y install qemu-system-arm
+    2. install gcc toolchains
+        sudo apt -y install gcc-arm-linux-gnueabi //has no arm-gdb
+    3. install gdb
         3.1 get arm-linux-gnueabi-gdb for arm
         https://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabi/
         3.2 sudo apt -y install gdb-multiarch
@@ -319,16 +321,22 @@
             firstly: sudo apt -y install gdb=8.1-0ubuntu3
             then:    sudo apt -y install gdb-multiarch
         }
-    4, git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+    4. get kernel source code and build
+        git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
         //也可以从gitee下载,速度更快:git clone https://gitee.com/mirrors/linux.git
         cd linux
         vim Makefile
+        add:
             CROSS_COMPILE := arm-linux-gnueabi-
+        modify:
             ARCH ?= arm
         //do not modify gcc -O0 that will compiling error!! gcc -O can work, but need add local #pragma GCC optimize(O2) for gpu driver code.
         make vexpress_defconfig
         make zImage -j2
-    5, git clone --depth=1 git://busybox.net/busybox.git
+    5. build dts
+        make dtbs
+    6. build busybox
+        git clone --depth=1 git://busybox.net/busybox.git
         //也可设置为nfs的挂载目录，直接通过网络文件系统进行挂载，便于开发。
         cd busybox
         vim Makefile
@@ -355,14 +363,16 @@
         最后:
         find . | cpio -o -H newc > rootfs.cpio
         gzip -c rootfs.cpio > rootfs.cpio.gz
-    6,  #qemu-system-arm -kernel ./arch/arm64/boot/Image -append "console=ttyAMA0" -m 2048M -smp 4 -M virt -cpu cortex-a57 -nographic
+    7. run qemu
+        #qemu-system-arm -kernel ./arch/arm64/boot/Image -append "console=ttyAMA0" -m 2048M -smp 4 -M virt -cpu cortex-a57 -nographic
         #qemu-system-arm -M vexpress-a9 -m 128M -kernel ./arch/arm/boot/zImage -dtb ./arch/arm/boot/dts/vexpress-v2p-ca9.dtb -nographic -append "console=ttyAMA0"
         qemu-system-arm -M vexpress-a9 -smp 4 -m 1024M -kernel ./arch/arm/boot/zImage -initrd rootfs.cpio.gz -append "rdinit=/linuxrc console=ttyAMA0 loglevel=8" -dtb arch/arm/boot/dts/vexpress-v2p-ca9.dtb -nographic -s -S
         #must be zImage, Image and vmlinux can't bootup
-    7, ctrl+a+x --> exit qemu-system-arm
+    8. qemu shutcut
+        ctrl+a+x --> exit qemu-system-arm
         ctrl+x+a --> open/close gdb layout
         gdb: layout --> open gdb layout
-    8,
+    9. gdb connect qemu
         gdb-multiarch vmlinux
         target remote localhost:1234
 
@@ -4114,3 +4124,23 @@
     source一下,就可以用TAB键补全了.
 ### goldendict开机自启动
     使用gnome-session-properties工具添加
+### printk/printf/logMsg
+    问题:
+        1. 如何做到多线程同时打印log时，log不错乱；
+        2. 打印log时，允不允许休眠，允许休眠就不能在中断上下文中使用；
+        3. 串口速率很慢，如何实现快速打印，如何实现非阻塞打印；
+        4. 打印时是否需要关抢占；
+    1. printk
+        1.1 printk使用print_buf and log_buf;
+        1.2 在register_console之前,将log存放在log_buf中，注册之后一次性输出；
+        1.3 多线程调用printk时，后调线程会获取console_lock失败，将log存放到log_buf之后，立即返回，
+            先调线程在返回前将log_buf输出干净；
+        1.4 vprintk_emit在返回前，调用wake_up_klogd()，唤醒用户klogd守护进程，将log_buf中新log取走；
+        1.5 printk不会休眠，所以可以在中断等任何上下文中用；
+    2. printf
+        2.1 printf会将数据送到tty层的发送队列中，并唤醒内核中的发送任务处理线程；
+        2.2 多进程同时printf时，tty层会做互斥机制，用户进程可能会休眠；
+    3. logMsg
+        3.1 logMsg是vxworks的一种log输出方案；
+        3.2 logMsg使用单独的一个task处理打印;
+        3.3 logMsg会将log内容放到message queue中，然后唤醒log task，log task负责输出log；
