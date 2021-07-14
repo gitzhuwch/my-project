@@ -235,7 +235,7 @@
         SUB R14, R14, #4
         STMFD SP!, {<other_registers>, R14}
     and return using the instruction:
-        LDMFD SP!, {<other_registers>, PC}^ //必须加^符号
+        LDMFD SP!, {<other_registers>, PC}^ //中断返回,必须加^符号,^表示将spsr的值复制到cpsr
 ## arm regsters
     * r0 to r12 are orthogonal general purpose register.
     * R13(stack pointer) and stores the top of the stack in the current processor mode.
@@ -285,6 +285,13 @@
             4. 初始化pll/clock
             5. branch到main函数
         main.c:
+## linux与freertos在arm上的任务切换区别
+    1. linux在所有平台上都使用switch_to宏来实现；
+    2. freertos使用svc/pendsv mode来切换；
+    3. svc mode: supervisor call/system call；这主要是为linux实现系统调用提供的；
+    4. swi: software interrupt,该指令产生软中断，进入svc mode；
+    5. pendsv: 可推迟执行的svc异常；
+    6. linux由用户空间和kernel空间，freertos没有；
 # c language
 ## 全局变量可不可以定义在可被多个.C文件包含的头文件中
     1. 可以在不同的C文件中声明同名的全局变量，前提是其中只能有一个C文件中对此变量赋初值
