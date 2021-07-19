@@ -166,9 +166,11 @@
 ## info gcc
 
 # 多核存储一致性
-## cpu0 register file
-## cpu0 store buffer
-## cpu0 cache
+    数据存放的地方有:register, store buffer, cache, memory.
+    所以数据一致性问题就是以上四个存储地方之间的同步问题.
+## cpu register file
+## cpu store buffer
+## cpu cache
 ## cpu 乱序执行
     假设，global a = 0; b = 0;
     1. cpu0执行如下程序
@@ -187,8 +189,15 @@
         }
     }
 ## memory barrier
-    解决cpu乱序执行带来的问题
-
+    解决cpu乱序执行带来的问题.
+    如上一节中的代码所示:
+    ...
+    a = 1;
+    b = 1;
+    ...
+    虽然a = 1;在b = 1;前面, 但是b = 1;可能比a = 1;先执行完成.
+    这时就需要在a = 1;之后，b = 1;之前加一个内存栅栏指令，
+    保证a = 1;执行完成之后，再执行b = 1;
 #arm architecture
 ## arm instruction sets
 ### bfi
