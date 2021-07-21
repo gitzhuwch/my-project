@@ -814,6 +814,10 @@
 #### sign-off-by
     除了Linux等几个开源项目要求在commit message中加这个，其他项目基本没有这个要求.
     sign-off-by主要用来跟踪patch的处理过程,经过哪些人处理并签名,最后由maintainer作为committer合并到主库里.
+#### git clang-format调用原理
+    执行git clang-format时，git会到/usr/lib/git-core/目录下以及所有PATH目录下去找git-clang-format命令，
+    找到后执行.
+    所以利用该机制可以自定义git子命令.
 ### repo:
     1, sudo apt -y install repo
     2, vim /usr/bin/repo
