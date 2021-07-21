@@ -759,7 +759,7 @@
 #### git submodule
 ##### 使用
     1.  create main_project repository
-    2.  git submodule add
+    2.  git submodule add https://github.com/chaconinc/DbConnector [path-to-place-submodule]
     3.  git add/commit/push
     4.  git clone --recursive main_project
 ##### 原理
