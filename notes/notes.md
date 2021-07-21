@@ -615,6 +615,38 @@
 
 ## CODE VERSION CONTROL:
 ### git:
+#### git基本元素
+    1. blob object
+    2. tree object
+    3. commit object
+    4. tag object
+    5. refs/branch
+    6. head
+    7. objects repository
+    8. index/cache
+    9. work-tree
+    git的所有操作都是以这些元素为对象的.
+#### git pull与git fetch
+    git pull会更新objects repository,refs,HEAD,即会merge当前branch，相当于git fetch and git merge；
+    git fetch会更新objects repository和origin/refs，不会更新HEAD，即不会merge，可通过git config配置；
+    notes:
+        一般本地有新commit，remote也有新commit，可以先git fetch remote origin/refx，再git rebase origin/refx,
+        再git push origin refx:refx.
+#### git rm与git rm --cache
+    git rm 会删除index and work-tree里的文件或目录；
+    git rm --cache只会删除index中的记录，保留work-tree里的记录；
+#### git merge与git rebase
+    1. git merge
+        git-merge - Join two or more development histories together
+        git merge会进行三方合并，产生新的commit，会造成分支混乱；
+    2. git rebase
+        git-rebase - Reapply commits on top of another base tip
+        git rebase会将某个分支reapply到目标分支中，不会产生新的commit；
+#### 永久删除git库中的某个文件
+    需要将每一个包含该文件的commit都遍历一遍，修改后重新提交.
+    先遍历:git-filter-branch - Rewrite branches,
+    然后回收垃圾:git gc
+    最后:git push --force
 #### git远程协议
     1，ssh/http/git协议都是CS架构;
     2, 使用ssh协议时，git向server的22端口发请求；
@@ -678,7 +710,8 @@
     解决方法1:
         在本地库中新建一个远程库中没有的分支，并切换到新建分支上去，然后再执行就可以了
     解决方法2:
-        git fetch --update-head-ok origin refs/heads/*:refs/heads/* 即fetch加--update-head-ok参数
+        git fetch --update-head-ok origin refs/heads/*:refs/heads/* 即fetch加--update-head-ok参数,
+        这样不仅更新refs，还会更新head.
 #### git clone报id_rsa权限错误:
     git clone ssh://git@www.rockchip.com.cn/repo/rk/tools/repo
         Cloning into 'repo'...
@@ -778,6 +811,9 @@
           Local ref configured for 'git push':
             master pushes to master (up to date)
     git remote prune origin //就会去掉origin中的stale分支
+#### sign-off-by
+    除了Linux等几个开源项目要求在commit message中加这个，其他项目基本没有这个要求.
+    sign-off-by主要用来跟踪patch的处理过程,经过哪些人处理并签名,最后由maintainer作为committer合并到主库里.
 ### repo:
     1, sudo apt -y install repo
     2, vim /usr/bin/repo
