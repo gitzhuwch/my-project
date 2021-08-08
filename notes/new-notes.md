@@ -1038,3 +1038,14 @@
     end
     ...
     endmodule
+## DQ/DQS
+    1. The Q is just some ancient notation. Data signals are called DQ and data strobe is DQS
+    2. The reason why you need a data strobe is because of clock skew.
+    3. DQS serves as clock input for the receiver's flip-flop.
+       For read operations, the DQS signal toggles at the same time as the output data
+       transition for each new piece of data. The vanishing data valid window. (PC-Based Test)
+## PLL
+    1. PLL: PHASE-LOCKED LOOP
+    2. PLL里面的VCO在电压控制下可以输出一定范围内的各种各样频率的时钟，但VCO并不稳定,
+       所以需要有参考时钟和反馈环路来控制PLL输出特定频率。
+       参考时钟只是用来跟输出频率进行比较，输出频率并不是由它倍频而来.

@@ -2585,7 +2585,7 @@
     1, PGD: page global directory
     2, PUD: page upper directory
     3, PMD: page middle directory
-    4, PTE: page table
+    4, PTE: page table entry
 ### mmap
     根据mmap是否映射到文件、是共享还是私有映射，将映射类型分成四类，使用场景如下：
     |-------------------|-----------------------------------------------|-------------------------------------------------------|
