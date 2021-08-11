@@ -1049,3 +1049,60 @@
     2. PLL里面的VCO在电压控制下可以输出一定范围内的各种各样频率的时钟，但VCO并不稳定,
        所以需要有参考时钟和反馈环路来控制PLL输出特定频率。
        参考时钟只是用来跟输出频率进行比较，输出频率并不是由它倍频而来.
+
+# extern misc
+## TCM/cache
+## latch/d-flip-flop
+## JTAG/TDMI/TAP/ICE
+## HDL/RTL/netlist
+## verilog/rtl code
+## 数据流描述 assign
+## 行为描述 always/initial
+## 结构化模型 initialize
+## NOC/NIC
+## CDC:Clock Domain Crossing
+## Lint
+## 单端口和双单口RAM
+    https://blog.csdn.net/wangn1633/article/details/106875876
+    1. 单端口：读写数据共用一个地址线，一个时钟沿只能进行读或者写；
+    2. 伪双端口：写数据和读数据有自己的 地址、时钟、读写使能信号；
+       也就是一组端口只能写，一组端口只能读。（读写数据也可共用一个clk，为同步伪双端口ram）
+    3. 真双端口：一组端口可读可写，另一组端口也可读可写。
+      （若这两组端口共用一个clk，为同步真双端口ram。若每组有每组的clk，为异步真双端口ram）
+## 简写
+    Advanced Microcontroller Bus Architecture (AMBA)
+    Advanced System Bus (ASB)
+    Advanced Peripheral Bus (APB)
+    Advanced High-performance Bus (AHB)
+    Advanced Trace Bus (ATB)
+    Advanced eXtensible Interface (AXI)
+    AXI Coherency Extensions (ACE)
+    AMBA 5 Coherent Hub Interface (CHI)
+    AHB-Lite
+## ACE
+    ACE协议衍生自MSI/MESI, 使用MESI扩展后的变种
+## CCI
+    cache coherent interconnect
+## CoreLink MMU
+## CoreLink CCI
+## CoreLink NIC
+    AMBA Network Interconnect
+## CoreLink DMC
+    AMBA dynamic memory controller
+## CoreLink ADB
+    AMBA Domain Bridge
+## Mali-T628 GPU
+## big.LITTLE
+    Cortex-A57 和 Cortex-A53 提供 big.LITTLE 处理器组合
+## TZC-400
+    TrustZone address space controller
+## arm一套解决方案
+    ARM 作为一家 IP 提供商身处独一无二的地位，能够提供包含 Cortex 处理器、Mali 图形处理器和
+    CoreLink 缓存一致性互联的完整解决方案，以及各种工具和物理 IP.
+## MESI
+    Modified Exclusive Shared Or Invalid
+    也称为伊利诺斯协议，是因为该协议由伊利诺斯州立大学提出,是一种广泛使用的支持写回策略的缓存一致性协议。
+## store buffer
+    因为 MESI只是保证了多核cpu的独占cache之间的一致性，但是cpu的并不是直接把数据写入L1 cache的，
+    中间还可能有store buffer。有些arm和power架构的cpu还可能有load buffer或者invalid queue等等。
+    因此，有MESI协议远远不够
