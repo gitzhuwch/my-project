@@ -1045,10 +1045,26 @@
        For read operations, the DQS signal toggles at the same time as the output data
        transition for each new piece of data. The vanishing data valid window. (PC-Based Test)
 ## PLL
+    https://blog.csdn.net/mirkerson/article/details/8301757
+    PLL工作的基本原理是压控振荡器的输出经过采集分频后和基准信号同时输入鉴相器，
+    鉴相器通过比较这两个信号的频率差，输出一个直流脉冲电压去控制VCO 使它的频率改变。
+    这样经过一个很短的时间，VCO的输出就会稳定下来。还将使用的频率的准确度和
+    稳定度锁定到参考频率上,根据需要而变化。 所谓的锁相，顾名思义就是将相位锁住，
+    由相位检测器、回路滤波器及压控振荡器组成。
+    那就是说，比如我基频是10MHz，需要100MHz的频率，那就得用VCO产生一个100MHz的频率后10分频，
+    用鉴相器与基频比较，输出一个比较的波形后经过低通滤波，用输出电压控制VCO的输出。
+    请高人指点：是这个样子的吗？
+    对的,基本是这样.基准频率一般用稳定性高的晶振产生.VCO一般通过控制电压来控制变容二极管来调节频率.
+
+    **小弟还有一点不明白：
+    既然如此，那直接可以用晶振产生一个高频时钟信号了，PLL的作用是什么？是通过反馈来确保频率的稳定吗？
+    为了产生与参考频率为整倍数关系, 且相位相关的振荡. 如果在你的系统中, 不必与另外的频率相关, 当然直接振荡就可以了.
+
     1. PLL: PHASE-LOCKED LOOP
     2. PLL里面的VCO在电压控制下可以输出一定范围内的各种各样频率的时钟，但VCO并不稳定,
        所以需要有参考时钟和反馈环路来控制PLL输出特定频率。
        参考时钟只是用来跟输出频率进行比较，输出频率并不是由它倍频而来.
+    3. VCO-分频器-鉴相器-低通滤波器-VCO 形成环路 LOOP
 
 # extern misc
 ## TCM/cache
@@ -1060,7 +1076,8 @@
 ## 行为描述 always/initial
 ## 结构化模型 initialize
 ## NOC/NIC
-## CDC:Clock Domain Crossing
+## CDC
+    Clock Domain Crossing
 ## Lint
 ## 单端口和双单口RAM
     https://blog.csdn.net/wangn1633/article/details/106875876
@@ -1106,3 +1123,49 @@
     因为 MESI只是保证了多核cpu的独占cache之间的一致性，但是cpu的并不是直接把数据写入L1 cache的，
     中间还可能有store buffer。有些arm和power架构的cpu还可能有load buffer或者invalid queue等等。
     因此，有MESI协议远远不够
+## clock skew
+    时钟脉冲相位差
+    时钟偏移；时钟偏差；时钟偏斜
+## SerDes/phy
+    Serializer-Deserializer
+    Physical Layer
+    SerDes + Physical Coding Sublayer (PCS) = PHY or Physical Layer
+
+    SerDes在接收端集成了CDR (Clock Data Recovery)电路，利用CDR从数据的边沿信息中抽取时钟，
+    并找到最优的采样位置。. SerDes不传送时钟信号，这也是SerDes最特别的地方，SerDes采用差分方式传送数据。
+## Open Systems Interconnection (OSI)
+    The Open Systems Interconnection (OSI) model defines physical layer,
+    or PHY, as an abstraction layer responsible for transmission and
+    reception of the data. It is the lowest layer in the OSI model, which also includes:
+
+    Application layer
+    Presentation layer
+    Session layer
+    Transport layer
+    Network layer
+    Datalink layer
+## pipeline verilog
+    流水线设计Pipeline Design
+                  T2       T1        T0
+                +-----+  +-----+   +-----+      +---------+
+                |     |  |     |   |     |      |         |
+                |     |  |     |   |     |      |         |
+    地址单元--> |addr2|  |addr1|   |addr0|  --> |         |
+                |     |  |     |   |     |      | memory  |
+                |     |  |     |   |     |      |         |
+    运算单元<-- | d1  |  | d0  |   |     |  <-- |         |
+                |     |  |     |   |     |      |         |
+                |     |  |     |   |     |      |         |
+    返回结果--> |rd0  |  |     |   |     |  --> |         |
+                +-----+  +-----+   +-----+      +---------+
+    上图是一个三级流水示意图，就是每一拍都有三个单元同时工作，
+    比如T2时，除了发送addr2,还接收数据d1，并返回运算结果rd0.
+    生活中好多流水线例子，比如电子产品生产流水线，食堂取餐流水线等.
+    就是把一个人干的活分成几步，每一步都安排一个人干，这样就可以几个人同时干.
+    流水线: 一堆产品由多人分步合作，组装完成.(每一个人只完成组装中的一步,不可以独立完成)
+    多核:   将一堆产品分配给多人，每一个人独立组装完成.(每一个人能完成所有组装步骤,不需要人与人之间的合作)
+    总结一下，流水线就是插入寄存器，以面积换取速度。
+## ADC
+    analog to digital converter
+## CDR
+    Clock Data Recovery
