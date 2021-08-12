@@ -1101,6 +1101,7 @@
 ## CCI
     cache coherent interconnect
 ## CoreLink MMU
+## CoreLink GIC
 ## CoreLink CCI
 ## CoreLink NIC
     AMBA Network Interconnect
@@ -1169,3 +1170,9 @@
     analog to digital converter
 ## CDR
     Clock Data Recovery
+## ATB
+    arm trace bus
+## 斯密特触发器
+    整流
+## 带使能的DFF
+    比如带写使能的DFF，这样只有写信号和clk边沿同时来时，D才输出到Q
