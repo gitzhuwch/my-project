@@ -1079,6 +1079,7 @@
 ## CDC
     Clock Domain Crossing
 ## Lint
+    检查工具
 ## 单端口和双单口RAM
     https://blog.csdn.net/wangn1633/article/details/106875876
     1. 单端口：读写数据共用一个地址线，一个时钟沿只能进行读或者写；
@@ -1176,3 +1177,11 @@
     整流
 ## 带使能的DFF
     比如带写使能的DFF，这样只有写信号和clk边沿同时来时，D才输出到Q
+    一般if的条件会被综合成使能信号
+## artiber/grant
+## blocking assignment
+    赋值语句一级一级向下进行，信号串行传递
+## nonblocking assignment
+    所有赋值语句同时执行，信号并行传递
+## violation
+    违反，违背
