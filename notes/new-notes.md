@@ -1185,3 +1185,6 @@
     所有赋值语句同时执行，信号并行传递
 ## violation
     违反，违背
+## 开漏open-drain输出:OC
+## 开集open-collector输出:OD
+## 推挽Push-Pull输出

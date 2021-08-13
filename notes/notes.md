@@ -2921,8 +2921,10 @@
 ### Linux OOM killer
     https://segmentfault.com/a/1190000008268803
 ### gpio/pinctrl区别:
-    1, gpio:
-    2, pinctrl:
+    pinctrl子系统的作用是pin config(引脚配置)和pin mux(引脚复用)，
+    而如果pin脚被复用为了GPIO,就需要再借助GPIO子系统对pin脚进行控制了，
+    GPIO子系统提供了一系列关于GPIO的API函数，供我们调用。
+    注意：GPIO功能只是pin脚功能的一种
 ### arm smp多核使能:
     1, edit smp_init
     2. uboot下只要有一个core工作就可以了，然而整个soc上电复位后，一般两个core都会开始执行代码，
