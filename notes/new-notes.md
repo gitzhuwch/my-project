@@ -927,6 +927,30 @@
     （其实就是VCD文件的压缩版，因为只取仿真调试需要的数据，所以文件大小要远小于原始VCD文件），
     有的还提供与VCD文件的互转换功能。
 ## AMBA
+### AHB
+    AHB总线信号
+    | Name         | Source           | To                           | Description
+    | HCLK         | clock source     | 各module                     | 总线时钟，上升沿采样
+    | HRESETn      | reset controller | 各module                     | 总线复位，低电平有效
+    | HADDR[31:0]  | Master           | decoder mux to slave arbiter | 32位系统地址总线
+    | HTRANS[1:0]  | Master           | mux to slave                 | 当前传输类型NONSEQ, SEQ, IDLE, BUSY
+    | HWRITE       | Master           | mux to slave                 | 1为写，0为读
+   *| HSIZE[2:0]   | Master           | mux to slave                 | (位宽)每一个transfer传输的数据大小，以字节为单位，最高支持1024位
+   *| HBURST[2:0]  | Master           | mux to slave                 | (拍数)burst类型，支持4、8、16 burst，incrementing/wrapping
+    | HPROT[3:0]   | Master           | mux to slave                 | 保护控制信号，需要slave带保护功能，一般不用
+    | HWDATA[31:0] | Master           | mux to slave                 | 写数据总线，Master到Slave
+    | HRDATA[31:0] | Slave            | mux to master                | 读数据总线，Slave到Master
+    | HREADY       | Slave            | mux to master arbiter        | 高：Slave指出传输结束 低：Slave需延长传输周期
+    | HRESP[1:0]   | Slave            | mux to master                | arbiter Slave发给Master的总线传输状态OKAY, ERROR, RETRY, SPLIT
+    | HSELx        | Decoder slave    | slave选择信号
+    AHB仲裁信号
+    | Name          | Source  | To                   | Description
+    | HBUSREQx      | Master  | arbiter              | master给仲裁器的请求获得总线使用权的请求信号，最多支持16个master
+    | HLOCKx        | Master  | arbiter              | 如果一个master希望自己在传输期间不希望丢掉总线，则需要向仲裁器发送这个锁定信号
+    | HGRANTx       | arbiter | master               | 授权信号，当前bus master x的优先级最高。当HREADY和HGRANTx同时为高时，master获取系统总线的权利
+    | HMASTER[3:0]  | arbiter | 具有split功能的slave | 仲裁器为每一个master分配的ID，指出哪个主设备正在进行传输，提供进行split的信息
+    | HMASTLOCK     | arbiter | 具有split功能的slave | 表示当前的master正在执行Locked操作。这个信号和HMASTER有这相同的时序
+    | HSPLITx[15:0] | slave   | arbiter              | 从设备用这个信号告诉仲裁器哪个主设备运行重新尝试一次split传输，每一位对应一个主设备
 ### APB
     Signal	    Description
     PCLK	    时钟。APB协议里所有的数据传输都在PCLK上升沿进行
