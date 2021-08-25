@@ -1212,3 +1212,21 @@
 ## 开漏open-drain输出:OC
 ## 开集open-collector输出:OD
 ## 推挽Push-Pull输出
+## SATA/SCSI/SAS
+    SATA: Serial Advanced Technology Attachment
+    SCSI: Small Computer System Interface
+    SAS: Serial Attached SCSI
+## C and verilog
+    C语言描述的对象是程序，程序由数据+算法构成
+    verilog描述的是电路，电路由信号+处理构成
+## digital and anolog
+    数字信号具有离散性
+    模拟信号具有连续性
+## 电路描述级别
+    behavior级描述，rtl级描述，gate级描述
+## transistor and metal oxide semiconductor
+    三极管：collector极, base极, emitter极
+    mos管：source极，gate极，drain极
+## DFF存储原理
+    门电路的输入信号作为mos管的gate极，起控制开关作用，不起驱动作用，在门器件中source极一般都要接电源，
+    就是说要有单独的电源供电，门器件才能有输出能力，这样D触发器才能在没有外部信号输入的情况下，一直记忆上一时刻的输入值

@@ -3182,7 +3182,51 @@
         所以说创建新容器会不会影响主机性能完全取决于容器里面运行什么东西。如果运行的是耗资源的进程，那么肯定会对主机性能造
         成影响，但这种影响可以在一定程度上由CGroups控制住，不至于对主机带来灾难性的影响。如果容器里面运行的是不耗资源的进程，
         那么对系统就没有影响，只是容器里面的文件系统可能会占用一些磁盘空间。
-
+### docker的安装及使用
+#### 安装
+    1. sudo apt update
+    2. 安装一些必备软件包，让 apt 通过 HTTPS 使用软件包
+        sudo apt install apt-transport-https ca-certificates curl software-properties-common
+    3. 将官方 Docker 版本库的 GPG 密钥添加到系统中
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+    4. 将 Docker 版本库添加到APT源
+        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
+    5. sudo apt update
+    6. 确保要从 Docker 版本库，而不是默认的 Ubuntu 版本库进行安装
+        apt-cache policy docker-ce
+    7. 安装 Docker
+        sudo apt install docker-ce
+    8. 现在 Docker 已经安装完毕。我们启动守护程序。检查 Docker 是否正在运行：
+        sudo systemctl status docker
+#### 使用
+    常用command:
+    load        Load an image from a tar archive or STDIN
+    images      List images
+    run         Run a command in a new container
+    rm          Remove one or more containers
+    start       Start one or more stopped containers
+    stop        Stop one or more running containers
+    kill        Kill one or more running containers
+    1. 不使用 sudo 的情况下执行 Docker 命令。
+        默认情况下，docker命令只能由 root 用户或由 docker 组中的用户运行，
+        docker 组用户是在Docker安装过程中自动创建的。
+        如果要避免sudo在运行docker命令时键入任何内容，请将用户名添加到docker组中:
+        sudo usermod -aG docker ${USER}
+       *使用新组成员身份执行命令，需要注销后重新登录，或使用su来切换身份。
+        su - ${USER}
+    2. 加载镜像
+        docker load < rtems5.1-le-latest-0521.tar.gz
+        or
+        docker load -i rtems5.1-le-latest-0521.tar.gz
+    3. 查看镜像
+        docker images -a
+    4. 运行docker镜像
+        docker run -itv host-directory:container-directory docker-image
+    5. 退出container
+        exit
+    6. 重连已存在的container
+        docker start -i container-id
+    7. docker rm命令来删除不用的容器
 ## linux namespace and cgroup
     是对进程能看到的，能获取到的系统资源的能力的一种限制，就是让不同的进程拥有不同的系统资源.
     没有namespace，那么子进程可能继承父进程的所有全局资源，有了namespace，可以邦子进程创建新的
