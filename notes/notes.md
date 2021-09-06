@@ -2826,6 +2826,7 @@
         }
 
 ## linux interrupt subsystem:
+    硬中断执行完，再执行软中断，软中断执行完，在执行进程
 ### smp interrupt
 #### smp中断嵌套问题
     1. Linux 中的中断处理程序是无须重入的。当给定的中断处理程序正在执行的时候，
@@ -2857,12 +2858,15 @@
     4. 中断handler会使用被中断的进程内核堆栈，但不会对它有任何影响，因为handler
        使用完后会完全清除它使用的那部分堆栈，恢复被中断前的原貌。
     5. 处于中断context时候，内核是不可抢占的。因此，如果休眠，则内核一定挂起。
-### interrupt bottom:
+### interrupt top half:
+    Linux不允许嵌套，处于中断上下文，不可睡眠。
+### interrupt bottom half:
 #### softirq:
-
+    开中断，可被硬中断抢占，处于中断上下文，在硬中断退出前执行，不可被进程抢占，软中断静态分配，不可睡眠…
 ##### tasklet:
-
+    基于软中断，可动态申请，是软中断的一个entry，具有软中断的基本属性。
 #### workqueue:
+    进程上下文，可被硬中断软中断抢占，可睡眠
 ##### 系统前期一些workqueue创建流程:
     1,实例化workqueue_struct
         start_kernel->workqueue_init_early->alloc_workqueue->list_add_tail_rcu(&wq->list, &workqueues);
