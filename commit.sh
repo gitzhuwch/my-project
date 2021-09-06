@@ -17,8 +17,10 @@ git commit -m "$message"
 
 git push https://gitzhuwch:oahcnawuhz123@gitee.com/gitzhuwch/my-project master:master
 
-while true; do git push https://gitzhuwch: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@github.com/gitzhuwch/my-project master:master; if [ $? == 0 ]; then break; fi; done
+while true; do git push https://gitzhuwch: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@github.com/gitzhuwch/my-project; if [ $? == 0 ]; then break; fi; done
 
 git branch -u origin/master
 
 git pull
+
+# git push https://gitzhuwch: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@github.com/gitzhuwch/my-project
