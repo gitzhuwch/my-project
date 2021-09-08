@@ -1156,14 +1156,12 @@
     Serializer-Deserializer
     Physical Layer
     SerDes + Physical Coding Sublayer (PCS) = PHY or Physical Layer
-
     SerDes在接收端集成了CDR (Clock Data Recovery)电路，利用CDR从数据的边沿信息中抽取时钟，
-    并找到最优的采样位置。. SerDes不传送时钟信号，这也是SerDes最特别的地方，SerDes采用差分方式传送数据。
+    并找到最优的采样位置。SerDes不传送时钟信号，这也是SerDes最特别的地方，SerDes采用差分方式传送数据。
 ## Open Systems Interconnection (OSI)
     The Open Systems Interconnection (OSI) model defines physical layer,
     or PHY, as an abstraction layer responsible for transmission and
     reception of the data. It is the lowest layer in the OSI model, which also includes:
-
     Application layer
     Presentation layer
     Session layer
@@ -1283,7 +1281,9 @@
 ## 可综合verilog逻辑有哪些
 ## DTC SDC
 ## 竞争冒险
-    与门的俩个输入信号，同时向相反方向翻转，叫做这俩信号的竞争。如果在到达与门的前一刻，一个先完成翻转，另一个后完成，这种就产生了冒险，如果同时完成翻转，就不会产生冒险。冒险就会造成尖峰脉冲-毛刺。
+    与门的俩个输入信号，同时向相反方向翻转，叫做这俩信号的竞争。
+    如果在到达与门的前一刻，一个先完成翻转，另一个后完成，这种就产生了冒险，
+    如果同时完成翻转，就不会产生冒险。冒险就会造成尖峰脉冲-毛刺。
 ## 复位信号的意义
     让触发器有一个初始状态，这样后面的状态才能基于初态分析
     比如：D触发器，先让其复位，有一个确定的输出，接着clk变化的时候，就会有确定的次态输出
@@ -1304,3 +1304,25 @@
 ### 总结
     并行不一定同步
     串行不一定同步
+## verilog语法实例学习(8)
+    https://www.cnblogs.com/mikewolf2002/p/10183584.html
+### 含复位端和预置信号触发器的电路
+    加入预置信号Load_n和复位信号Rst_n,在交叉耦合的锁存器的每个与非门输入端增加一个输入信号.
+    Rst_n =0 会迫使触发器进入Q=0的状态，Rst_n=1对与非门的输出没有任何影响。
+    同理，Load_n=0,会使出使触发器进入Q=1的状态，而Load_n=1,对触发器没有任何影响。
+    注意：不能使Rst_n和Load_n同时为0。
+### 带置位和复位的同步D触发器代码
+    module flipflop_srl(D,clk,Rst_n,Load_n,Q);
+      input D;
+      input clk;
+      input Rst_n; //复位信号
+      input Load_n; //置位信号，也是低电平有效
+      output reg Q;
+      always @(posedge clk)
+        if(Rst_n==0)
+            Q <= 1'b0;
+        else if(Load_n==0)
+            Q <= 1'b1;
+        else
+            Q <= D ;
+    endmodule
