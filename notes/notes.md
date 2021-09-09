@@ -1305,6 +1305,12 @@
     #2  kobject_uevent_env (kobj=0xee5c0408, action=<optimized out>, envp_ext=0x0) at lib/kobject_uevent.c:556
     #3  kobject_uevent (kobj=<optimized out>, action=<optimized out>) at lib/kobject_uevent.c:641
     #4  device_add (dev=0xee5c0408) at drivers/base/core.c:2460
+### block device
+#### mmc挂载
+    drivers/mmc/core/:
+        core.c: 协议层,sdio/sd/mmc protocol
+        block.c: 将emmc等设备注册成block设备,然后用户层就可以做mount or mkfs操作
+### char and block difference
 ## tty subsystem:
     static struct tty_driver *tty_lookup_driver(dev_t device, struct file *filp,
             int *index)

@@ -1326,3 +1326,15 @@
         else
             Q <= D ;
     endmodule
+## Verilog寄存器电路描述异步复位异步置位等
+    https://blog.csdn.net/cjx_csdn/article/details/105203494
+### 最基本的寄存器
+![](./notes.dia/DFF.jpg)
+### 异步复位寄存器
+![](./notes.dia/async-reset-DFF.jpg)
+### 异步置位寄存器
+![](./notes.dia/async-set-DFF.jpg)
+### 既有异步复位又有异步置位
+![](./notes.dia/async-set-reset-DFF.jpg)
+### 同步使能寄存器
+![](./notes.dia/sync-enable-DFF.jpg)
