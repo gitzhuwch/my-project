@@ -2467,11 +2467,20 @@
     1,在qemu中kernel起来后，在rcS里加了mdev -s 所以/dev下会有节点
 
 ## linux filesystem:
+### dentry and inode
+    在内存中, 每个文件或目录都有一个 dentry(目录项)和 inode(索引节点)结构.
+    详见./sysfs_dirent-and-inode-dentry.pdf
+#### struct dentry
+    是 Linux 文件系统中某个索引节点(inode)的链接，这个索引节点可以是文件，
+    也可以是目录。dentry 记录着文件名，上级目录等信息，正是它形成了我们
+    所看到的树状结构
+#### struct inode
+    文件的组织和管理的信息主要存放 inode 里面，它记录 着文件在存储介质上的位置与分布。
 ### 所有文件系统挂载的关键:
 #### register_filesystem()
     只是将file_system_type实例加到全局链表file_systems中
 #### vfs_kern_mount()
-    会产生一个文件系统mount实例，产生root inode/dentry
+    会产生一个文件系统mount实例，产生root inode and root dentry
 ### rootfs的挂载
     #0  rootfs_init_fs_context (fc=0xee403280) at init/do_mounts.c:701
     #1  alloc_fs_context (fs_type=0xc0b07a2c <rootfs_fs_type>, reference=0x0, sb_flags=0, sb_flags_mask=0, purpose=FS_CONTEXT_FOR_MOUNT) at fs/fs_context.c:293
@@ -2541,6 +2550,12 @@
         return err;
     }
     默认没有挂载；kernel起来后可以手动挂载
+### sysfs文件系统
+    详见./sysfs_dirent-and-inode-dentry.pdf
+    从上面图中，抓住三棵大树:
+        1. dentry树(外加inode散列)
+        2. sysfs_dirent树
+        3. kobject树
 ### automount
 #### autofs
     为userspace提供自动挂载机制?
