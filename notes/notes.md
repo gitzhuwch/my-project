@@ -3076,61 +3076,61 @@
         chgrp：修改文件所属组
         chmod：修改文件权限
 ### Linux进程权限
-    1.  进程权限相关的属性
-        reaal user id(ruid)：进程执行者的user id，一般情况下就是用户登录时的
-        effective user id(euid)：进程文件owner的user id，决定进程是否对某个文件有操作权限，默认为ruid，
-            sudo这个程序文件的权限有s，并且sudo文件的owner是root，所以sudo执行起来后，euid是root用户的id，
-            所以由sudo fork出来的子进程会继承sudo的euid（猜测），或者sudo可以调用seteuid()系统调用，来设置子进程的euid。
+    1. 进程权限相关的属性
+       real user id(ruid)：进程执行者的user id，一般情况下就是用户登录时的
+       effective user id(euid)：进程文件owner的user id，决定进程是否对某个文件有操作权限，默认为ruid，
+       sudo这个程序文件的权限有s，并且sudo文件的owner是root，所以sudo执行起来后，euid是root用户的id，
+       所以由sudo fork出来的子进程会继承sudo的euid（猜测），或者sudo可以调用seteuid()系统调用，来设置子进程的euid。
 ### sudo 原理
-    1.  查看sudo文件权限(发现sudo拥有s权限)
-        ll /usr/bin/sudo
-        -rwsr-xr-x 1 root root 166056 Jan 19 22:21 /usr/bin/sudo*
-    1.  Linux提供了一个seteuid的函数，可以更改进程的euid。函数声明在头文件<unistd.h>里:int seteuid(uid_t euid);
-        但是，如果一个进程本身没有root权限，也就是说euid不是0，是无法通过调用seteuid将进程的权限提升的，调用seteuid会出现错误.
-    2.  该怎么把进程的euid该为root的id：0呢？
-        那就是通过s权限。
-        2.1     如果一个文件拥有x权限，表示这个文件可以被执行。shell执行命令或程序的时候，先fork一个进程，再通过exec函数族执行这个命令或程序，
-                这样的话，执行这个文件的进程的ruid和euid就是当前登入shell的用户id。
-        2.2     当这个文件拥有x权限和s权限时，在shell进行fork后调动exec函数族执行这个文件的时候，这个进程的euid将被系统更改为这个文件的拥有者id。
-                所以，shell中执行sudo时，sudo的euid不是shell设的，是linux内核设的。sudo再fork子进程的euid是谁设的呢？还是继承父进程的呢？
+    1. 查看sudo文件权限(发现sudo拥有s权限)
+       ll /usr/bin/sudo
+       -rwsr-xr-x 1 root root 166056 Jan 19 22:21 /usr/bin/sudo*
+    1. Linux提供了一个seteuid的函数，可以更改进程的euid。函数声明在头文件<unistd.h>里:int seteuid(uid_t euid);
+       但是，如果一个进程本身没有root权限，也就是说euid不是0，是无法通过调用seteuid将进程的权限提升的，调用seteuid会出现错误.
+    2. 该怎么把进程的euid该为root的id：0呢？
+       那就是通过s权限。
+       2.1 如果一个文件拥有x权限，表示这个文件可以被执行。shell执行命令或程序的时候，先fork一个进程，再通过exec函数族执行这个命令或程序，
+           这样的话，执行这个文件的进程的ruid和euid就是当前登入shell的用户id。
+       2.2 当这个文件拥有x权限和s权限时，在shell进行fork后调动exec函数族执行这个文件的时候，这个进程的euid将被系统更改为这个文件的拥有者id。
+           所以，shell中执行sudo时，sudo的euid不是shell设的，是linux内核设的。sudo再fork子进程的euid是谁设的呢？还是继承父进程的呢？
 ### linux认证机制
-    1.  linux认证机制是应用程序实现的，和内核无关，内核只提供文件权限和进程权限管理机制，就是说linux会限制某个进程能访问哪些资源（主要是文件资源）.
-    2.  内核中的文件和进程虽然有userid，groupid等属性，但是内核并不管理user，group等数据，只是在创建file和process时，可以填充这些属性，
-        并且在内核里会使用这些属性进行权限管理。
-    3.  内核会使用文件/进程的权限数据，但不管理这些数据。这些数据由上层app创建和管理。
-    4.  sudo的密码认证机制就是由sudo自己实现，可以从本地读取密码数据进行验证，也可以发送到远程server进行验证。
-    5.  sudo/vsftp/httpd等app的认证机制通常会调用业界通用的库完成，比如PAM(pluggable authentication modules)，
-        LDAP(Light weight Directory Access Protocol)等，通过配置文件，调用不同的库，可以改变认证策略(本地认证/远程认证等)
-    6.  配置文件:
-        PAM:    /etc/pam.d/*
-        LDAP:   /etc/openldap/*
-    7.  LDAP Client指各种需要身份认证的软件，例如Apache、Proftpd和Samba等。
-        LDAP Sever指的是实现LDAP协议的软件，例如OpenLDAP等。
-        Datastorage指的是OpenLDAP的数据存储，如关系型数据库（MySQL）
-    8.  OpenLDAP是server端，并不是client端，所以在寿终端中看不到ldap相关的daemon进程
-    9.  如果要改变ssh/sudo等应用程序的认证策略，估计需要修改/etc下对应的配置文件,默认的认证策略估计是PAM
+    1. linux认证机制是应用程序实现的，和内核无关，内核只提供文件权限和进程权限管理机制，就是说linux会限制某个进程能访问哪些资源（主要是文件资源）.
+    2. 内核中的文件和进程虽然有userid，groupid等属性，但是内核并不管理user，group等数据，只是在创建file和process时，可以填充这些属性，
+       并且在内核里会使用这些属性进行权限管理。
+    3. 内核会使用文件/进程的权限数据，但不管理这些数据。这些数据由上层app创建和管理。
+    4. sudo的密码认证机制就是由sudo自己实现，可以从本地读取密码数据进行验证，也可以发送到远程server进行验证。
+    5. sudo/vsftp/httpd等app的认证机制通常会调用业界通用的库完成，比如PAM(pluggable authentication modules)，
+       LDAP(Light weight Directory Access Protocol)等，通过配置文件，调用不同的库，可以改变认证策略(本地认证/远程认证等)
+    6. 配置文件:
+       PAM:    /etc/pam.d/*
+       LDAP:   /etc/openldap/*
+    7. LDAP Client指各种需要身份认证的软件，例如Apache、Proftpd和Samba等。
+       LDAP Sever指的是实现LDAP协议的软件，例如OpenLDAP等。
+       Datastorage指的是OpenLDAP的数据存储，如关系型数据库（MySQL）
+    8. OpenLDAP是server端，并不是client端，所以在寿终端中看不到ldap相关的daemon进程
+    9. 如果要改变ssh/sudo等应用程序的认证策略，估计需要修改/etc下对应的配置文件,默认的认证策略估计是PAM
 #### git认证机制
     git本身没有实现认证机制，git支持file/http/ssh/git等传输协议，其中http/ssh会带有认证机制，
     比如git clone http://ip:port时,就会通过指定的端口号，向server端的httpd进程发送请求，httpd带有认证机制，
     认证通过后，就会通过http协议传送git数据了
 ### Linux accounts management:
-    1, su - username (Provide an environment similar to what the user would expect had the user logged in directly)
-    2, users: print the user names of users currently logged in to the current host
-    3, w: Show who is logged on and what they are doing
-    4, 查看当前登录
-        w
-        who
-        users
+    1. su - username (Provide an environment similar to what the user would expect had the user logged in directly)
+    2. users: print the user names of users currently logged in to the current host
+    3. w: Show who is logged on and what they are doing
+    4. 查看当前登录
+       w
+       who
+       users
        查看系统中所有用户：
-        grep bash /etc/passwd
-        或者：
-        cat /etc/passwd | cut -f 1 -d:
-    5, users/w/who command principe: read登录记录文件(/var/run/utmp)
+       grep bash /etc/passwd
+       或者：
+       cat /etc/passwd | cut -f 1 -d:
+    5. users/w/who command principe: read登录记录文件(/var/run/utmp)
 #### useradd与adduser
-    1, useradd is a low level utility for adding users. On Debian, administrators should usually use adduser(8) instead
-    2, file /usr/sbin/adduser
+    1. useradd is a low level utility for adding users. On Debian, administrators should usually use adduser(8) instead
+    2. file /usr/sbin/adduser
         /usr/sbin/adduser: Perl script text executable
-    3, file /usr/sbin/useradd
+    3. file /usr/sbin/useradd
         /usr/sbin/useradd: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked
 #### Linux用户类型:
     Linux用户类型分为 3 类：超级用户、系统用户和普通用户。
@@ -3154,27 +3154,27 @@
     > sudo usermod gerrit gerrit,sudo
     > sudo usermod -a -G sudo gerrit //-a表示追加用户组, sudo代表要追加的组，gerrit代表用户名
 #### 帐户登录或切换:sudo/su/login
-    1, -E, --preserve-env  preserve user environment when running command
-        sudo -E ./t7gdb vmlinux
-            gdb:edit start_kernel   (success)
-        sudo ./t7gdb vmlinux
-            gdb:edit start_kernel   (failed)
-    2,  su -l username
-        su - username //login as username
-    3,  sudo:   execute a command as another user
-        su:     The su command is used to become another user during a login session.
-        login:  The login program is used to establish a new session with the system.
-    4, 使用sudo时报错误
-        test is not in the sudoers file.  This incident will be reported.
-        resolve mathods:解决方法
-            a) modify /etc/sudoers
-            b) modify user group to sudo group
+    1. -E, --preserve-env  preserve user environment when running command
+       sudo -E ./t7gdb vmlinux
+           gdb:edit start_kernel   (success)
+       sudo ./t7gdb vmlinux
+           gdb:edit start_kernel   (failed)
+    2. su -l username
+       su - username //login as username
+    3. sudo:   execute a command as another user
+       su:     The su command is used to become another user during a login session.
+       login:  The login program is used to establish a new session with the system.
+    4. 使用sudo时报错误
+       test is not in the sudoers file.  This incident will be reported.
+       resolve mathods:解决方法
+           a) modify /etc/sudoers
+           b) modify user group to sudo group
 
 ## linux Container容器
     https://segmentfault.com/a/1190000006908063
-    1,  跟我们常说的虚拟机这种虚拟化技术没有关系
-    2,  容器就是一个或多个进程以及他们所能访问的资源的集合
-    3,  容器和虚拟机的差别
+    1. 跟我们常说的虚拟机这种虚拟化技术没有关系
+    2. 容器就是一个或多个进程以及他们所能访问的资源的集合
+    3. 容器和虚拟机的差别
             从技术角度来看，他们是不同的两种技术，没有任何关系，但由于他们的应用场景有重叠的地方，所以人们经常比较他们两个
             容器目前只能在Linux上运行，容器里面只能跑Linux
             虚拟机可以在所有主流平台上运行，比如Windows，Linux，Mac等，并且能模拟不同的系统平台，如在Windows下安装Linux的 虚拟机
@@ -3182,31 +3182,31 @@
             并且容器比虚拟机要快，包括启动速度，生成快照速度等
             虚拟机是一整套的虚拟环境，包括BIOS, 虚拟网卡, 磁盘, CPU，以及操作系统等， 启动慢，占用硬件资源多.
             由于虚拟机的和主机只是共享硬件资源，隔离程度要比容器高，所以相对来说虚拟机更安全
-    4,  docker和容器的关系
-        docker是容器管理技术的一种实现，用来管理容器，就像VMware是虚拟机的一种实现一样，除了docker，
-        还有LXC/LXD，Rocket，systemd-nspawn，只是docker做的最好，所以我们一说容器，就想到了docker。
-    5,  为什么容器只出现在Linux里面
-        因为Linux中有资源隔离和管理的机制(Namespace,CGroups)，有COW（copy on write）文件系统等容器所需要的基础技术。
-        当然其他平台也有类似的东西，但功能都没有Linux下的完善，不过随着容器技术越来越流行，其他的系统平台也在慢慢的
-        实现和完善类似的这些技术。
-    6,  为什么容器里面只能运行Linux
-        因为Linux下的所有容器共享一个Linux内核，所以容器里面只能跑Linux系统
-    7,  容器启动为什么那么快？
-        容器的本质是一个或多个进程以及他们所能访问的资源的集合。启动一个容器的步骤大概就是：
-            配置好相关资源，如内存、磁盘、网络等
-            配置资源就是往系统中添加一些配置，非常快
-            初始化容器所用到的文件目录结构
-            由于Linux下有COW（copy on write）的文件系统，如Btrfs、aufs，所以可以很快的根据镜像生成容器的文件系统目录结构。
-            启动进程
-            和启动一个普通的进程没有区别，对Linux内核来说，所有的应用层进程都是一样的
-        从上面可以看出启动容器的过程中没有耗时的操作，这也是为什么容器能在毫秒级别启动起来的原因
-    8,  启动容器会占用很多资源导致系统变慢吗
-        由于Namespace和CGroups已经是Linux内核的一部分了，所以应用层运行的进程一定会属于某个Namespace和CGroups（如果没有指定，
-        就属于默认的Namespace和CGroups），也就是说，就算我们不用Docker，所有的进程都已经运行在默认容器中了。对内核来说，默认
-        容器中运行的进程和Docker创建的容器中运行的进程没有什么区别，就是他们所属的容器号不一样。
-        所以说创建新容器会不会影响主机性能完全取决于容器里面运行什么东西。如果运行的是耗资源的进程，那么肯定会对主机性能造
-        成影响，但这种影响可以在一定程度上由CGroups控制住，不至于对主机带来灾难性的影响。如果容器里面运行的是不耗资源的进程，
-        那么对系统就没有影响，只是容器里面的文件系统可能会占用一些磁盘空间。
+    4. docker和容器的关系
+       docker是容器管理技术的一种实现，用来管理容器，就像VMware是虚拟机的一种实现一样，除了docker，
+       还有LXC/LXD，Rocket，systemd-nspawn，只是docker做的最好，所以我们一说容器，就想到了docker。
+    5. 为什么容器只出现在Linux里面
+       因为Linux中有资源隔离和管理的机制(Namespace,CGroups)，有COW（copy on write）文件系统等容器所需要的基础技术。
+       当然其他平台也有类似的东西，但功能都没有Linux下的完善，不过随着容器技术越来越流行，其他的系统平台也在慢慢的
+       实现和完善类似的这些技术。
+    6. 为什么容器里面只能运行Linux
+       因为Linux下的所有容器共享一个Linux内核，所以容器里面只能跑Linux系统
+    7. 容器启动为什么那么快？
+       容器的本质是一个或多个进程以及他们所能访问的资源的集合。启动一个容器的步骤大概就是：
+           配置好相关资源，如内存、磁盘、网络等
+           配置资源就是往系统中添加一些配置，非常快
+           初始化容器所用到的文件目录结构
+           由于Linux下有COW（copy on write）的文件系统，如Btrfs、aufs，所以可以很快的根据镜像生成容器的文件系统目录结构。
+           启动进程
+           和启动一个普通的进程没有区别，对Linux内核来说，所有的应用层进程都是一样的
+       从上面可以看出启动容器的过程中没有耗时的操作，这也是为什么容器能在毫秒级别启动起来的原因
+    8. 启动容器会占用很多资源导致系统变慢吗
+       由于Namespace和CGroups已经是Linux内核的一部分了，所以应用层运行的进程一定会属于某个Namespace和CGroups（如果没有指定，
+       就属于默认的Namespace和CGroups），也就是说，就算我们不用Docker，所有的进程都已经运行在默认容器中了。对内核来说，默认
+       容器中运行的进程和Docker创建的容器中运行的进程没有什么区别，就是他们所属的容器号不一样。
+       所以说创建新容器会不会影响主机性能完全取决于容器里面运行什么东西。如果运行的是耗资源的进程，那么肯定会对主机性能造
+       成影响，但这种影响可以在一定程度上由CGroups控制住，不至于对主机带来灾难性的影响。如果容器里面运行的是不耗资源的进程，
+       那么对系统就没有影响，只是容器里面的文件系统可能会占用一些磁盘空间。
 ### docker的安装及使用
 #### 安装
     1. sudo apt update
