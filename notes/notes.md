@@ -3081,18 +3081,96 @@
        effective user id(euid)：进程文件owner的user id，决定进程是否对某个文件有操作权限，默认为ruid，
        sudo这个程序文件的权限有s，并且sudo文件的owner是root，所以sudo执行起来后，euid是root用户的id，
        所以由sudo fork出来的子进程会继承sudo的euid（猜测），或者sudo可以调用seteuid()系统调用，来设置子进程的euid。
-### sudo 原理
+### sudo原理
     1. 查看sudo文件权限(发现sudo拥有s权限)
        ll /usr/bin/sudo
        -rwsr-xr-x 1 root root 166056 Jan 19 22:21 /usr/bin/sudo*
     1. Linux提供了一个seteuid的函数，可以更改进程的euid。函数声明在头文件<unistd.h>里:int seteuid(uid_t euid);
        但是，如果一个进程本身没有root权限，也就是说euid不是0，是无法通过调用seteuid将进程的权限提升的，调用seteuid会出现错误.
-    2. 该怎么把进程的euid该为root的id：0呢？
+    2. 该怎么把进程的euid改为root的id:0呢？
        那就是通过s权限。
-       2.1 如果一个文件拥有x权限，表示这个文件可以被执行。shell执行命令或程序的时候，先fork一个进程，再通过exec函数族执行这个命令或程序，
-           这样的话，执行这个文件的进程的ruid和euid就是当前登入shell的用户id。
-       2.2 当这个文件拥有x权限和s权限时，在shell进行fork后调动exec函数族执行这个文件的时候，这个进程的euid将被系统更改为这个文件的拥有者id。
-           所以，shell中执行sudo时，sudo的euid不是shell设的，是linux内核设的。sudo再fork子进程的euid是谁设的呢？还是继承父进程的呢？
+       2.1 如果一个文件拥有x权限，表示这个文件可以被执行。shell执行命令或程序的时候，
+           先fork一个进程，再通过exec函数族执行这个命令或程序， 这样的话，执行这个
+           文件的进程的ruid和euid就是当前登入shell的用户id。
+       2.2 当这个文件拥有x权限和s权限时，在shell进行fork后调动exec函数族执行这个文
+           件的时候，这个进程的euid将被系统更改为这个文件的拥有者id。所以，shell中
+           执行sudo时，sudo的euid不是shell设的，是linux内核设的。sudo再fork子进程
+           的euid是谁设的呢？还是继承父进程的呢？
+    3. https://zhuanlan.zhihu.com/p/100404099
+      sudo是Linux上的常用命令，其目的是为了给普通用户提升操作权限，
+      完成一些需要root权限才能完成的任务。那么sudo是如何提升权限的呢？
+      linux操作系统有着严格、灵活的权限访问控制。主要体现在两方面：
+      1、文件权限 2、进程权限
+      文件权限
+      文件权限包括五种：
+      r：可读取文件内容或目录结构
+      w：可修改文件的内容或目录的结构（但不包括删除）
+      x：文件可被系统执行或目录可被作文工作目录
+      s：文件在执行阶段具有文件所有者的权限
+      t：使一个目录既能够让任何用户写入文档，又不让用户删除这个目录下他人的文档
+      一个文件拥有三组权限，所有者权限、所属组权限、其他人权限
+      进程权限
+      进程就是用户访问计算机资源的代理，用户执行的操作其实是带有用户身份信息的进程执行的操作。
+      这里介绍两个最重要的进程权限id. reaal user id(ruid)：执行进程者的 user id，一般情况下
+      就是用户登录时的 user id effective user id(euid)：决定进程是否对某个文件有操作权限，默认为ruid
+      在文件权限和进程权限id里，s文件权限和euid权限id是sudo实现提升权限的根本。一个进程是否
+      能操作某个文件，取决于进程的euid是否拥有这个文件的相应权限，而不是ruid。也就是说，如果
+      想要让进程获得某个用户的权限，只要把进程的euid设置为该用户id就可以了。在具体一点，我们
+      想要让进程拥有root用户的权限，我只要想办法把进程的euid设置成root的id：0就可以了。
+      Linux提供了一个seteuid的函数，可以更改进程的euid。函数声明在头文件里。
+      int seteuid(uid_t euid);
+      但是，如果一个进程本身没有root权限，也就是说euid不是0，是无法通过调用seteuid将进程的权限
+      提升的，调用seteuid会出现错误。 那该怎么把进程的euid该为root的id：0呢？那就是通过s权限。
+      如果一个文件拥有x权限，表示这个文件可以被执行。shell执行命令或程序的时候，先fork一个进程，
+      再通过exec函数族执行这个命令或程序，这样的话，执行这个文件的进程的ruid和euid就是当前登入
+      shell的用户id。当这个文件拥有x权限和s权限时，在shell进行fork后调动exec函数族执行这个文件
+      的时候，这个进程的euid将被系统更改为这个文件的拥有者id。比如，一个文件的拥有者为user_1，
+      权限为rwsr-xr-x，那么你用user_2的文件执行他的时候，执行这个文件的进程的ruid为user_2的id，
+      euid为user_1的id。
+      创建一个main.c文件，并写入如下代码：
+      #include <stdio.h>
+      #include <unistd.h>
+      int main(int argc, char* argv[])
+      {
+            printf("ruid: %d\n",getuid());
+            printf("euid: %d\n",geteuid());
+            return 0;
+      }
+      gcc ./main.c -o ./main
+      编译运行，结果如下：
+      ruid: 1000
+      euid: 1000
+      通过chmod和chown为文件更改拥有者和添加s权限
+      sudo chown root ./main
+      sudo chmod +s ./main
+      再次运行，结果如下：
+      ruid: 1000
+      euid: 0
+      此时由于文件的s权限，euid已经变为了root的id：0
+      将代码修改如下：
+      #include <stdio.h>
+      #include <unistd.h>
+      int maind(int argc, char* argv[])
+      {
+          printf("ruid: %d\n",getuid());
+              printf("euid: %d\n",geteuid());
+              if(execvp(argv[1], argv+1) == -1){
+                      perror("execvp error");
+              };
+                  return 0;
+      }
+      gcc ./main.c --o main，编译后，执行
+      sudo chown root ./main
+      sudo chmod +s ./main
+      ./main apt update
+      可以看到，已经成功运行apt并进行了软件列表的更新。
+      查看sudo的权限
+      ls -al /usr/bin/sudo
+      输出如下
+      -rwsr-xr-x 1 root root
+      可以看到，sudo就是一个拥有者为root且拥有s权限的可执行文件。
+      当然sudo的实现要比这复杂的很多，比如sudo通过检查配置文件,如/etc/sudoers，
+      来决定哪些用户可以使用sudo，为了安全考虑sudo还要求验证ruid的用户密码等。
 ### linux认证机制
     1. linux认证机制是应用程序实现的，和内核无关，内核只提供文件权限和进程权限管理机制，就是说linux会限制某个进程能访问哪些资源（主要是文件资源）.
     2. 内核中的文件和进程虽然有userid，groupid等属性，但是内核并不管理user，group等数据，只是在创建file和process时，可以填充这些属性，
@@ -3173,6 +3251,11 @@
             这种方法好像行不通，因为即使user是root组的，只能说明user能访问root组的文件，user依然执行
             不了sudo程序。sudo程序执行起来之后，首先验证密码，然后再检查当前用户是不是在sudoers文件
             中，俩项都检查没问题，再fork子进程，做用户想做的事。
+    5. sudo 执行提示 Command not found
+       修改/etc/sudoers文件，找到类似下面的一行:
+       Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin
+       将要执行的命令所在的目录添加到后面即可，如：
+       Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
 
 ## linux Container容器
     https://segmentfault.com/a/1190000006908063
