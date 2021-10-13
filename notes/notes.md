@@ -3168,7 +3168,11 @@
        test is not in the sudoers file.  This incident will be reported.
        resolve mathods:解决方法
            a) modify /etc/sudoers
+            找到这一行："root ALL=(ALL) ALL"在起下面添加"xxx ALL=(ALL) ALL"(这里的xxx是你的用户名)
            b) modify user group to sudo group
+            这种方法好像行不通，因为即使user是root组的，只能说明user能访问root组的文件，user依然执行
+            不了sudo程序。sudo程序执行起来之后，首先验证密码，然后再检查当前用户是不是在sudoers文件
+            中，俩项都检查没问题，再fork子进程，做用户想做的事。
 
 ## linux Container容器
     https://segmentfault.com/a/1190000006908063
