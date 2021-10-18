@@ -4343,3 +4343,16 @@
         3.1 logMsg是vxworks的一种log输出方案；
         3.2 logMsg使用单独的一个task处理打印;
         3.3 logMsg会将log内容放到message queue中，然后唤醒log task，log task负责输出log；
+### gdm(The GNOME Display Manager)
+#### centos启动list中屏蔽某个user
+    比如屏蔽掉用户zhuwch，即在centos的开机登录界面的user list中没有zhuwch用户可选，
+    但是可以通过输入用户名和密码的形式登录，或者通过ssh可以登录。
+    在/var/lib/AccountsService/users/下创建文件zhuwch:
+    ls /var/lib/AccountsService/users/
+    gdm  star  zhuwch
+    cat /var/lib/AccountsService/users/zhuwch
+    [User]
+    Language=
+    XSession=
+    Icon=/home/star/.face
+    SystemAccount=true // 这一句是关键，即在开机界面中不列出系统用户名
