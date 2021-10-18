@@ -3058,7 +3058,38 @@
     }
     subsys_initcall(param_sysfs_init);
 ## linux权限管理
-### Linux文件权限
+    linux权限管理研究的对象为: 进程权限，文件权限，用户权限，组权限。
+    其实对于计算机来讲，只有进程和文件是实实在在的，其它的都是附加品.
+    因为计算机只认指令和数据，其它的都是控制或要处理的信息。
+    比如用户信息和组信息，都是进程和文件的属性，只不过方便使用者里管理。
+    进程有所属的用户和组ID
+    文件有所属的用户和组ID
+    进程和文件的权限主要由用户和组的IDs、还有些其它信息来标识的.
+    进程权限相关属性:
+        用户ID:
+            RUID
+            EUID
+            SUID
+            FUID
+        组ID:
+            RGID
+            EGID
+            SGID
+            FGID
+    文件权限相关属性:
+        owner ID
+        owner 权限
+        group ID
+        group 权限
+        other 权限
+    用户权限相关属性:
+        UID
+        主GID
+        附加GIDs
+    组权限相关属性:
+        GID
+        包含哪些用户
+### linux文件权限
     1.  一个文件权限相关的属性:
         1.  owner权限域(u)
         2.  group权限域(g)
@@ -3069,18 +3100,47 @@
             r：可读取文件内容或目录结构
             w：可修改文件的内容或目录的结构（但不包括删除）
             x：文件可被系统执行或目录可被作文工作目录
-            s：文件在执行阶段具有文件所有者的权限   //这个是sudo等程序实现,提升程序运行权限的底层原理
+            s：setuid,该文件运行起来后，进程的euid被修改成该文件的owner ID.
+               如果owner ID = root,那么该进程就有root权限.
+               这个是sudo等程序实现,提升程序运行权限的底层原理
             t：使一个目录既能够让任何用户写入文档，又不让用户删除这个目录下他人的文档
     2.  修改文件权限相关属性的工具
         chown：修改文件所有者
         chgrp：修改文件所属组
         chmod：修改文件权限
-### Linux进程权限
+    3. 文件s权限修改方法
+        chmod u+s filename 设置SUID位
+        chmod u-s filename 去掉SUID设置
+        chmod g+s filename 设置SGID位
+        chmod g-s filename 去掉SGID设置
+### linux进程权限
     1. 进程权限相关的属性
-       real user id(ruid)：进程执行者的user id，一般情况下就是用户登录时的
-       effective user id(euid)：进程文件owner的user id，决定进程是否对某个文件有操作权限，默认为ruid，
-       sudo这个程序文件的权限有s，并且sudo文件的owner是root，所以sudo执行起来后，euid是root用户的id，
-       所以由sudo fork出来的子进程会继承sudo的euid（猜测），或者sudo可以调用seteuid()系统调用，来设置子进程的euid。
+    UID 真实用户ID, real user id(ruid)：进程执行者的user id，一般情况下就是用户登录时的
+    EUID 有效用户ID, effective user id(euid)：进程文件owner的user id，决定进程是否对某个文件有操作权限，默认为ruid，
+    GID 真实组ID, 进程的组ID
+    EGID 有效组ID, EGID 的含义与 EUID 类似
+    PID 当前进程ID
+    PPID 父进程ID
+    sudo这个程序文件的权限有s，并且sudo文件的owner是root，所以sudo执行起来后，euid是root用户的id，
+    所以由sudo fork出来的子进程会继承sudo的euid（猜测），或者sudo可以调用seteuid()系统调用，来设置子进程的euid。
+### linux用户权限
+    uid: 用户ID
+    gid: 组ID
+    groups: 所属组
+    如:
+    id user
+    uid=1000(user) gid=1000(user) groups=1000(user),4(adm),24(cdrom),27(sudo),30(dip),46(plugdev),120(lpadmin),131(lxd),132(sambashare),998(docker)
+    再如:
+    id zhuwch
+    uid=1001(zhuwch) gid=1001(zhuwch) groups=1001(zhuwch),0(root),1000(star)
+### linux组权限
+### su原理
+    1. ls /usr/bin/su -l
+    -rwsr-xr-x. 1 root root 32128 Oct  1  2020 /usr/bin/su
+    2. 由1可知，su文件所有者权限是:rwsr,具有s(etuid)权限, 即su执行起来后，进程的euid被设成su文件的uid，
+    su文件的组权限是:-xr，没有s(etgid)权限，所以su进程的egid任然等于当前用户的uid.
+    3. 既然su进程的euid=root ID，则su就可以干一切事情，但它只干了启动子shell，将子shell进程的ruid设成
+    用户指定的uid。
 ### sudo原理
     1. 查看sudo文件权限(发现sudo拥有s权限)
        ll /usr/bin/sudo
@@ -3191,7 +3251,7 @@
     git本身没有实现认证机制，git支持file/http/ssh/git等传输协议，其中http/ssh会带有认证机制，
     比如git clone http://ip:port时,就会通过指定的端口号，向server端的httpd进程发送请求，httpd带有认证机制，
     认证通过后，就会通过http协议传送git数据了
-### Linux accounts management:
+### linux accounts management:
     1. su - username (Provide an environment similar to what the user would expect had the user logged in directly)
     2. users: print the user names of users currently logged in to the current host
     3. w: Show who is logged on and what they are doing
