@@ -8,7 +8,7 @@
 ## align plugin Tabular.vim
     align with ':'
         :Tabularize /:
-## Ctrl-v选至行尾
+## Ctrl-v非对齐选至行尾
     Ctrl-v ... Shift-$
 ## search highlight 临时取消
     :noh/:nohlsearch
