@@ -3058,6 +3058,24 @@
     从shell命令行中获取参数，最终通过execve系统调用传递。
 ### 标准输入传递:xargs
     xargs从标准输入(可以是管道)获取参数，最终通过execve系统调用传递。
+    默认将接收到的参数追加放在xargs命令行参数的后面。
+### xargs与``区别
+    ls main.c | xargs grep "stdio"
+        用管道将ls的输出重定向到xargs的标准输入。
+        xargs传来的参数，默认位于 xargs 后面命令的最后，
+        若需要将参数传入指定位置，需要加 -I 参数，
+        比如像将 *1223.log 移动到 log_1223 的目录下：
+            ls *1223.log | xargs -I {} mv {} log_1223
+    grep "stdio" `ls main.c`
+        用管道将ls的输出导入到bash
+    验证:
+        sudo strace -fye execve,read,write -p 3526 // 3526是待追踪shell
+        在另一个shell中执行:
+            ls main.c | xargs grep "stdio"
+            grep stdio `cat 11`
+        观察strace log
+    总结:
+        涉及到将一个进程的输出作为另一个进程的参数或输入时，都用pipe实现。
 ### 环境变量传递
     int execve(const char *path, char *const argv[], char *const envp[]);
     环境变量传给envp;
