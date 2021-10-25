@@ -4567,21 +4567,22 @@
         解决方法:
             vim /etc/ssh/ssh_config
             将Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-cbc,3des-cbc这一行解注掉
-    2.  ssh -X user@ip
-        sudo vim /etc/samba/smb.conf
-        report:
+    2.  操作:
+            ssh -X user@ip
+            sudo vim /etc/samba/smb.conf
+        现象:
             X11 connection rejected because of wrong authentication
-        resolved:
-                cp /home/user/.Xauthority /root/
-            or
-                sudo -E vim /etc/samba/smb.conf
+        解决方法:
+            cp /home/user/.Xauthority /root/
+            或者
+            sudo -E vim /etc/samba/smb.conf
 ## ssh-keygen
 ## ssh-agent
 ## ssh-copy-id
 ## scp
 
 # Folder Sharing:
-## linux/linux share folder:
+## linux and linux share:
     使用NFS:
         1. server端构建:
             安装nfs-kernel-server并配置:
@@ -4604,7 +4605,7 @@
                 在文件浏览器中"挂载"或打开
             or
                 sudo mount -t cifs
-## linux/windows share folder:
+## linux and windows share:
     windows作为server，ubuntu作为client:
         1. server端构建:
             在windows中选择要共享的文件夹，在文件夹属性中共享即可.
@@ -4626,24 +4627,35 @@
                     -->Ctrl + L -->输入smb://10.3.153.95/e/
     ubuntu作为server，windows作为client:
         1. server端构建:
-            sudo smbpasswd -a user
-            sudo vim /etc/samba/smb.conf
-            [user]
-            comment = share folder
-            browseable=yes
-            path = /home/user
-            create mask = 0700
-            directory mask = 0700
-            valid users = user
-            force user = user
-            force group = user
-            public = yes
-            available = yes
-            writable = yes
+            1.1 安装和配置samba
+                详见1tools-install.sh,2configs.sh
+            1.2 sudo smbpasswd -a user
+            1.3 sudo vim /etc/samba/smb.conf
+                [user]
+                comment = share folder
+                browseable=yes
+                path = /home/user
+                create mask = 0700
+                directory mask = 0700
+                valid users = user
+                force user = user
+                force group = user
+                public = yes
+                available = yes
+                writable = yes
             注:ubuntu中可以直接右击文件夹-属性中共享，自动安装SAMBA server并配置.
+            在centos中实验的时候，需要关闭防火墙和selinux:
+            关闭防火墙:
+                systemctl stop firewalld.service
+                systemctl disable firewalld.service
+                这里只是粗暴的关闭防火墙，也可以将smb使用的port过滤掉。
+            关闭selinux:
+                vim /etc/selinux/config
+                    # SELINUX=enforcing
+                    SELINUX=disabled
         2. client端使用:
             在windows文件浏览器中添加网络驱动器即可.
-## windows/windows share folder:
+## windows and windows share:
         1. server端构建:
             windows文件夹共享打开即可
         2. client端使用:
