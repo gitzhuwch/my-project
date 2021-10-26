@@ -246,6 +246,13 @@
     command mode: delmarks a b c
     6. delete all marks
     command mode: delmarks!
+## CTRL-T and CTRL-O
+    vim -c "help CTRL-T"
+        Jump to [count] older entry in the tag stack
+    vim -c "help CTRL-O"
+        Go to [count] Older cursor position in jump list
+    vim -c "help CTRL-I"
+        Go to [count] newer cursor position in jump list
 
 # markdown
 ## syntax
@@ -512,7 +519,7 @@
         当前程序栈帧(stack frame|activation record) 下的局部变量
     调试器如何从一些十分基础的信息，例如 IP(指令地址), 呈现给我们如此丰富的调试信息呢?
     那便我们为什么需要 DWARF, 其提供了程序运行时信息(Runtime)到源码信息的映射(Source File)
-### gdbinit:
+### gdbinit
     1.
         define dump_current
         set var $stacksize = sizeof(union thread_union)
@@ -547,23 +554,23 @@
         set var $task_struct =(struct task_struct *)($threadinfo->task)
         printf "pid:%d; comm:%s\n", $task_struct.pid, $task_struct.comm
         end
-### cmd:monitor
+### monitor
     Send a command to the remote monitor (remote targets only).
         :monitor reset halt
         :monitor exit
-### cmd:file&load
-    file    // Use FILE as program to be debugged
-    load    // Dynamically load FILE into the running program.
+### file and load
+    file // Use FILE as program to be debugged
+    load // Dynamically load FILE into the running program.
 ### set confirm off
     关闭gdb命令的确认交互
 ### gdb不退出重新加载?
     1. file xxx
     2. run
 ### target/remote/monitor区别
-    1. target   // Connect to a target machine or process
-    2. remote   // Manipulate files on the remote system.
+    1. target // Connect to a target machine or process
+    2. remote // Manipulate files on the remote system.
     Transfer files to and from the remote target system.
-    3. monitor  // Send a command to the remote monitor (remote targets only).
+    3. monitor // Send a command to the remote monitor (remote targets only).
 ### gdb trace syscall
     catch exec/fork/vfork/syscall...
 ### set program runtime args
@@ -573,6 +580,11 @@
     3. gdb a.out
        set args "xxx"
        run
+### ptype
+    Print definition of type TYPE
+### info and show
+    info // 显示进程的相关信息
+    show // 显示gdb的配置信息
 ## GCC:
     GNU Compiler Collection
 ### gcc specifications file
@@ -713,7 +725,7 @@
         可以把它叫做证书或者凭证小助手，它帮我们存储了credential(凭证，里面包含了用户名和密码)
         原文链接：https://blog.csdn.net/u012163684/java/article/details/52433645
     5.  git help --all
-        git ls-files -s
+        git ls-files -s // 显示所有object的类型、权限、sha1值、完成文件名
         git ls-remote
         git show-ref
         git fetch origin refs/for/refs/heads/cc:refs/for/refs/heads/cc
@@ -2745,6 +2757,95 @@
     __traverse_mounts
     follow_automount
     ...
+## 文件的类型和权限
+### inode->i_mode
+    1. i_mode存放文件类型和权限信息。
+### stat命令原理
+    shell中stat命令，通过系统调用lstat，获取文件的类型和权限信息。
+    lstat系统调用跟踪:
+    void generic_fillattr(struct inode *inode, struct kstat *stat)
+    {
+        stat->dev = inode->i_sb->s_dev;
+        stat->ino = inode->i_ino;
+        stat->mode = inode->i_mode; // 文件类型和权限信息
+        stat->nlink = inode->i_nlink;
+        stat->uid = inode->i_uid;
+        stat->gid = inode->i_gid;
+        stat->rdev = inode->i_rdev;
+        stat->size = i_size_read(inode);
+        stat->atime = inode->i_atime;
+        stat->mtime = inode->i_mtime;
+        stat->ctime = inode->i_ctime;
+        stat->blksize = (1 << inode->i_blkbits);
+        stat->blocks = inode->i_blocks;
+    }
+    static int cp_new_stat(struct kstat *stat, struct stat __user *statbuf)
+    {
+        struct stat tmp;
+        if (!valid_dev(stat->dev) || !valid_dev(stat->rdev))
+        return -EOVERFLOW;
+        #if BITS_PER_LONG == 32
+        if (stat->size > MAX_NON_LFS)
+        return -EOVERFLOW;
+        #endif
+        INIT_STRUCT_STAT_PADDING(tmp);
+        tmp.st_dev = encode_dev(stat->dev);
+        tmp.st_ino = stat->ino;
+        if (sizeof(tmp.st_ino) < sizeof(stat->ino) && tmp.st_ino != stat->ino)
+        return -EOVERFLOW;
+        tmp.st_mode = stat->mode; // 用户层最终通过st_mode获取文件的mode信息
+        tmp.st_nlink = stat->nlink;
+        if (tmp.st_nlink != stat->nlink)
+        return -EOVERFLOW;
+        SET_UID(tmp.st_uid, from_kuid_munged(current_user_ns(), stat->uid));
+        SET_GID(tmp.st_gid, from_kgid_munged(current_user_ns(), stat->gid));
+        tmp.st_rdev = encode_dev(stat->rdev);
+        tmp.st_size = stat->size;
+        tmp.st_atime = stat->atime.tv_sec;
+        tmp.st_mtime = stat->mtime.tv_sec;
+        tmp.st_ctime = stat->ctime.tv_sec;
+        #ifdef STAT_HAVE_NSEC
+        tmp.st_atime_nsec = stat->atime.tv_nsec;
+        tmp.st_mtime_nsec = stat->mtime.tv_nsec;
+        tmp.st_ctime_nsec = stat->ctime.tv_nsec;
+        #endif
+        tmp.st_blocks = stat->blocks;
+        tmp.st_blksize = stat->blksize;
+        return copy_to_user(statbuf,&tmp,sizeof(tmp)) ? -EFAULT : 0;
+    }
+#### st_mode解析
+    include/uapi/linux/stat.h
+    st_mode是用特征位来表示文件类型的，特征位的定义如下：
+    S_IFMT      0170000     文件类型的位遮罩
+    S_IFSOCK    0140000     socket
+    S_IFLNK     0120000     符号链接(symbolic link)
+    S_IFREG     0100000     一般文件
+    S_IFBLK     0060000     区块装置(block device)
+    S_IFDIR     0040000     目录
+    S_IFCHR     0020000     字符装置(character device)
+    S_IFIFO     0010000     先进先出(fifo)
+    S_ISUID     0004000     文件的(set user-id on execution)位
+    S_ISGID     0002000     文件的(set group-id on execution)位
+    S_ISVTX     0001000     文件的sticky位
+    S_IRWXU     00700       文件所有者的遮罩值(即所有权限值)
+    S_IRUSR     00400       文件所有者具可读取权限
+    S_IWUSR     00200       文件所有者具可写入权限
+    S_IXUSR     00100       文件所有者具可执行权限
+    S_IRWXG     00070       用户组的遮罩值(即所有权限值)
+    S_IRGRP     00040       用户组具可读取权限
+    S_IWGRP     00020       用户组具可写入权限
+    S_IXGRP     00010       用户组具可执行权限
+    S_IRWXO     00007       其他用户的遮罩值(即所有权限值)
+    S_IROTH     00004       其他用户具可读取权限
+    S_IWOTH     00002       其他用户具可写入权限
+    S_IXOTH     00001       其他用户具可执行权限
+    摘自《Linux C 函数库参考手册》
+## acl and selinux
+    1. selinux权限管理:即使是root用户，也不能访问全部文件。
+       在centos中开启selinux之后，ls -l时，文件权限信息之后多一个点'.'。
+    2. acl权限管理:和windows类似，能给指定用户，分配指定权限。
+       在centos中，开启acl之后，在windows中修改centos的samba共享目录的文件后，
+       ls -l，发现文件权限之后多了一个加号'+'。
 
 # linux memory management:
     https://www.cnblogs.com/arnoldlu/p/8051674.html
@@ -4661,30 +4762,30 @@
         2. client端使用:
             在windows文件浏览器中添加网络驱动器即可.
 ## SMB/CIFS/SAMBA/NFS:
-    1.  smb是协议级别的概念,其它的不是
-    2.  Server Message Block - SMB，即服务(器)消息块，是 IBM 公司在 80 年代中期发明
-        的一种文件共享协议。它只是系统之间通信的一种方式（协议），并不是一款特殊的软件。
-    3.  Common Internet File System - CIFS，即通用因特网文件系统。CIFS 是 SMB 协议的衍生品，
-        即 CIFS 是 SMB 协议的一种特殊实现，由美国微软公司开发。由于 CIFS 是 SMB 的另一中实现，
-        那么 CIFS 和 SMB 的客户端之间可以互访就不足为奇。二者都是协议级别的概念，
-        名字不同自然存在实现方式和性能优化方面的差别，如文件锁、LAN/WAN 网络性能和文件批量修改等。
-    4.  Samba 也是 SMB 协议的实现，他是软件,与 CIFS 类似，它允许 Windows 客户访问 Linux
-        系统上的目录、打印机和文件
-    5.  Network File System - NFS，即网络文件系统。由 Sun 公司面向 SMB 相同的功能
-        （通过本地网络访问文件系统）而开发，但它与 CIFS/SMB 完全不兼容。也就是说 NFS 客户端
-        是无法直接与 SMB 服务器交互的。NFS 用于 Linux 系统和客户端之间的连接。
-        而 Windows 和 Linux 客户端混合使用时，就应该使用 Samba。
+    1. smb是协议级别的概念,其它的不是
+    2. Server Message Block - SMB，即服务(器)消息块，是 IBM 公司在 80 年代中期发明
+       的一种文件共享协议。它只是系统之间通信的一种方式（协议），并不是一款特殊的软件。
+    3. Common Internet File System - CIFS，即通用因特网文件系统。CIFS 是 SMB 协议的衍生品，
+       即 CIFS 是 SMB 协议的一种特殊实现，由美国微软公司开发。由于 CIFS 是 SMB 的另一中实现，
+       那么 CIFS 和 SMB 的客户端之间可以互访就不足为奇。二者都是协议级别的概念，
+       名字不同自然存在实现方式和性能优化方面的差别，如文件锁、LAN/WAN 网络性能和文件批量修改等。
+    4. Samba 也是 SMB 协议的实现，他是软件,与 CIFS 类似，它允许 Windows 客户访问 Linux
+       系统上的目录、打印机和文件
+    5. Network File System - NFS，即网络文件系统。由 Sun 公司面向 SMB 相同的功能
+       （通过本地网络访问文件系统）而开发，但它与 CIFS/SMB 完全不兼容。也就是说 NFS 客户端
+       是无法直接与 SMB 服务器交互的。NFS 用于 Linux 系统和客户端之间的连接。
+       而 Windows 和 Linux 客户端混合使用时，就应该使用 Samba。
     Windows共享文件夹使用的协议是SMB/CIFS
         SMB:    Server Message Block
         CIFS:   Common Internet File System
 ## samba的使用
     1. 添加共享文件夹的方式
-        1)nautilus界面右键共享
-        2)编辑/etc/samba/smb.conf
-        3)在/var/lib/samba/usershares/下添加配置文件(方法1也是在这里添加配置文件)
+       1)nautilus界面右键共享
+       2)编辑/etc/samba/smb.conf
+       3)在/var/lib/samba/usershares/下添加配置文件(方法1也是在这里添加配置文件)
     2. 为共享文件夹添加用户名和密码
-        sudo smbpasswd -a user
-        sudo service smbd restart
+       sudo smbpasswd -a user
+       sudo service smbd restart
 ### samba免用户名和密码
     用nautilus创建共享是可选不要认证，如果设置了用户名和密码认证了，可以通过以下方式取消
     sudo smbpasswd -x user
