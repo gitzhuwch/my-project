@@ -1408,6 +1408,11 @@
         core.c: 协议层,sdio/sd/mmc protocol
         block.c: 将emmc等设备注册成block设备,然后用户层就可以做mount or mkfs操作
 ## char and block difference
+## look all driver modules
+    ls /sys/module/*
+    原理:
+        drivers/base/bus.c:
+            bus_add_driver()->module_add_driver()
 # tty subsystem:
     static struct tty_driver *tty_lookup_driver(dev_t device, struct file *filp,
             int *index)
@@ -3160,6 +3165,17 @@
 ### 标准输入传递:xargs
     xargs从标准输入(可以是管道)获取参数，最终通过execve系统调用传递。
     默认将接收到的参数追加放在xargs命令行参数的后面。
+#### xargs -I
+    当前目录下的文件:
+        ls ./
+            a.c a.h
+    执行命令:
+        ls ./ | xargs -I file mv file file.x
+    结果:
+        ls ./
+            a.c.x a.h.x
+    总结:
+        xargs -I file cmdxxx会对标准输入的每一个参数执行一次cmdxxx命令
 ### xargs与``区别
     ls main.c | xargs grep "stdio"
         用管道将ls的输出重定向到xargs的标准输入。
@@ -3314,6 +3330,11 @@
     3. 进程的附加组信息一般在用户登录时设置一次，后面子进程都是继承方式设置，
        并且修改需要root权限，一般也不会修改。
     4. 修改了用户的附加组信息，需要用户重新登录才能生效?
+       答:
+            1. 一般情况下是的；
+            2. 可以使用newgrp <new group name>命令更改，newgrp具有set uid权限，
+               并且其owner是root，所以执行的时候具有root权限，可以修改进程的group凭证。
+            3. su - $USER : 使用这个命令重新开始一个 session ，并重新继承当前环境。
     5. 修改进程的权限信息，除非可执行文件有set user ID等标志位(OS会自动修改
        进程的EUID/EGID为可执行文件的ownerID/groupID)，否则都需要root权限。
 ### open过程权限检查
