@@ -489,17 +489,17 @@
 ### ld:
     1.  ld --verbose 显示内置链接脚本
 #### linkscript/Command Language
-        https://www.math.utah.edu/docs/info/ld_3.html:
-        https://ftp.gnu.org/old-gnu/Manuals/ld-2.9.1/html_chapter/ld_3.html:
-            The command language provides explicit control over the link process,
-            allowing complete specification of the mapping between the linker's
-            input files and its output.
-        Scripts: Linker Scripts
-        Expressions: Expressions
-        MEMORY: MEMORY Command
-        SECTIONS: SECTIONS Command
-        Entry Point: The Entry Point
-        Option Commands: Option Commands
+    https://www.math.utah.edu/docs/info/ld_3.html:
+    https://ftp.gnu.org/old-gnu/Manuals/ld-2.9.1/html_chapter/ld_3.html:
+        The command language provides explicit control over the link process,
+        allowing complete specification of the mapping between the linker's
+        input files and its output.
+    Scripts: Linker Scripts
+    Expressions: Expressions
+    MEMORY: MEMORY Command
+    SECTIONS: SECTIONS Command
+    Entry Point: The Entry Point
+    Option Commands: Option Commands
 ## gdb:
     1. -E, --preserve-env  preserve user environment when running command
         sudo -E ./t7gdb vmlinux
@@ -5126,6 +5126,22 @@
         3.1 logMsg是vxworks的一种log输出方案；
         3.2 logMsg使用单独的一个task处理打印;
         3.3 logMsg会将log内容放到message queue中，然后唤醒log task，log task负责输出log；
+## printk
+### 可重入性
+### 递归检测
+### 多核重入
+### NMI中断重入
+### 根据地址打印函数名
+    %p  打印裸指针(raw pointer)
+    %pF 可打印函数指针的函数名和偏移地址
+    %pf 只打印函数指针的函数名，不打印偏移地址。
+    %pM 打印冒号分隔的MAC地址
+    %pm 打印MAC地址的16进制无分隔
+    %I4 打印无前导0的IPv4地址，%i4打印冒号分隔的IPv4地址
+    %I6 打印无前导0的IPv6地址，%i6打印冒号分隔的IPv6地址
+总结:
+![](./notes.dia/printk-addr-to-name.png)
+
 ## gdm(The GNOME Display Manager)
 ### centos启动list中屏蔽某个user
     比如屏蔽掉用户zhuwch，即在centos的开机登录界面的user list中没有zhuwch用户可选，
