@@ -3966,6 +3966,10 @@
             这种方法好像行不通，因为即使user是root组的，只能说明user能访问root组的文件，user依然执行
             不了sudo程序。sudo程序执行起来之后，首先验证密码，然后再检查当前用户是不是在sudoers文件
             中，俩项都检查没问题，再fork子进程，做用户想做的事。
+            修正:
+                这种方法也是可以的，但是需要重新登录。因为usermod命令只是修改配置文件中的数据，
+                不会修改task中的附加组信息，而登录程序(e.g su login)会调用相关系统调用setgroups
+                修改task中的权限、凭证信息.
     5. sudo 执行提示 Command not found
        修改/etc/sudoers文件，找到类似下面的一行:
        Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin
