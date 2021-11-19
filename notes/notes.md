@@ -1413,6 +1413,7 @@
     原理:
         drivers/base/bus.c:
             bus_add_driver()->module_add_driver()
+
 # tty subsystem:
     static struct tty_driver *tty_lookup_driver(dev_t device, struct file *filp,
             int *index)
@@ -3685,6 +3686,7 @@
         return 0;
     }
     subsys_initcall(param_sysfs_init);
+
 # linux权限管理
     linux权限管理研究的对象为: 进程权限，文件权限，用户权限，组权限。
     其实对于计算机来讲，只有进程和文件是实实在在的，其它的都是附加品.
@@ -4176,6 +4178,7 @@
     --------------------------------------------------------------------------------------
 ## grub给kernel传参修改网络设备名eth0:
     1. 修改/boot/grub/grub.cfg,在linux参数项中加net.ifnames=0 biosdevname=0
+
 # ABI/API/POSIX
     1.  POSIX 标准啊，C99 标准啊，都是对 API 的规定
         Linux 上面的 ABI 标准似乎只有 Linux Foundation 提供的一些标准
@@ -4202,6 +4205,7 @@
     所以保持这个 API 稳定是很简单的，但它的 ABI 就未必了，就算是这个函数定义本身没变，即 API 没变，
     而 struct net_device 的定义变了，里面多了或者少了某一个字段，它的 ABI 就变了，
     你之前编译好的二进制模块就很可能会出错了，必须重新编译才行。
+
 # 计算机顶层设计中的一些概念
 ## 计算机体系结构与组成原理与微机原理
     1. 计算机体系结构:  指软、硬件的系统结构，研究计算机由哪些功能组成
@@ -5104,6 +5108,57 @@
     sources:
         init/version.c
         fs/proc/version.c
+## uname系统调用跟踪
+    1. kernel/sys.c
+        SYSCALL_DEFINE1(uname, struct old_utsname __user *, name)
+        {
+            ...
+            if (copy_to_user(name, utsname(), sizeof(*name)))
+            ...
+        }
+    2. include/linux/utsname.h
+        static inline struct new_utsname *utsname(void)
+        {
+            return &current->nsproxy->uts_ns->name;
+        }
+    init_task的nsproxy
+        1. init/init_task.c
+            struct task_struct init_task = INIT_TASK(init_task);
+        2. include/linux/init_task.h
+            #define INIT_TASK(tsk)	\
+            ...
+	        .nsproxy	= &init_nsproxy,				\
+            ...
+        3. kernel/nsproxy.c
+            struct nsproxy init_nsproxy = {
+                .count	= ATOMIC_INIT(1),
+                .uts_ns	= &init_uts_ns,
+                #if defined(CONFIG_POSIX_MQUEUE) || defined(CONFIG_SYSVIPC)
+                .ipc_ns	= &init_ipc_ns,
+                #endif
+                .mnt_ns	= NULL,
+                .pid_ns	= &init_pid_ns,
+                #ifdef CONFIG_NET
+                .net_ns	= &init_net,
+                #endif
+            };
+        4. init/version.c
+            struct uts_namespace init_uts_ns = {
+                .kref = {
+                    .refcount	= ATOMIC_INIT(2),
+                },
+                .name = {
+                    .sysname	= UTS_SYSNAME,
+                    .nodename	= UTS_NODENAME,
+                    .release	= UTS_RELEASE,
+                    .version	= UTS_VERSION,
+                    .machine	= UTS_MACHINE,
+                    .domainname	= UTS_DOMAINNAME,
+                },
+                .user_ns = &init_user_ns,
+                .proc_inum = PROC_UTS_INIT_INO,
+            };
+            EXPORT_SYMBOL_GPL(init_uts_ns);
 ## bash command completion
     bash在接收输入时的自动补全功能是bash自带的一种机制，主要使用bash build-in command:compgen
     and complete来实现的,实现这种功能需要将待补全的命令事先准备好，一般放到:
@@ -5150,7 +5205,6 @@
     %I6 打印无前导0的IPv6地址，%i6打印冒号分隔的IPv6地址
 总结:
 ![](./notes.dia/printk-addr-to-name.png)
-
 ## gdm(The GNOME Display Manager)
 ### centos启动list中屏蔽某个user
     比如屏蔽掉用户zhuwch，即在centos的开机登录界面的user list中没有zhuwch用户可选，
