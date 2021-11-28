@@ -1337,7 +1337,33 @@
     编写CMakeLists.txt
     执行cmake .
 
-# linux boot
+# linux kernel加载器
+## Bootloader种类
+    --------------------------------------------------------------------------------------
+    |Bootloader |   Monitor |   描述                            |   x86 |   ARM | PowerPC|
+    --------------------------------------------------------------------------------------
+    |LILO       |   否      |   Linux磁盘引导程序               |   是  |   否  | 否     |
+    --------------------------------------------------------------------------------------
+    |GRUB       |   否      |   GNU的LILO替代程序               |   是  |   否  | 否     |
+    --------------------------------------------------------------------------------------
+    |Loadlin    |   否      |   从DOS引导Linux                  |   是  |   否  | 否     |
+    --------------------------------------------------------------------------------------
+    |ROLO       |   否      |   从ROM引导Linux而不需要BIOS      |   是  |   否  | 否     |
+    --------------------------------------------------------------------------------------
+    |Etherboot  |   否      |   通过以太网卡启动Linux系统的固件 |   是  |   否  | 否     |
+    --------------------------------------------------------------------------------------
+    |LinuxBIOS  |   否      |   完全替代BUIS的Linux引导程序     |   是  |   否  | 否     |
+    --------------------------------------------------------------------------------------
+    |BLOB       |   否      |   LART等硬件平台的引导程序        |   否  |   是  | 否     |
+    --------------------------------------------------------------------------------------
+    |U-boot     |   是      |   通用引导程序                    |   是  |   是  | 是     |
+    --------------------------------------------------------------------------------------
+    |RedBoot    |   是      |   基于eCos的引导程序              |   是  |   是  | 是     |
+    --------------------------------------------------------------------------------------
+## grub给kernel传参修改网络设备名eth0:
+    1. 修改/boot/grub/grub.cfg,在linux参数项中加net.ifnames=0 biosdevname=0
+
+# linux boot(汇编段)
     1. uboot 中没有开MMU
     2. zImage 自解压过程
     3. head.S 中准备page table和enable MMU是关键
@@ -1347,6 +1373,11 @@
        这就要求，页表中，有一段虚拟空间和物理空间是一一映射的
 
 # linux driver model:
+## kobject/kset
+## sysfs/kernfs
+    见linux filesystem节
+## devtmpfs
+    见linux filesystem节
 ## device_add()
     drivers/base/core.c::device_add----这里会创建设备在sys下的所有节点和链接文件，\
     也会在devtmpfs下创建节点
@@ -1414,7 +1445,7 @@
         drivers/base/bus.c:
             bus_add_driver()->module_add_driver()
 
-# tty subsystem:
+# linux tty subsystem:
     static struct tty_driver *tty_lookup_driver(dev_t device, struct file *filp,
             int *index)
     {
@@ -2397,7 +2428,7 @@
     实验:
         echo -en "\e[H\e[2J\e[3J"
 
-# input subsystem
+# linux input subsystem
 ## 相关目录
     1. /dev/input/
     2. /proc/bus/input/
@@ -2525,7 +2556,7 @@
 ### 终端仿真器处理
     仿真器接收到'\10'，向左移动光标
 
-# VT(virtual terminal)
+# linux VT(virtual terminal)
 ## VT中的键盘输入流程
     基于kernel的input subsystem实现了input_handler驱动:drivers/tty/vt/keyboard.c
     usb键盘中断 调用 input_handler->evnet，然后
@@ -2608,7 +2639,7 @@
      }
    }
 
-# uevent subsystem:
+# linux uevent subsystem
 ## uevent_helper
     1. /sys/kernel/uevent_helper
 ### /sys/kernel目录怎么创建的
@@ -2852,6 +2883,8 @@
     2. acl权限管理:和windows类似，能给指定用户，分配指定权限。
        在centos中，开启acl之后，在windows中修改centos的samba共享目录的文件后，
        ls -l，发现文件权限之后多了一个加号'+'。
+## 查看kernel中支持了哪些fs
+    cat /proc/filesystems
 
 # linux memory management:
     https://www.cnblogs.com/arnoldlu/p/8051674.html
@@ -2975,7 +3008,155 @@
     不和任何的进程相关了。
 
 # linux process managemnet:
-## 1号进程的in/out终端怎么产生
+## 0号进程swapper
+    init/init_task.c:
+        struct task_struct init_task = INIT_TASK(init_task);
+    include/linux/init_task.h:
+        #define INIT_TASK_COMM "swapper"
+### 0号进程的pt的设置?
+### 0号进程的stack设置
+    arch/arm/kernel/head-common.S:
+        __mmap_switched:
+        adr	r3, __mmap_switched_data --->__mmap_switched_data定义在代码下面,r3指向它
+        ldmia	r3!, {r4, r5, r6, r7} --->执行完该条指令，r3会自加4word
+        cmp	r4, r5				@ Copy data segment if needed
+        1:	cmpne	r5, r6
+        ldrne	fp, [r4], #4
+        strne	fp, [r5], #4
+        bne	1b
+        mov	fp, #0				@ Clear BSS (and zero fp)
+        1:	cmp	r6, r7
+        strcc	fp, [r6],#4
+        bcc	1b
+        ARM(	ldmia	r3, {r4, r5, r6, r7, sp}) --->利用r3取出stack地址(此时r3已经自加4word)
+        THUMB(	ldmia	r3, {r4, r5, r6, r7}	)
+        THUMB(  ldr sp, [r3, #16]       )
+        str r9, [r4]            @ Save processor ID
+        str r1, [r5]            @ Save machine type
+        str r2, [r6]            @ Save atags pointer
+        bic r4, r0, #CR_A           @ Clear 'A' bit
+        stmia   r7, {r0, r4}            @ Save control register values
+        b   start_kernel ---> stack准备好了，就可以调用c函数start_kernel
+        ENDPROC(__mmap_switched)
+        .align  2
+        .type   __mmap_switched_data, %object
+        __mmap_switched_data:
+        .long   __data_loc          @ r4
+        .long   _sdata              @ r5
+        .long   __bss_start         @ r6
+        .long   _end                @ r7
+        .long   processor_id            @ r4
+        .long   __machine_arch_type     @ r5
+        .long   __atags_pointer         @ r6
+        .long   cr_alignment            @ r7
+        .long   init_thread_union + THREAD_START_SP @ sp
+        .size   __mmap_switched_data, . - __mmap_switched_data
+## 1号进程init/systemd/...
+### 初始化系统的发展和种类
+#### system V体系
+    1. 1号进程为init
+    2. 7个运行级别:rc0,rc1 …rc6
+    3. init进程会根据inittab配置文件确定当前运行级别并执行相应级别rc目录
+        的服务脚本程序，rc目录下存在两种文件，一种以S打头代表启动服务，
+        一种以K打头禁止服务，字母后两位数字代表执行顺序，按从小到大顺序执行
+    4. system V基本工具
+        chkconfig,sevice,update-rc.d命令管理服务，在使用这些命令操作服务前，
+        需要将相应服务脚本放入/etc/init.d目录中。
+#### systemd体系
+    1. 兼容SysV
+    2. 运行级别（runlevel）的概念被新的运行目标（target）所取代
+        比如原来的运行级别3（runlevel3）就对应新的多用户目标（multi-user.target），
+        run level 5就相当于graphical.target。
+    3. 不再使用runlevel概念,找不到inittab文件了
+    4. 在systemd的管理体系里面，默认的target（相当于以前的默认运行级别）是通过软链来实现
+        ln -s /lib/systemd/system/runlevel3.target /etc/systemd/system/default.target
+    5. systemd基本工具
+        systemd使用systemctl命令管理。(还有其它命令)
+        使用systemctl命令需事先将xxx.service脚本放入/etc/systemd/system目录中
+#### service and systemctl
+    1. service是老式init程序的服务管理工具，是一个脚本，用来启动/etc/init.d/下面的服务
+    2. systemctl是现代主流的sytemd的服务管理工具，是一个elf文件，用来启动/etc/systemd/下面的服务
+### d后缀的进程(deamon)
+    根据 Linux 惯例，字母 d 是守护进程（daemon）的缩写。
+    Systemd 这个名字的含义，就是它要守护整个系统。
+### init程序的指定
+#### 通过kernel args指定init程序
+    init/main.c:
+        __setup("init=", init_setup);
+#### 通过软链接方式指定init程序
+    ll /sbin/init
+    lrwxrwxrwx 1 root root 20 Sep  8 02:37 /sbin/init -> /lib/systemd/systemd*
+### 1号进程怎么由内核态切换到用户态
+    https://www.cnblogs.com/quan0311/p/15292110.html
+    调用流程:
+        -->run_init_process
+        -->do_execve
+        -->do_execveat_common
+        -->exec_binprm
+        -->search_binary_handler
+        -->fmt->load_binary(bprm);
+            static struct linux_binfmt elf_format = {
+	            .module		= THIS_MODULE,
+	            .load_binary	= load_elf_binary,
+	            .load_shlib	= load_elf_library,
+	            .core_dump	= elf_core_dump,
+	            .min_coredump	= ELF_EXEC_PAGESIZE,
+            };
+            所以上面的fmt->load_binary(bprm)操作调用的就是load_elf_binary接口
+        -->load_elf_binary
+        -->start_thread
+            这里的start_thread()实现是架构相关的，可以根据X86架构的32位处理器代码来学习一下
+            void start_thread(struct pt_regs *regs, unsigned long new_ip, unsigned long new_sp)
+            {
+                set_user_gs(regs, 0);
+                regs->fs		= 0;
+                regs->ds		= __USER_DS;
+                regs->es		= __USER_DS;
+                regs->ss		= __USER_DS;
+                regs->cs		= __USER_CS;
+                regs->ip		= new_ip;
+                regs->sp		= new_sp;
+                regs->flags		= X86_EFLAGS_IF;
+                force_iret();
+            }
+            #define force_iret() set_thread_flag(TIF_NOTIFY_RESUME)
+            #define TIF_NOTIFY_RESUME	1	/* callback before returning to user */
+            为什么start_thread()中要设置这些寄存器的值呢？因为这里需要由内核态切换至用户态，
+            使用系统调用的逻辑来完成用户态的切换，可以参考下图，整个逻辑需要先保存用户态的运行上下文，
+            也就是保存寄存器，然后执行内核态逻辑，最后恢复寄存器，从系统调用返回到用户态。
+            这里由于init进程是由0号进程创建的1号进程kernel_init演变而来的，所以一开始就在内核态，
+            无法自动保存用户态运行上下文的寄存器，所以手动保存一下，然后就可以顺着这套逻辑切换至用户态了。
+逻辑图:
+![](./notes.dia/do_execve.png)
+        -->arm32的start_thread
+            #define start_thread(regs,pc,sp)					\
+            ({									\
+            unsigned long r7, r8, r9;					\
+            if (IS_ENABLED(CONFIG_BINFMT_ELF_FDPIC)) {			\
+                r7 = regs->ARM_r7;					\
+                r8 = regs->ARM_r8;					\
+                r9 = regs->ARM_r9;					\
+            }								\
+            memset(regs->uregs, 0, sizeof(regs->uregs));			\
+            if (IS_ENABLED(CONFIG_BINFMT_ELF_FDPIC) &&			\
+                current->personality & FDPIC_FUNCPTRS) {			\
+                regs->ARM_r7 = r7;					\
+                regs->ARM_r8 = r8;					\
+                regs->ARM_r9 = r9;					\
+                regs->ARM_r10 = current->mm->start_data;		\
+            } else if (!IS_ENABLED(CONFIG_MMU))				\
+                regs->ARM_r10 = current->mm->start_data;		\
+            if (current->personality & ADDR_LIMIT_32BIT)			\
+                regs->ARM_cpsr = USR_MODE;				\ --->这里设置user mode
+            else								\
+                regs->ARM_cpsr = USR26_MODE;				\
+            if (elf_hwcap & HWCAP_THUMB && pc & 1)				\
+                regs->ARM_cpsr |= PSR_T_BIT;				\
+            regs->ARM_cpsr |= PSR_ENDSTATE;					\
+            regs->ARM_pc = pc & ~1;		/* pc */			\
+            regs->ARM_sp = sp;		/* sp */			\
+            })
+### 1号进程的in/out终端怎么产生
     do_basic_setup();所有驱动模块初始化完后
     调用console_on_rootfs();
     void console_on_rootfs(void)
@@ -2999,7 +3180,7 @@
         (void) ksys_dup(0);
         (void) ksys_dup(0);
     }
-### /dev/console节点怎么创建的
+#### /dev/console节点怎么创建的
 #### noinitramfs的时候
     static int __init default_rootfs(void)
     {
@@ -3052,11 +3233,11 @@
         return 0;
     }
     rootfs_initcall(populate_rootfs);---以initcall形式调用
-##### initrd_start这个段怎么产生
+#### initrd_start这个段怎么产生
     链接脚本中产生
-##### initramfs_start这个段怎么产生
+#### initramfs_start这个段怎么产生
     在kernel源码目录下usr/gen_init_cpio.c这个代码中产生
-
+## 2号进程kthreadd
 ## 进程间通信/协作:
 ### semaphore:
     1. /* Please don't access any members of this structure directly */
@@ -3152,7 +3333,7 @@
             return _do_fork(&args);
         }
 ## fork/clone创建进程
-## execve加载可执行文件
+## execve系统调用加载可执行文件
     shell中启动子进程，一般方法是先fork或clone一个子进程，然后在子进程中
     调用execve，替换可执行文件。
     int execve(const char *path, char *const argv[], char *const envp[]);
@@ -4129,6 +4310,95 @@
 
 # linux network
     https://segmentfault.com/blog/wuyangchun?page=1
+## vmware网络配置几种方式
+    1. bridged(桥接模式)
+        虚拟机A1的IP地址可以设置成192.168.1.5（与主机网卡地址同网段的即可），
+        其他的诸如网关地址，DNS，子网掩码均与主机的相同。
+        注释:
+            使用VMnet0
+            此模式下，虚拟机拥有独立的虚拟网卡，和宿主机处于同一局域网下，
+            虚拟机能访问局域网下的任何一台主机。
+    2. host-only(主机模式)
+        虚拟机A1的IP地址可以设置成192.168.80.5（与VMnet8使用相同的网段），
+        网关是NAT路由器地址，即192.168.80.254
+        注释:
+            使用VMnet8
+            由VMnet8将多个虚拟机组成局域网，虚拟机之间可以互访，但不能访问外部网络。
+    3. NAT(网络地址转换模式)
+        虚拟机A1的IP地址可以设置成192.168.10.5（与VMnet1使用相同的网段）
+        注释:
+            使用VMnet1
+            由VMnet1负责网络地址转换，虚拟机能访问外部网络，外部网络可以通过主机IP加
+            特定port，可以访问到虚拟机。
+## vmware设置双网卡,实现内外网同时可用
+### 为ubuntu添加NAT mode网卡
+    一般用来访问外网;
+    并且即使windows断网，也能在host上ping通ubuntu虚拟机.
+### 为ubuntu添加bridge mode网卡
+    一般用来访问内网.
+## ubuntu通过NAT网卡访问windows的VPN
+    条件:
+        10.0.20.234是VPN访问的远程服务器，
+        192.168.213.135是ubuntu的NAT模式下的网卡(ens32)的IP地址，
+        172.17.129.83是windows的IP地址，
+        windows的VPN已连接远程服务器
+    目的:
+        在ubuntu中能访问远程VPN服务器的文件,SVN库在远程VPN服务器上.
+    方法:
+        指定网段走指定网卡、网关:
+        sudo route add -net 10.0.20.0/24 gw 192.168.213.2 ens32
+        这只是动态设置route table，永久配置，则在/etc/rc.local里添加路由信息:
+        route add -net 10.0.20.0/24 gw 192.168.213.2 ens32
+        注释:
+            上面的"IP/24"中的24，代表mask掉ipaddr的前24位
+## 添加主机路由:目标指向主机
+    route add -host 192.168.1.11 dev eth0
+    route add -host 192.168.1.12 gw 192.168.1.1
+## 添加网络路由:目标指向网关?
+    route add -net 192.168.1.11 netmask 255.255.255.0 eth0
+    route add -net 192.168.1.11 netmask 255.255.255.0 gw 192.168.1.1
+    route add -net 192.168.1.0/24 eth0
+    route add -net 192.168.1.0/24 gw 192.168.1.1
+## 添加默认网关:目标指向网关
+    route add default gw 192.168.1.1
+## 删除路由
+    route del -host 192.168.1.11 dev eth0
+## 删除默认路由
+    route del default gw 192.168.1.1
+## route
+    https://blog.csdn.net/ccy19910925/article/details/82982771
+    https://www.cnblogs.com/kevingrace/p/6490627.html
+    route command:
+        参数解释：
+        add        添加一条路由规则
+        del        删除一条路由规则
+        -net       目的地址是一个网络
+        -host      目的地址是一个主机
+        target     目的网络或主机
+        netmask    目的地址的网络掩码
+        gw         路由数据包通过的网关
+        dev        为路由指定的网络接口
+    a）主机路由
+        主机路由是路由选择表中指向单个IP地址或主机名的路由记录。主机路由的Flags字段为H。
+        例如，在下面的示例中，本地主机通过IP地址192.168.1.1的路由器到达IP地址为10.0.0.10的主机。
+    b）网络路由
+        网络路由是代表主机可以到达的网络。网络路由的Flags字段为U。
+        例如，在下面的示例中，本地主机将发送到网络192.19.12的数据包转发到IP地址为192.168.1.1的路由器。
+    c）默认路由
+        当主机不能在路由表中查找到目标主机的IP地址或网络路由时，数据包就被发送到默认路由（默认网关）上。
+        默认路由的Flags字段为G。例如，在下面的示例中，默认路由是IP地址为192.168.1.1的路由器。
+## 查看gateway
+    1. route -n 等价于 cat /proc/net/route
+        执行ls -l /proc/net，显示
+        net -> self/net
+    2. netsta -rn
+## ping指定网卡
+    ping -I ens32 10.0.20.234
+## ip
+## 查看port使用情况
+    1. sudo netstat -tunlp | grep 22
+    2. sudo lsof -i:22
+    3. ?cat /etc/services
 
 # linux交换空间(swap space)
     https://segmentfault.com/a/1190000008125116
@@ -4152,32 +4422,6 @@
        debug、kill进程或者保存当前工作进度的机会。如果看过Linux内存管理，就会知道系统会尽可能
        多的将空闲内存用于cache，以加快系统的I/O速度，所以如果能将不怎么常用的内存数据移动到swap上，
        就会有更多的物理内存用于cache，从而提高系统整体性能。
-
-# Bootloader:
-## Bootloader种类
-    --------------------------------------------------------------------------------------
-    |Bootloader |   Monitor |   描述                            |   x86 |   ARM | PowerPC|
-    --------------------------------------------------------------------------------------
-    |LILO       |   否      |   Linux磁盘引导程序               |   是  |   否  | 否     |
-    --------------------------------------------------------------------------------------
-    |GRUB       |   否      |   GNU的LILO替代程序               |   是  |   否  | 否     |
-    --------------------------------------------------------------------------------------
-    |Loadlin    |   否      |   从DOS引导Linux                  |   是  |   否  | 否     |
-    --------------------------------------------------------------------------------------
-    |ROLO       |   否      |   从ROM引导Linux而不需要BIOS      |   是  |   否  | 否     |
-    --------------------------------------------------------------------------------------
-    |Etherboot  |   否      |   通过以太网卡启动Linux系统的固件 |   是  |   否  | 否     |
-    --------------------------------------------------------------------------------------
-    |LinuxBIOS  |   否      |   完全替代BUIS的Linux引导程序     |   是  |   否  | 否     |
-    --------------------------------------------------------------------------------------
-    |BLOB       |   否      |   LART等硬件平台的引导程序        |   否  |   是  | 否     |
-    --------------------------------------------------------------------------------------
-    |U-boot     |   是      |   通用引导程序                    |   是  |   是  | 是     |
-    --------------------------------------------------------------------------------------
-    |RedBoot    |   是      |   基于eCos的引导程序              |   是  |   是  | 是     |
-    --------------------------------------------------------------------------------------
-## grub给kernel传参修改网络设备名eth0:
-    1. 修改/boot/grub/grub.cfg,在linux参数项中加net.ifnames=0 biosdevname=0
 
 # ABI/API/POSIX
     1.  POSIX 标准啊，C99 标准啊，都是对 API 的规定
@@ -4694,7 +4938,7 @@
     4. 修改该分区文件系统大小
         使用resize2fs命令
 
-# ssh原理及相关工具使用
+# ssh使用
 ## ssh
 ### ssh报错
     1.  现象:ssh Unable to negotiate with ip port 22: no matching cipher found.
@@ -4718,84 +4962,84 @@
 
 # Folder Sharing:
 ## linux and linux share:
-    使用NFS:
-        1. server端构建:
-            安装nfs-kernel-server并配置:
-            echo "$HOME/nfs *(rw,sync,no_root_squash)" > /etc/exports
-            systemctl -l --no-pager status nfs-kernel-server.service
-            sudo systemctl restart nfs-kernel-server.service
-        2. client端使用:
-            mount -t nfs -o nolock 10.3.153.96:/home/user/nfs /mnt/
-    使用SAMBA:
-        1. server端构建:
-            ubuntu中文件夹右击->属性->共享
-            这一步操作生成配置文件:/var/lib/samba/usershares/samba
-                #VERSION 2
-                path=/home/user/samba
-                comment=
-                usershare_acl=S-1-1-0:F
-                guest_ok=y
-                sharename=samba
-        2. client端使用:
-                在文件浏览器中"挂载"或打开
-            or
-                sudo mount -t cifs
+### 使用NFS:
+    1. server端构建:
+        安装nfs-kernel-server并配置:
+        echo "$HOME/nfs *(rw,sync,no_root_squash)" > /etc/exports
+        systemctl -l --no-pager status nfs-kernel-server.service
+        sudo systemctl restart nfs-kernel-server.service
+    2. client端使用:
+        mount -t nfs -o nolock 10.3.153.96:/home/user/nfs /mnt/
+### 使用SAMBA:
+    1. server端构建:
+        ubuntu中文件夹右击->属性->共享
+        这一步操作生成配置文件:/var/lib/samba/usershares/samba
+            #VERSION 2
+            path=/home/user/samba
+            comment=
+            usershare_acl=S-1-1-0:F
+            guest_ok=y
+            sharename=samba
+    2. client端使用:
+            在文件浏览器中"挂载"或打开
+        or
+            sudo mount -t cifs
 ## linux and windows share:
-    windows作为server，ubuntu作为client:
-        1. server端构建:
-            在windows中选择要共享的文件夹，在文件夹属性中共享即可.
-        2. client端使用:
-            方法一:(这种方法渐渐淘汰)
-                sudo apt install cifs-utils
-                sudo mount.cifs //[address]/[folder] [mount point] -o \
-                    user=[username],passwd=[pw]
-                sudo mount -t cifs //[address]/[folder] [mount point] -o \
-                    user=[username],passwd=[pw]
-                sudo mount.cifs //[address]/[folder] [mount point] -o \
-                    user=[username],passwd=[pw],uid=[UID]
-                sudo mount.cifs //[address]/[folder] [mount point] -o \
-                    domain=[domain_name],user=[username],passwd=[pw],uid=[UID]
-            方法二:(ubuntu文件浏览器默认支持)
-                在文件浏览器中"挂载":
-                    -->other locations-->connect to server-->输入smb://10.3.153.95/e/
-                在文件浏览器中打开:
-                    -->Ctrl + L -->输入smb://10.3.153.95/e/
-    ubuntu作为server，windows作为client:
-        1. server端构建:
-            1.1 安装和配置samba
-                详见1tools-install.sh,2configs.sh
-            1.2 sudo smbpasswd -a user
-            1.3 sudo vim /etc/samba/smb.conf
-                [user]
-                comment = share folder
-                browseable=yes
-                path = /home/user
-                create mask = 0700
-                directory mask = 0700
-                valid users = user
-                force user = user
-                force group = user
-                public = yes
-                available = yes
-                writable = yes
-            注:ubuntu中可以直接右击文件夹-属性中共享，自动安装SAMBA server并配置.
-            在centos中实验的时候，需要关闭防火墙和selinux:
-            关闭防火墙:
-                systemctl stop firewalld.service
-                systemctl disable firewalld.service
-                这里只是粗暴的关闭防火墙，也可以将smb使用的port过滤掉。
-            关闭selinux:
-                vim /etc/selinux/config
-                    # SELINUX=enforcing
-                    SELINUX=disabled
-        2. client端使用:
-            在windows文件浏览器中添加网络驱动器即可.
+### windows作为server,ubuntu作为client
+    1. server端构建:
+        在windows中选择要共享的文件夹，在文件夹属性中共享即可.
+    2. client端使用:
+        方法一:(这种方法渐渐淘汰)
+            sudo apt install cifs-utils
+            sudo mount.cifs //[address]/[folder] [mount point] -o \
+                user=[username],passwd=[pw]
+            sudo mount -t cifs //[address]/[folder] [mount point] -o \
+                user=[username],passwd=[pw]
+            sudo mount.cifs //[address]/[folder] [mount point] -o \
+                user=[username],passwd=[pw],uid=[UID]
+            sudo mount.cifs //[address]/[folder] [mount point] -o \
+                domain=[domain_name],user=[username],passwd=[pw],uid=[UID]
+        方法二:(ubuntu文件浏览器默认支持)
+            在文件浏览器中"挂载":
+                -->other locations-->connect to server-->输入smb://10.3.153.95/e/
+            在文件浏览器中打开:
+                -->Ctrl + L -->输入smb://10.3.153.95/e/
+### ubuntu作为server,windows作为client
+    1. server端构建:
+        1.1 安装和配置samba
+            详见1tools-install.sh,2configs.sh
+        1.2 sudo smbpasswd -a user
+        1.3 sudo vim /etc/samba/smb.conf
+            [user]
+            comment = share folder
+            browseable=yes
+            path = /home/user
+            create mask = 0700
+            directory mask = 0700
+            valid users = user
+            force user = user
+            force group = user
+            public = yes
+            available = yes
+            writable = yes
+        注:ubuntu中可以直接右击文件夹-属性中共享，自动安装SAMBA server并配置.
+        在centos中实验的时候，需要关闭防火墙和selinux:
+        关闭防火墙:
+            systemctl stop firewalld.service
+            systemctl disable firewalld.service
+            这里只是粗暴的关闭防火墙，也可以将smb使用的port过滤掉。
+        关闭selinux:
+            vim /etc/selinux/config
+                # SELINUX=enforcing
+                SELINUX=disabled
+    2. client端使用:
+        在windows文件浏览器中添加网络驱动器即可.
 ## windows and windows share:
         1. server端构建:
             windows文件夹共享打开即可
         2. client端使用:
             在windows文件浏览器中添加网络驱动器即可.
-## SMB/CIFS/SAMBA/NFS:
+## SMB/CIFS/SAMBA/NFS区别
     1. smb是协议级别的概念,其它的不是
     2. Server Message Block - SMB，即服务(器)消息块，是 IBM 公司在 80 年代中期发明
        的一种文件共享协议。它只是系统之间通信的一种方式（协议），并不是一款特殊的软件。
@@ -4810,8 +5054,8 @@
        是无法直接与 SMB 服务器交互的。NFS 用于 Linux 系统和客户端之间的连接。
        而 Windows 和 Linux 客户端混合使用时，就应该使用 Samba。
     Windows共享文件夹使用的协议是SMB/CIFS
-        SMB:    Server Message Block
-        CIFS:   Common Internet File System
+        SMB:Server Message Block
+        CIFS:Common Internet File System
 ## samba的使用
     1. 添加共享文件夹的方式
        1)nautilus界面右键共享
@@ -4824,6 +5068,21 @@
     用nautilus创建共享是可选不要认证，如果设置了用户名和密码认证了，可以通过以下方式取消
     sudo smbpasswd -x user
     sudo service smbd restart
+### 实例
+    sudo apt install cifs-utils
+    sudo mount -t cifs -o username=user,password=user123 //172.17.129.101/home/user/samba ./mnt/
+### 常见错误
+        mount.cifs: bad UNC (user@//172.17.129.101/samba)
+    reason: UNC的语法不正确
+        远程主机名的前缀是双斜线,前能加用户名@
+### 指定user(默认root)
+    sudo mount -t cifs -o username=user,password=user123,uid=zhuwch,gid=zhuwch //172.17.129.101/samba ./mnt/
+### 指定dir权限
+    -o iocharset=utf8,dir_mode=0777,file_mode=0777,codepage=cp936
+### 开机自动挂载
+    修改/etc/fstab文件：
+        #将//192.168.3.4/sharedir挂载到/mnt/cifs上，并指定了用户名和密码
+        //192.168.3.4/sharedir /mnt/cifs cifs username=demo,password=demo 0 0
 
 # apt(Advanced Packaging Tool)原理介绍
     1. 如果有需要，编辑/etc/apt/sources.list，选择源服务器；
@@ -4927,28 +5186,10 @@
     URL的一般语法格式为：
         (带方括号[]的为可选项)：
         protocol :// hostname[:port] / path / [;parameters][?query]#fragment
-## service/systemd/systemctl?
 ## ubuntu hotspot:
     git clone https://github.com/oblique/create_ap
     cd create_ap
     sudo create_ap -w 2 wlp5s0 enp4s0 css css123456 &
-## vmware网络配置几种方式:
-    1. bridged(桥接模式)
-        虚拟机A1的IP地址可以设置成192.168.1.5（与主机网卡地址同网段的即可），
-        其他的诸如网关地址，DNS，子网掩码均与主机的相同。
-        注释:
-            此模式下，虚拟机拥有独立的虚拟网卡，和宿主机处于同一局域网下，
-            虚拟机能访问局域网下的任何一台主机。
-    2. host-only(主机模式)
-        虚拟机A1的IP地址可以设置成192.168.80.5（与VMnet8使用相同的网段），
-        网关是NAT路由器地址，即192.168.80.254
-        注释:
-            由VMnet8将多个虚拟机组成局域网，虚拟机之间可以互访，但不能访问外部网络。
-    3. NAT(网络地址转换模式)
-        虚拟机A1的IP地址可以设置成192.168.10.5（与VMnet1使用相同的网段）
-        注释:
-            由VMnet1负责网络地址转换，虚拟机能访问外部网络，外部网络可以通过主机IP加
-            特定port，可以访问到虚拟机。
 ## nautilus
     a file manager for GNOME
 ### local-network-share
@@ -4963,7 +5204,6 @@
 ### 右键新建文件
     新的gnome中没有右键新建文件功能，需要手动在~/Templates/下创建一个模板,
     eg: new_document.txt, 之后就有新建文件功能了.
-
 ## vmware/ubuntu共享剪切板
     1. sudo apt-get install open-vm-tools
     2. sudo apt-get install open-vm-tools-desktop
@@ -5159,7 +5399,7 @@
                 .proc_inum = PROC_UTS_INIT_INO,
             };
             EXPORT_SYMBOL_GPL(init_uts_ns);
-## bash command completion
+## bash command auto completion
     bash在接收输入时的自动补全功能是bash自带的一种机制，主要使用bash build-in command:compgen
     and complete来实现的,实现这种功能需要将待补全的命令事先准备好，一般放到:
     /usr/share/bash-completion/completions/这个目录下面,在启动bash时，
@@ -5240,3 +5480,18 @@
     whatis exec
         exec (3)      - execute a file
         exec (1posix) - execute commands and open, close, or copy file desc...
+## ps以启动时间排序
+    ps -aux --sort=start_time
+## sudo密码从命令行中输入
+    echo "user123" | sudo -S cmd
+## pip3 install xlutils
+    默认将phython安装在当前用户目录下的.local/lib/下
+    加--user选项，可以为指定用户安装
+## lsof
+    通过strace跟踪，应该是遍历/proc下所有进程中打开的文件句柄
+### 查看谁正在使用某个文件
+    lsof   /filepath/file
+### 列出某个用户打开的文件信息
+    lsof  -u username
+### 列出某个程序所打开的文件信息
+    lsof -c mysql
