@@ -642,6 +642,7 @@
     Display the name of the compiler's companion library.
 ### -specs=<file>
     Override built-in specs with the contents of <file>
+### -save-temps
 ### 浮点相关参数
     https://blog.csdn.net/houxiaoni01/article/details/107521098
     xxx uses VFP register arguments xxx does not
@@ -1362,6 +1363,14 @@
     --------------------------------------------------------------------------------------
 ## grub给kernel传参修改网络设备名eth0:
     1. 修改/boot/grub/grub.cfg,在linux参数项中加net.ifnames=0 biosdevname=0
+
+# linux build system
+## Kconfig
+## Makefile
+## make help
+### make V=1
+    显示编译命令
+### make ARCH=arm
 
 # linux boot(汇编段)
     1. uboot 中没有开MMU
@@ -3699,6 +3708,14 @@
         W(b)    vector_fiq + stubs_offset
         .globl  __vectors_end
         __vectors_end:
+
+# linux syscalls(系统调用)
+## 软中断swi
+    supervisor call exception（svc）
+## 相关文件
+    include/linux/syscalls.h
+    arch/arm/include/generated/calls-eabi.S
+    arch/arm/include/generated/calls-oabi.S
 ## arm系统调用表
     arch/arm/kernel/entry-common.S:
         .type   sys_call_table, #object
@@ -3721,6 +3738,26 @@
         CALL(sys_ni_syscall)        /* was sys_waitpid */
         CALL(sys_creat)
         CALL(sys_link)
+    注意:
+        1. 不同的kernel版本，上面的code不一样；
+        2. 可以搜索关键字"sys_call_table"，来找到表定义的地方；
+        如下是kernel5.8的实现:
+        arch/arm/kernel/entry-common.S
+            #define NATIVE(nr, func) syscall nr, func
+            /*
+             * This is the syscall table declaration for native ABI syscalls.
+             * With EABI a couple syscalls are obsolete and defined as sys_ni_syscall.
+             */
+                syscall_table_start sys_call_table
+            #define COMPAT(nr, native, compat) syscall nr, native
+            #ifdef CONFIG_AEABI
+            #include <calls-eabi.S>
+            #else
+            #include <calls-oabi.S>
+            #endif
+            #undef COMPAT
+                syscall_table_end sys_call_table
+## reboot
 
 # linux misc subsystem:
 ## clk/clocksource/time区别:
@@ -5495,3 +5532,8 @@
     lsof  -u username
 ### 列出某个程序所打开的文件信息
     lsof -c mysql
+## reboot/shutdown/halt/poweroff
+    1. 现代的linux发行版中，以上工具都指向systemctl
+    2. 最终通过reboot syscall实现
+    3. ACPI系统中，好像在dev下有电源管理节点，通过它可以实现关机、重启
+    4. 执行init 0关机；执行init 6重启。init是systemd的链接。

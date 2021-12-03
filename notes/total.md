@@ -82,6 +82,8 @@
 ## ld script
 ## makefile
 # 操作系统Linux
+## Kconfig & Makefile
+### make help
 ## OS debug方法
 ### kgdb
 ### ftrace
@@ -98,8 +100,9 @@
 ### 文件权限
 ## 内存管理
 ## 网络子系统
-## 系统调用
 ## 中断子系统
+# linux syscalls(系统调用)
+    syscall是OS和APP的接口，是一个过度带，比较重要，所以单立一节.
 # shell & tools
 ## app debug方法
 ### gdb
