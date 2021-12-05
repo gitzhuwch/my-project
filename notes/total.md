@@ -121,6 +121,8 @@
 ## samba
 ## goldendict
 ## dia
+# linux图形界面系统
+## X window system
 # 软件工程
 # 数据结构与算法
 # 数据库

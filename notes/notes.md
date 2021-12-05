@@ -327,6 +327,16 @@
     解决:
         ssh -X登陆后，再执行tmux，启动新的tmux服务，这时tmux默认带了有环境变量$DISPLAY;
         应该可以在shell中手动执行:export DISPLAY=localhost:10.0
+## 多用户共享同一个tmux session
+    1. Tmux Server 管理着多个 Session, 一个 Session 可以被多个 Tmux Client连接.
+        这些 Tmux Client 通过一个 UNIX Damain Socket 文件来跟 Tmux Server 通讯.
+        因此，要想让多个用户共享 Tmux Session，只需要指定这些用户调用的Tmux Client
+        连接上同一个 Socket 文件即可
+    5. tmux -S /tmp/shared new-session -s shared
+    6. chmod o=wr /tmp/shared
+    7. tmux -S /tmp/shared attach-session -t shared
+        或者
+        tmux -S /tmp/shared attach-session -t shared -r
 
 # kernel debug methods:
 ## qemu32-arm:
@@ -465,6 +475,8 @@
         注意有些shell使用!来执行历史记录里的命令,所以要使用\\.
     8. -s strsize 指定输出的字符串的最大长度.默认为32.文件名一直全部输出.
     9. -u username 以username的UID和GID执行被跟踪的命令
+    10. -z 过滤掉调用失败的系统调用
+    11. -yy 显示网络相关系统调用的详细ip和端口
 ## 系统调用参数显示不全解决办法
     strace -e abbrev/--abbrev=syscall_set
         Abbreviate the output from printing each member of large structures.
@@ -3758,6 +3770,11 @@
             #undef COMPAT
                 syscall_table_end sys_call_table
 ## reboot
+    是reboot,shutdown,poweroff,init等命令的原理
+## dup2
+    就是将俩个已有的指针变量赋上相同的值，即都指向第一个参数指向的文件描述符。
+    如果第二个参数指向已打开的文件，则先将其关闭(防止内存泄露)，再将第二个参数
+    指向第一个参数所指向的文件描述符。
 
 # linux misc subsystem:
 ## clk/clocksource/time区别:
@@ -4486,6 +4503,36 @@
     所以保持这个 API 稳定是很简单的，但它的 ABI 就未必了，就算是这个函数定义本身没变，即 API 没变，
     而 struct net_device 的定义变了，里面多了或者少了某一个字段，它的 ABI 就变了，
     你之前编译好的二进制模块就很可能会出错了，必须重新编译才行。
+
+# linux图形界面
+## X
+    内核是没有GUI图形显示的，X就是 X Window System ，1984年由MIT研发，
+    它的设计哲学之一是：提供机制，而非策略。
+    1. Server/Client网络模型
+    2. 通过扩展使它保持”与时俱进”
+    3. 为啥要命名为X呢，因为英文字母X就在W(indow)后面，戏称为下一版的新视窗之意
+    5. Xwindow是一个协议，使用C/S架构，X11是该协议的一个版本
+## X server
+### Xorg
+    Xorg从名字看是一个组织，该组织实现的Xserver程序叫做Xorg
+## X client
+    gnome和kde都是xclient，是俩种桌面管理器和工具集，和普通的ui程序是同一级别。
+### gnome
+    gnome使用gtk开发，遵循GNU的GPL开源协议。
+### kde
+    kde使用奇趣的Qt开发。
+## ssh -X登录服务器剖析
+    ssh -X登录服务器，服务器端的sshd会例化一个xserver，响应xclient程序的
+    连接、读写、画图请求，并设置DISPLAY环境变量，ui程序就可以连接到该
+    xserver监听的端口上了。sshd还会例化一个pts设备，响应终端的读写请求。
+    sshd例化的xserver和pts使用同一个端口22和远程终端通信。
+## 总结
+    1. 一个计算机可以有多个Xserver和Xclinet
+    2. 一个Xserver绑定一个display,监听一个画图socket端口
+    3. 一个Xserver可以被多个Xclient链接
+    4. Xserver还负责键盘鼠标等事件管理
+    不管Linux还是Windows，窗口或桌面管理器，实际上就是一个全屏的窗口程序，
+    只不过这个程序的权限大，可以启动子程序、子窗口，也可以管理计算机等。
 
 # 计算机顶层设计中的一些概念
 ## 计算机体系结构与组成原理与微机原理
