@@ -4361,9 +4361,32 @@
 ## linux cgroup
     cgroup和namespace类似，也是将进程进行分组，但它的目的和namespace不一样，
     namespace是为了隔离进程组之间的资源，而cgroup是为了对一组进程进行统一的资源监控和限制
+    1. cgroup是一个文件系统；
+    2. 挂载一颗和所有subsystem关联的cgroup树到/sys/fs/cgroup
+        mount -t cgroup xxx /sys/fs/cgroup
+    3. 挂载一颗和cpuset subsystem关联的cgroup树到/sys/fs/cgroup/cpuset
+        mkdir /sys/fs/cgroup/cpuset
+        mount -t cgroup -o cpuset xxx /sys/fs/cgroup/cpuset
+    4. 挂载一颗与cpu和cpuacct subsystem关联的cgroup树到/sys/fs/cgroup/cpu,cpuacct
+        mkdir /sys/fs/cgroup/cpu,cpuacct
+        mount -t cgroup -o cpu,cpuacct xxx /sys/fs/cgroup/cpu,cpuacct
+    5. 挂载一棵cgroup树，但不关联任何subsystem，下面就是systemd所用到的方式
+        mkdir /sys/fs/cgroup/systemd
+        mount -t cgroup -o none,name=systemd xxx /sys/fs/cgroup/systemd
+    6. 在很多使用systemd的系统中，比如ubuntu 16.04，systemd已经帮我们将各个
+       subsystem和cgroup树关联并挂载好了.
+       查看: mount|grep cgroup
+### cpuset
 
 # linux network
     https://segmentfault.com/blog/wuyangchun?page=1
+## socket and TCP/IP
+    TCP/IP是协议；
+    socket是应用程序访问内核中TCP/IP等资源的接口；
+    通过ioctl操作socket句柄，能够实现开关网卡的操作.
+## socket and TLI
+    UNIX BSD的套接字(socket)
+    UNIX System V的TLI(已经被淘汰)
 ## vmware网络配置几种方式
     1. bridged(桥接模式)
         虚拟机A1的IP地址可以设置成192.168.1.5（与主机网卡地址同网段的即可），
