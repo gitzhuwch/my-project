@@ -1375,6 +1375,8 @@
     --------------------------------------------------------------------------------------
 ## grub给kernel传参修改网络设备名eth0:
     1. 修改/boot/grub/grub.cfg,在linux参数项中加net.ifnames=0 biosdevname=0
+    2. grub.cfg中还可以修改启动选项，比如centos有多个版本的kernel，在启动时会
+    出现选择界面，可以在grub.cfg中修改默认的index，也可以隐藏选择界面.
 
 # linux build system
 ## Kconfig
@@ -1383,6 +1385,27 @@
 ### make V=1
     显示编译命令
 ### make ARCH=arm
+## External module build
+    根Makefile中关于build外部modules的说明:
+    1. Use make M=dir or set the environment variable KBUILD_EXTMOD to specify the
+    directory of external module to build. Setting M= takes precedence.
+        ifeq ("$(origin M)", "command line")
+            KBUILD_EXTMOD := $(M)
+        endif
+    KBUILD_EXTMOD是外部module的根Makefile所在的路径，一般也是module的源码路劲。
+    kernel的根Makefile里会export KBUILD_CHECKSRC KBUILD_EXTMOD
+    2. 查看编译帮助，执行下面命令
+    make M=./ help
+        Building external modules.
+        Syntax: make -C path/to/kernel/src M=$PWD target
+        modules         - default target, build the module(s)
+        modules_install - install the module
+        clean           - remove generated files in module directory only
+### 原理利用make -C
+    man make
+    ...
+    -C dir, --directory=dir
+        Change  to directory dir before reading the makefiles or doing anything else.
 
 # linux boot(汇编段)
     1. uboot 中没有开MMU
@@ -2661,54 +2684,73 @@
    }
 
 # linux uevent subsystem
-## uevent_helper
+## uevent事件传递给用户层的俩种机制
+### 发送netlink socket消息
+    netlink_kernel_create(net, NETLINK_KOBJECT_UEVENT, &cfg); ---> 创建NETLINK_KOBJECT_UEVENT类型的socket
+#### udev
+    1. udev是基于netlink机制的，它在系统启动时运行了一个deamon程序udevd.
+    2. udev使用的netlink机制在有大量uevent的场合效率高，适合用在PC机上
+##### udevd/systemd-udevd
+    uevent后台netlink socket监听程序
+##### udevadm
+    info    查询sysfs或者udev的数据库
+    trigger 从内核请求events
+    settle  查看udev事件队列，如果所有的events已处理则退出
+    control 修改udev后台的内部状态信息
+    monitor 监控内核的uevents
+    hwdb    处理硬件数据库索引
+    test    调试
+##### udev动态加载和删除驱动
+##### 动态ko文件路径
+    /usr/lib/modules/5.11.0-44-generic/kernel/...
+##### 动态驱动工具
+###### depmod
+    生成:
+        /usr/lib/modules/5.11.0-44-generic/modules.dep
+        /usr/lib/modules/5.11.0-44-generic/modules.alias
+###### modprobe
+    接收kernel的uevent事件，根据modules.dep and modules.alias找到驱动的路径，
+    并找该驱动依赖的驱动，然后动态加载和删除driver module.
+### 调用用户空间程序处理
+    通过以下俩种文件接口告诉kernel，调用什么程序处理uevent事件
     1. /sys/kernel/uevent_helper
-### /sys/kernel目录怎么创建的
-    kernel/ksysfs.c
-        ksysfs_init()
-            -->kernel_kobj = kobject_create_and_add("kernel", NULL);
-### /sys/kernel/uevent_helper节点怎么创建的
-    kernel/ksysfs.c:
-    static struct attribute * kernel_attrs[] = {
-        &fscaps_attr.attr,
-        &uevent_seqnum_attr.attr,
-    #ifdef CONFIG_UEVENT_HELPER
-        &uevent_helper_attr.attr,------------这里定义
-    #endif
-    #ifdef CONFIG_PROFILING
-        &profiling_attr.attr,
-    #endif
-    #ifdef CONFIG_KEXEC_CORE
-        &kexec_loaded_attr.attr,
-        &kexec_crash_loaded_attr.attr,
-        &kexec_crash_size_attr.attr,
-    #endif
-    #ifdef CONFIG_CRASH_CORE
-        &vmcoreinfo_attr.attr,
-    #endif
-    #ifndef CONFIG_TINY_RCU
-        &rcu_expedited_attr.attr,
-        &rcu_normal_attr.attr,
-    #endif
-        NULL
-    };
-    static const struct attribute_group kernel_attr_group = {
-        .attrs = kernel_attrs,
-    };
-    error = sysfs_create_group(kernel_kobj, &kernel_attr_group);
-## mdev开机自动生成设备节点
-    1. 在qemu中kernel起来后，在rcS里加了mdev -s 所以/dev下会有节点
+    2. /proc/sys/kernel/hotplug
+    注意:
+        1. 这俩接口文件文件读写同一变量uevent_helper.
+        2. uevent_helper的初始值在内核编译时时可配置的，默认值为/sbin/hotplug。
+            如果想修改它的值，写/proc/sys/kernel/hotplug 文件就可以了，例如：
+            echo “/sbin/mdev” > /proc/sys/kernel/hotplug
+#### hotplug
+#### mdev
+    mdev是基于uevent_helper机制的，它在系统启动时修改了内核中的uevnet_helper变量
+    （通过写/proc/sys/kernel/hotplug），值为“/sbin/mdev”。
+    1. mdev 使用的uevent_helper 机制实现简单，适合用在嵌入式系统中.
+    2. mdev -s扫描/sys/dev下的节点，mknod设备节点.
+    3. 在rcS里加了mdev -s,开机自动在/dev下会有节点.
+## 相关文件节点
+### /proc/sys/kernel/modprobe
+    cat /proc/sys/kernel/modprobe
+        /sbin/modprobe
+### /proc/sys/kernel/usermodehelper
+    ls /proc/sys/kernel/usermodehelper/
+        bset  inheritable
+### /sys/kernel/uevent_helper
+### /proc/sys/kernel/hotplug
 
 # linux filesystem:
-## dentry and inode
+## 关键数据结构
     在内存中, 每个文件或目录都有一个 dentry(目录项)和 inode(索引节点)结构.
     详见./sysfs_dirent-and-inode-dentry.pdf
+### struct file_system_type
+    文件系统类型，kernel有一个注册的文件系统类型表。
+### struct mount
+    文件系统挂载后，产生一个挂载实例。
 ### struct dentry
     是 Linux 文件系统中某个索引节点(inode)的链接，这个索引节点可以是文件，
     也可以是目录。dentry 记录着文件名，上级目录等信息，正是它形成了我们
     所看到的树状结构
 ### struct inode
-    文件的组织和管理的信息主要存放 inode 里面，它记录 着文件在存储介质上的位置与分布。
+    文件的组织和管理的信息主要存放 inode 里面，它记录着文件在存储介质上的位置与分布。
 ## 文件系统挂载的关键
 ### register_filesystem()
     只是将file_system_type实例加到全局链表file_systems中
@@ -2788,12 +2830,100 @@
         return err;
     }
     默认没有挂载；kernel起来后可以手动挂载
-## sysfs文件系统
+## sysfs filesystem
     详见./sysfs_dirent-and-inode-dentry.pdf
     从上面图中，抓住三棵大树:
         1. dentry树(外加inode散列)
         2. sysfs_dirent树
         3. kobject树
+### /sys/kernel目录创建
+    kernel/ksysfs.c:
+        kernel_kobj = kobject_create_and_add("kernel", NULL);
+### /sys/kernel/uevent_helper
+    error = sysfs_create_group(kernel_kobj, &kernel_attr_group);
+    static struct attribute * kernel_attrs[] = {
+            &fscaps_attr.attr,
+            &uevent_seqnum_attr.attr,
+        #ifdef CONFIG_UEVENT_HELPER
+            &uevent_helper_attr.attr, ---> this is /sys/kernel/uevent_helper node.
+        #endif
+        #ifdef CONFIG_PROFILING
+            &profiling_attr.attr,
+        #endif
+        #ifdef CONFIG_KEXEC_CORE
+            &kexec_loaded_attr.attr,
+            &kexec_crash_loaded_attr.attr,
+            &kexec_crash_size_attr.attr,
+        #endif
+        #ifdef CONFIG_CRASH_CORE
+            &vmcoreinfo_attr.attr,
+        #endif
+        #ifndef CONFIG_TINY_RCU
+            &rcu_expedited_attr.attr,
+            &rcu_normal_attr.attr,
+        #endif
+        NULL
+    };
+
+## proc filesystem
+### 类型定义
+    fs/proc/root.c:
+    static struct file_system_type proc_fs_type = {
+        .name           = "proc",
+        .init_fs_context    = proc_init_fs_context,
+        .parameters     = proc_fs_parameters,
+        .kill_sb        = proc_kill_sb,
+        .fs_flags       = FS_USERNS_MOUNT | FS_DISALLOW_NOTIFY_PERM,
+    };
+### /proc/sys的创建
+    fs/proc/proc_sysctl.c:
+        proc_sys_init
+            proc_sys_root = proc_mkdir("sys", NULL);
+### /proc/sys/下kernel等目录的创建
+    kernel/sysctl.c:
+    static struct ctl_table sysctl_base_table[] = {
+        {
+            .procname	= "kernel",
+            .mode		= 0555,
+            .child		= kern_table,
+        },
+        {
+            .procname	= "vm",
+            .mode		= 0555,
+            .child		= vm_table,
+        },
+        {
+            .procname	= "fs",
+            .mode		= 0555,
+            .child		= fs_table,
+        },
+        {
+            .procname	= "debug",
+            .mode		= 0555,
+            .child		= debug_table,
+        },
+        {
+            .procname	= "dev",
+            .mode		= 0555,
+            .child		= dev_table,
+        },
+        { }
+    };
+### /proc/sys/kernel/hotplug
+    kernel/sysctl.c:
+    static struct ctl_table kern_table[] = {
+        ...
+        #ifdef CONFIG_UEVENT_HELPER
+            {
+                .procname	= "hotplug",
+                .data		= &uevent_helper, ---> 和/sys/kernel/uevent_helper修改的是同一变量
+                .maxlen		= UEVENT_HELPER_PATH_LEN,
+                .mode		= 0644,
+                .proc_handler	= proc_dostring,
+            },
+        #endif
+        ...
+    }
 ## automount
 ### autofs
     为userspace提供自动挂载机制?
@@ -3775,6 +3905,10 @@
     就是将俩个已有的指针变量赋上相同的值，即都指向第一个参数指向的文件描述符。
     如果第二个参数指向已打开的文件，则先将其关闭(防止内存泄露)，再将第二个参数
     指向第一个参数所指向的文件描述符。
+## init_module
+    insmod 原理
+## delete_module
+    rmmod原理
 
 # linux misc subsystem:
 ## clk/clocksource/time区别:
@@ -4581,7 +4715,7 @@
     基于ARM公司发布的Core，开发自己的ARM处理器，这称作ARM CPU（也可称为MCU)
 ## arm:arm9:armv9:cortex-a9:
     1. 且在GCC编译中，常常要用到 -march,-mcpu等
-    2. ARM（Advanced RISCMachines)
+    2. ARM（Advanced RISC Machines)
     3. ARM公司定义了６种主要的指令集体系结构版本。V1-V6。（所以上面提到的ARM-v6
     是指指令集版本号）。即：ARM architecture
     4. ARM公司开发了很多ARM处理器核，最新版位ARM11。ARM11：指令集ARMv6，8级流水线，1.25DMIPS/MHz
@@ -5607,3 +5741,74 @@
     2. 最终通过reboot syscall实现
     3. ACPI系统中，好像在dev下有电源管理节点，通过它可以实现关机、重启
     4. 执行init 0关机；执行init 6重启。init是systemd的链接。
+## strace rmmod
+    操作相关文件:
+        /lib/modules/5.4.168-1.el7.elrepo.x86_64/modules.softdep
+        /usr/lib/modules/5.4.168-1.el7.elrepo.x86_64/modules.softdep
+        /lib/modules/5.4.168-1.el7.elrepo.x86_64/modules.builtin.bin
+        /usr/lib/modules/5.4.168-1.el7.elrepo.x86_64/modules.builtin.bin
+        /sys/module/pl2303/initstate
+        /sys/module/pl2303/holders
+        /sys/module/pl2303/refcnt
+    最后的系统调用:
+        delete_module("pl2303", O_NONBLOCK)
+## Linux文件系统目录结构介绍
+### /usr
+    /usr不是user的缩写，其实usr是Unix Software Resource or Unix System Resources
+    的缩写。
+### /lib与/usr/lib
+    1. Ubuntu上，/lib软链接到/usr/lib上；
+    2. centos上，/lib硬链接到/usr/lib上;
+    3. 所以/lib/modules/*与/usr/lib/modules/* 是同一个kernel环境.
+### /boot
+    原文链接：https://blog.csdn.net/sweetfather/article/details/79625482
+    引导程序，内核等存放的目录.
+    这个目录，包括了在引导过程中所必需的文件，引导程序的相关文件,
+    （例如grub，lilo以及相应的配置文件以及Linux操作系统内核相关文件
+    （例如vmlinuz等一般都存放在这里。在最开始的启动阶段，通过引导程序
+    将内核加载到内存，完成内核的启动（这个时候，虚拟文件系统还不存在，
+    加载的内核虽然是从硬盘读取的，但是没经过Linux的虚拟文件系统，这是
+    比较底层的东西来实现的。然后内核自己创建好虚拟文件系统，并且从
+    虚拟文件系统的其他子目录中（例如/sbin 和 /etc加载需要在开机启动的
+    其他程序或者服务或者特定的动作（部分可以由用户自己在相应的目录中
+    修改相应的文件来配制。如果我们的机器中包含多个操作系统，那么可以
+    通过修改这个目录中的某个配置文件（例如grub.conf来调整启动的默认
+    操作系统，系统启动的择菜单，以及启动延迟等参数。
+### /sbin
+    超级用户可以使用的命令的存放目录。
+### /bin
+    普通用户可以使用的命令的存放目录。
+### /usr/lib/modules/5.11.0-44-generic/
+    kernel及驱动程序目录
+### /usr/src/
+    kernel源码目录结构，含源码头文件
+### Ubuntu中
+    bin -> usr/bin/
+    lib -> usr/lib/
+    lib32 -> usr/lib32/
+    lib64 -> usr/lib64/
+    libx32 -> usr/libx32/
+    sbin -> usr/sbin/
+## update centos kernel
+    1. 导入该源的秘钥
+        rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+    2. 启用该源仓库
+        rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
+    3. 查看有哪些内核版本可供安装
+        yum --disablerepo="*" --enablerepo="elrepo-kernel" list available
+    4. 安装的是主线版本
+        yum --enablerepo=elrepo-kernel install kernel-ml -y
+    5. 安装的长期稳定版本
+        yum --enablerepo=elrepo-kernel install kernel-lt -y
+    6. 设置 GRUB 默认的内核版本
+        打开并编辑 /etc/default/grub 并设置 GRUB_DEFAULT=0。
+        意思是 GRUB 初始化页面的第一个内核将作为默认内核。
+        GRUB_TIMEOUT=5 //可以设为0,这样就不会显示选择界面
+        GRUB_DISTRIBUTOR="$(sed 's, release .*$,,g' /etc/system-release)"
+        GRUB_DEFAULT=saved //这里的saved改为0即可，重启后，默认就是你上次所选的版本了。
+        GRUB_DISABLE_SUBMENU=true
+        GRUB_TERMINAL_OUTPUT="console"
+        GRUB_CMDLINE_LINUX="rhgb quiet"
+        GRUB_DISABLE_RECOVERY="true"
+    7. 执行命令：grub2-mkconfig -o /boot/grub2/grub.cfg
+    8. reboot

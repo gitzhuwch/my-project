@@ -199,6 +199,7 @@
     这时就需要在a = 1;之后，b = 1;之前加一个内存栅栏指令，
     保证a = 1;执行完成之后，再执行b = 1;
 # arm architecture
+    Advanced RISC Machines
 ## arm instruction sets
 ### bfi
     Bitfield Insert copies a bitfield of <width> bits from the least significant bits of the source register
@@ -1360,3 +1361,18 @@
     4. cmos反相器的输入端悬空时，pmos nmos都处于截止状态，输出端既不接vdd也不接gnd，输出高阻态。
     5. 数字电路中，低电平跟高阻态不是一个概念，低电平一般由负极提供，给电路提供负电荷的一端，
         低电平具有驱动能力，低电平作用在pmos的S极可以将pmos导通，高阻态就没有驱动能力，不能打开任何晶体管。
+## DFT
+### MBIST
+    memory built-in self-test
+    BIST是一种结构性DFT技术，它将器件的测试结构置于该器件内部
+### SRAM test
+    可以利用MBIST测试SRAM
+## CAM
+    CAM主要分为二进制内容可寻址(Binary Content Addressable Memory, BCAM)
+    和三进制内容可寻址(Ternary Content Addressable Memory, TCAM)。
+    通过对需要检索的数据与存储器内的数据进行比较匹配得到存储位置，
+    这样操作可以极大程度的减少待检索数据的搬移。
+### TCAM
+### BCAM
+## ATE
+    Automatic Test Equipment
